@@ -1,32 +1,70 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Alert,
+  ScrollView,
+} from 'react-native';
 
-export default function HomeScreen() {
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+
+import { RootStackParamList } from '../../App';
+
+import { globalStyles } from '../styles/globalStyles';
+
+import PrimaryButton from '../components/PrimaryButton';
+import Card from '../components/Card';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+
+export default function HomeScreen({ navigation }: Props) {
+  const [name, setName] = useState('');
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🚀 QuickBid funcionando</Text>
-      <Text style={styles.subtitle}>
-        Primera pantalla React Native
-      </Text>
-    </View>
+    <ScrollView style={globalStyles.container}>
+      <View style={globalStyles.centerContainer}>
+        <Text style={globalStyles.title}>
+          🚀 QuickBid
+        </Text>
+
+        <Text style={globalStyles.subtitle}>
+          Pantalla principal de prueba
+        </Text>
+
+        <TextInput
+          placeholder="Escribí algo..."
+          placeholderTextColor="#888"
+          style={globalStyles.input}
+          value={name}
+          onChangeText={setName}
+        />
+
+        <PrimaryButton
+          title="Mostrar Alert"
+          onPress={() => Alert.alert('Texto ingresado', name || 'Vacío')}
+        />
+
+        <PrimaryButton
+          title="Ir a Details"
+          onPress={() => navigation.navigate('Details')}
+        />
+
+        <Card
+          title="Card 1"
+          description="Esto es una card de prueba."
+        />
+
+        <Card
+          title="Card 2"
+          description="Ideal para probar UI rápido."
+        />
+
+        <Card
+          title="Card 3"
+          description="Después la reemplazás por datos reales."
+        />
+      </View>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#20232a',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    color: '#61dafb',
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  subtitle: {
-    color: 'white',
-    fontSize: 18,
-  },
-});
