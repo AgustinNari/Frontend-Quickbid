@@ -24,6 +24,12 @@ export default function HomeScreen({ navigation }: Props) {
   return (
     <ScrollView style={globalStyles.container}>
       <View style={globalStyles.centerContainer}>
+        <View style={{ backgroundColor: '#61dafb', padding: 16, borderRadius: 8, marginBottom: 16, width: '100%' }}>
+          <Text style={{ color: '#000', fontSize: 20, fontWeight: 'bold', textAlign: 'center' }}>
+            ✅ APP FUNCIONANDO
+          </Text>
+        </View>
+
         <Text style={globalStyles.title}>
           🚀 QuickBid
         </Text>
