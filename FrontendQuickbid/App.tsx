@@ -23,6 +23,7 @@ import UIShowcaseScreen from './src/screens/UIShowcaseScreen';
 import SubastasScreen from './src/screens/SubastasScreen';
 import SubastaDetailScreen from './src/screens/SubastaDetailScreen';
 import CatalogoSubastaScreen from './src/screens/CatalogoSubastaScreen';
+import ItemDetailScreen from './src/screens/ItemDetailScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -46,6 +47,7 @@ export type RootStackParamList = {
   Subastas: undefined;
   SubastaDetail: { id: string };
   CatalogoSubasta: { subastaId: string; titulo?: string };
+  ItemDetail: { itemId: string; subastaId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -80,6 +82,7 @@ export default function App() {
         <Stack.Screen name="Subastas" component={SubastasScreen} />
         <Stack.Screen name="SubastaDetail" component={SubastaDetailScreen} />
         <Stack.Screen name="CatalogoSubasta" component={CatalogoSubastaScreen} />
+        <Stack.Screen name="ItemDetail" component={ItemDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

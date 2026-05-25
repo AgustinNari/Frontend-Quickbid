@@ -27,6 +27,7 @@ import {
   letterSpacing,
 } from '../theme';
 import BottomNavBar, { NavTab } from '../components/BottomNavBar';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { ItemCatalogoCard } from '../components/ItemCatalogoCard';
 import { getMockCatalogo, getMockDetalle } from '../mocks/subastas';
 import { ItemCatalogo } from '../types/subasta';
@@ -73,15 +74,15 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
   const handleBack = () => navigation.goBack();
 
   const handleOpenItem = (item: ItemCatalogo) => {
-    Alert.alert(
-      `Lote ${item.lote}`,
-      'El detalle de ítem todavía no está implementado (tarea #12).',
-    );
+    navigation.navigate('ItemDetail', {
+      itemId: item.id,
+      subastaId: item.subastaId,
+    });
   };
 
   return (
     <SafeAreaView style={styles.safe}>
-      <CatalogoHeader onBack={handleBack} />
+      <ScreenHeader onBack={handleBack} />
 
       {loading ? (
         <Loader fullScreen label="Cargando catálogo..." />
@@ -91,7 +92,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
             <CatalogoTab label="Catálogo completo" active />
             <CatalogoTab
               label="Ver en puja actual"
-              disabled
+              comingSoon
               onPress={() =>
                 Alert.alert(
                   'Puja en vivo',
@@ -151,52 +152,37 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
 
 // ── Sub-componentes ────────────────────────────────────────────────────────
 
-function CatalogoHeader({ onBack }: { onBack: () => void }) {
-  return (
-    <View style={styles.header}>
-      <TouchableOpacity
-        onPress={onBack}
-        activeOpacity={0.7}
-        style={styles.backButton}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <Icon name="arrow-left" color={colors.primary} size={22} />
-      </TouchableOpacity>
-      <Typography variant="h2" primary>
-        QuickBid
-      </Typography>
-      <View style={styles.headerSpacer} />
-    </View>
-  );
-}
-
 function CatalogoTab({
   label,
   active = false,
-  disabled = false,
+  comingSoon = false,
   onPress,
 }: {
   label: string;
   active?: boolean;
-  disabled?: boolean;
+  /**
+   * Estilo "no disponible" pero el tap sigue funcionando si hay `onPress`
+   * (típicamente para Alert placeholder de tarea futura).
+   */
+  comingSoon?: boolean;
   onPress?: () => void;
 }) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      disabled={disabled && !onPress}
+      disabled={!onPress}
       activeOpacity={0.7}
       style={[
         styles.tab,
         active ? styles.tabActive : styles.tabIdle,
-        disabled ? styles.tabDisabled : null,
+        comingSoon ? styles.tabDisabled : null,
       ]}
     >
       <Typography
         style={[
           styles.tabLabel,
           active ? styles.tabLabelActive : styles.tabLabelIdle,
-          disabled ? styles.tabLabelDisabled : null,
+          comingSoon ? styles.tabLabelDisabled : null,
         ]}
       >
         {label}
@@ -211,25 +197,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingHorizontal,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderMuted,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerSpacer: {
-    width: 32,
   },
   tabs: {
     flexDirection: 'row',

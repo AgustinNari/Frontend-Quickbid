@@ -1,5 +1,6 @@
 import {
   ItemCatalogo,
+  ItemDetalle,
   SubastaDetalle,
   SubastaResumen,
 } from '../types/subasta';
@@ -23,7 +24,7 @@ export const MOCK_SUBASTAS: SubastaResumen[] = [
     fechaInicio: '2026-05-25T18:00:00Z',
     ubicacion: 'Grosvenor Square, Londres',
     rematador: 'Renata Centenario',
-    cantidadItems: 32,
+    cantidadItems: 10,
   },
   {
     id: 'sub_002',
@@ -35,7 +36,7 @@ export const MOCK_SUBASTAS: SubastaResumen[] = [
     fechaInicio: '2026-05-25T20:00:00Z',
     ubicacion: 'Madison Avenue, NYC',
     rematador: 'Carlo Demarchi',
-    cantidadItems: 18,
+    cantidadItems: 4,
   },
   {
     id: 'sub_003',
@@ -47,7 +48,7 @@ export const MOCK_SUBASTAS: SubastaResumen[] = [
     fechaInicio: '2026-05-25T19:30:00Z',
     ubicacion: 'Pebble Beach, California',
     rematador: 'Antoine Beaumont',
-    cantidadItems: 24,
+    cantidadItems: 5,
   },
   {
     id: 'sub_004',
@@ -393,4 +394,62 @@ export const MOCK_CATALOGO: Record<string, ItemCatalogo[]> = {
  */
 export function getMockCatalogo(subastaId: string): ItemCatalogo[] {
   return MOCK_CATALOGO[subastaId] ?? [];
+}
+
+// ── Detalle por item ────────────────────────────────────────────────────────
+//
+// Tarea #12: detalle de ítem. Mockeamos algunos lotes representativos (uno
+// vendido, uno en vivo, uno pendiente, uno de cada subasta principal). El
+// resto cae al fallback `getMockItemDetalle` que devuelve sólo lo que ya
+// está en el listado del catálogo.
+
+export const MOCK_ITEM_DETALLE: Record<string, ItemDetalle> = {
+  lot_001: {
+    ...MOCK_CATALOGO['sub_001'][0],
+    descripcion:
+      'Obra contemporánea en técnica mixta sobre lienzo. Pieza única firmada por la artista, parte de la serie "Fragmentos de Eternidad" exhibida en la Bienal de São Paulo 2024.',
+    procedencia: 'Colección privada, Buenos Aires',
+    dimensiones: '120 x 90 cm',
+    condicion: 'Excelente',
+  },
+  lot_003: {
+    ...MOCK_CATALOGO['sub_001'][2],
+    descripcion:
+      'Escultura en bronce patinado de la serie "Vive". Adjudicada en vivo durante la jornada actual.',
+    procedencia: 'Taller del artista',
+    dimensiones: '45 x 30 x 25 cm',
+    condicion: 'Excelente',
+  },
+  lot_201: {
+    ...MOCK_CATALOGO['sub_002'][0],
+    descripcion:
+      'Collar Art Deco circa 1930 con esmeraldas colombianas talla cabochon montadas sobre platino. Incluye certificado de autenticidad de Van Cleef & Arpels Heritage.',
+    procedencia: 'Colección privada europea',
+    condicion: 'Excelente, restauración menor del cierre',
+  },
+  lot_301: {
+    ...MOCK_CATALOGO['sub_003'][0],
+    descripcion:
+      'Porsche 911 Carrera GTS 1972 restaurado al detalle. Matching numbers verificado. Documentación completa de origen y mantenimientos.',
+    procedencia: 'Colección privada, Pebble Beach',
+    condicion: 'Concours-ready',
+  },
+};
+
+/**
+ * Devuelve el detalle de un ítem buscando primero en `MOCK_ITEM_DETALLE` y
+ * cayendo al `ItemCatalogo` del listado si no hay un detalle explícito.
+ *
+ * Cuando el backend exponga `GET /api/subastas/{subastaId}/catalogo/{itemId}`
+ * este helper desaparece y se reemplaza por la query real.
+ */
+export function getMockItemDetalle(itemId: string): ItemDetalle | null {
+  const explicit = MOCK_ITEM_DETALLE[itemId];
+  if (explicit) return explicit;
+
+  for (const items of Object.values(MOCK_CATALOGO)) {
+    const found = items.find((i) => i.id === itemId);
+    if (found) return { ...found };
+  }
+  return null;
 }

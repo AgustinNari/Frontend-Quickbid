@@ -105,7 +105,7 @@ export function SubastaCardCompact({ subasta, onPress, style }: Props) {
 
   return (
     <Card
-      onPress={onPress as any}
+      onPress={onPress}
       variant="flat"
       padding="none"
       style={[styles.cardCompact, style]}

@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -30,6 +29,7 @@ import {
   letterSpacing,
 } from '../theme';
 import BottomNavBar, { NavTab } from '../components/BottomNavBar';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { SubastaInfoRow } from '../components/SubastaInfoRow';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
 import { getMockDetalle } from '../mocks/subastas';
@@ -101,7 +101,7 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <DetailHeader onBack={handleBack} />
+      <ScreenHeader onBack={handleBack} />
 
       {loading ? (
         <Loader fullScreen label="Cargando detalle..." />
@@ -217,13 +217,23 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
             >
               Entrar al catálogo
             </Button>
-            <Button
-              variant="secondary"
-              onPress={handleInscribirme}
-              style={styles.secondaryButton}
-            >
-              {detalle.inscripto ? 'Ya estás inscripto' : 'Inscribirme'}
-            </Button>
+            {detalle.inscripto ? (
+              <Button
+                variant="secondary"
+                disabled
+                style={styles.secondaryButton}
+              >
+                Ya estás inscripto
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                onPress={handleInscribirme}
+                style={styles.secondaryButton}
+              >
+                Inscribirme
+              </Button>
+            )}
           </View>
         </>
       )}
@@ -234,25 +244,6 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
 }
 
 // ── Sub-componentes ────────────────────────────────────────────────────────
-
-function DetailHeader({ onBack }: { onBack: () => void }) {
-  return (
-    <View style={styles.header}>
-      <TouchableOpacity
-        onPress={onBack}
-        activeOpacity={0.7}
-        style={styles.backButton}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <Icon name="arrow-left" color={colors.primary} size={22} />
-      </TouchableOpacity>
-      <Typography variant="h2" primary>
-        QuickBid
-      </Typography>
-      <View style={styles.headerSpacer} />
-    </View>
-  );
-}
 
 function Hero({ detalle }: { detalle: SubastaDetalle }) {
   const theme = SEGMENTO_THEME[detalle.segmento];
@@ -342,25 +333,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingHorizontal,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderMuted,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerSpacer: {
-    width: 32,
   },
   scroll: {
     paddingBottom: spacing['2xl'],

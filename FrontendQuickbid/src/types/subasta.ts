@@ -116,6 +116,20 @@ export type ItemCatalogo = {
 };
 
 /**
+ * Detalle completo de un ítem (lote).
+ *
+ * Shape de `GET /api/subastas/{subastaId}/catalogo/{itemId}`. Hereda los
+ * campos del listado y suma descripción, procedencia, dimensiones y
+ * condición física para la pantalla de detalle (tarea #12).
+ */
+export type ItemDetalle = ItemCatalogo & {
+  descripcion?: string;
+  procedencia?: string;
+  dimensiones?: string;
+  condicion?: string;
+};
+
+/**
  * Filtros disponibles para `GET /api/subastas`.
  * Cualquier campo opcional ausente equivale a "sin filtro".
  */

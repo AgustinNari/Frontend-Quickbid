@@ -6,7 +6,6 @@ import {
   StyleProp,
   ViewStyle,
   ViewProps,
-  TouchableOpacityProps,
 } from 'react-native';
 import { colors, radius, spacing, shadow } from '../theme';
 
@@ -44,12 +43,27 @@ type CommonProps = {
   children?: React.ReactNode;
 };
 
-type CardStaticProps = ViewProps & CommonProps;
-type CardPressableProps = TouchableOpacityProps & CommonProps & { onPress: () => void };
+type CardProps = CommonProps & {
+  /**
+   * Si se pasa, la card se renderiza como `TouchableOpacity` y queda tappeable.
+   * Si se omite (o es `undefined`), se renderiza como `View` estática.
+   */
+  onPress?: () => void;
+  testID?: string;
+  accessibilityLabel?: string;
+  pointerEvents?: ViewProps['pointerEvents'];
+};
 
-export function Card(props: CardStaticProps | CardPressableProps) {
-  const { variant = 'flat', padding = 'md', style, children, ...rest } = props;
-
+export function Card({
+  variant = 'flat',
+  padding = 'md',
+  style,
+  children,
+  onPress,
+  testID,
+  accessibilityLabel,
+  pointerEvents,
+}: CardProps) {
   const finalStyle = [
     styles.base,
     variantStyles[variant],
@@ -57,16 +71,27 @@ export function Card(props: CardStaticProps | CardPressableProps) {
     style,
   ];
 
-  if ('onPress' in props && props.onPress) {
+  if (onPress) {
     return (
-      <TouchableOpacity activeOpacity={0.7} {...(rest as TouchableOpacityProps)} style={finalStyle}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={onPress}
+        testID={testID}
+        accessibilityLabel={accessibilityLabel}
+        style={finalStyle}
+      >
         {children}
       </TouchableOpacity>
     );
   }
 
   return (
-    <View {...(rest as ViewProps)} style={finalStyle}>
+    <View
+      testID={testID}
+      accessibilityLabel={accessibilityLabel}
+      pointerEvents={pointerEvents}
+      style={finalStyle}
+    >
       {children}
     </View>
   );
