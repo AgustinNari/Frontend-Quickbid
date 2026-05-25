@@ -1,32 +1,31 @@
 import React from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-import { Card, Typography, Badge, Icon, IconName } from '../ui';
-import { colors, spacing, radius, fontSize, fontWeight } from '../theme';
+import { Card, Typography, Badge, Button, Icon, IconName } from '../ui';
+import { colors, spacing, radius, fontSize, fontWeight, letterSpacing } from '../theme';
 import {
   SubastaResumen,
   SubastaSegmento,
   SEGMENTO_LABEL,
   CATEGORIA_LABEL,
-  ESTADO_LABEL,
 } from '../types/subasta';
 
 /**
- * Tarjeta para representar una subasta en el listado.
+ * Tarjeta GRANDE para subastas activas — usada en carrusel horizontal.
  *
- * Layout:
+ * Layout (alineado al Figma):
  *   ┌─────────────────────────────────┐
- *   │  [hero color + icon]            │
- *   │      [estado]      [categoría]  │
+ *   │  [imagen grande del producto]   │
+ *   │  [● ACTIVA]            [MONEDA] │
  *   ├─────────────────────────────────┤
- *   │  Título                         │
- *   │  por Rematador                  │
- *   │  [segmento] [moneda]            │
- *   │  📍 Ubicación                   │
- *   │  🕐 Inicia el ... (si próxima)  │
- *   │  🧾 N lotes                     │
+ *   │  SEGMENTO                       │
+ *   │  Categoría: X                   │
+ *   │  Título grande                  │
+ *   │  🏛 Rematador                   │
+ *   │  [    Entrar →    ]             │
  *   └─────────────────────────────────┘
  *
- * Si se pasa `onPress`, la card es tappeable.
+ * Como todavía no hay imágenes reales del backend, usamos un placeholder
+ * tematizado por segmento (color soft de fondo + icono grande).
  */
 
 type Props = {
@@ -37,79 +36,126 @@ type Props = {
 
 export function SubastaCard({ subasta, onPress, style }: Props) {
   const segmentoTheme = SEGMENTO_THEME[subasta.segmento];
-  const isActiva = subasta.estado === 'activa';
-  const isFutura = subasta.estado === 'proxima';
 
   return (
     <Card
-      onPress={onPress as any}
       variant="elevated"
       padding="none"
       style={[styles.card, style]}
     >
-      {/* Hero */}
-      <View style={[styles.hero, { backgroundColor: segmentoTheme.bg }]}>
-        <Icon name={segmentoTheme.icon} size={56} color={segmentoTheme.fg} />
+      {/* Placeholder de imagen (mientras no haya foto real) */}
+      <View style={[styles.imageArea, { backgroundColor: segmentoTheme.bg }]}>
+        <Icon name={segmentoTheme.icon} size={72} color={segmentoTheme.fg} />
 
-        {/* Badges sobre el hero */}
-        <View style={styles.heroTopRow}>
-          <Badge tone={isActiva ? 'danger' : isFutura ? 'info' : 'neutral'}>
-            {isActiva ? '● EN VIVO' : ESTADO_LABEL[subasta.estado]}
-          </Badge>
-          <Badge tone="neutral" variant="soft">
-            {CATEGORIA_LABEL[subasta.categoria]}
-          </Badge>
+        {/* Badge "ACTIVA" top-left */}
+        <View style={styles.imageTopLeft}>
+          <Badge tone="primary">{`● ${subasta.estado === 'activa' ? 'ACTIVA' : subasta.estado.toUpperCase()}`}</Badge>
+        </View>
+
+        {/* Badge de moneda bottom-right */}
+        <View style={styles.imageBottomRight}>
+          <View style={styles.currencyBadge}>
+            <Typography style={styles.currencyText}>{subasta.moneda}</Typography>
+          </View>
         </View>
       </View>
 
       {/* Body */}
       <View style={styles.body}>
-        <Typography variant="h3" numberOfLines={2}>
+        <Typography style={styles.segmentoLabel}>
+          {SEGMENTO_LABEL[subasta.segmento].toUpperCase()}
+        </Typography>
+        <Typography variant="caption" muted style={styles.categoria}>
+          Categoría: {CATEGORIA_LABEL[subasta.categoria]}
+        </Typography>
+
+        <Typography variant="h3" numberOfLines={2} style={styles.titulo}>
           {subasta.titulo}
         </Typography>
-        <Typography variant="caption" muted style={styles.author}>
-          por {subasta.rematador}
-        </Typography>
-
-        <View style={styles.chipRow}>
-          <View style={styles.chip}>
-            <Typography style={styles.chipText}>
-              {SEGMENTO_LABEL[subasta.segmento]}
-            </Typography>
-          </View>
-          <View style={styles.chip}>
-            <Typography style={styles.chipText}>{subasta.moneda}</Typography>
-          </View>
-          {subasta.cantidadItems != null ? (
-            <View style={styles.chip}>
-              <Typography style={styles.chipText}>
-                {subasta.cantidadItems} lotes
-              </Typography>
-            </View>
-          ) : null}
-        </View>
 
         <View style={styles.metaRow}>
-          <Icon name="search" size={14} color={colors.textMuted} />
-          <Typography variant="caption" muted style={styles.metaText} numberOfLines={1}>
-            {subasta.ubicacion}
+          <Icon name="bank" size={14} color={colors.textMuted} />
+          <Typography variant="caption" muted numberOfLines={1} style={styles.metaText}>
+            {subasta.rematador}
           </Typography>
         </View>
 
-        {isFutura ? (
-          <View style={styles.metaRow}>
-            <Icon name="clock" size={14} color={colors.textMuted} />
-            <Typography variant="caption" muted style={styles.metaText}>
-              Inicia {formatFecha(subasta.fechaInicio)}
-            </Typography>
-          </View>
-        ) : null}
+        <Button onPress={onPress} rightIcon={<Icon name="arrow-right" color={colors.textInverse} size={18} />}>
+          Entrar
+        </Button>
       </View>
     </Card>
   );
 }
 
-// ── Mapeo segmento → tema visual del hero ────────────────────────────────────
+/**
+ * Tarjeta COMPACTA horizontal — usada en lista de subastas próximas.
+ *
+ * Layout (alineado al Figma):
+ *   ┌──────┬───────────────────────────────┐
+ *   │      │ [PRÓXIMA]  Segmento: X        │
+ *   │ IMG  │ Título                        │
+ *   │ [$$] │ 📅 Fecha                      │
+ *   │      │ 📍 Ubicación                  │
+ *   │      │ Categoría: X                  │
+ *   └──────┴───────────────────────────────┘
+ */
+export function SubastaCardCompact({ subasta, onPress, style }: Props) {
+  const segmentoTheme = SEGMENTO_THEME[subasta.segmento];
+
+  return (
+    <Card
+      onPress={onPress as any}
+      variant="flat"
+      padding="none"
+      style={[styles.cardCompact, style]}
+    >
+      {/* Imagen cuadrada izquierda */}
+      <View style={[styles.compactImage, { backgroundColor: segmentoTheme.bg }]}>
+        <Icon name={segmentoTheme.icon} size={36} color={segmentoTheme.fg} />
+        <View style={styles.compactCurrencyWrap}>
+          <View style={styles.currencyBadgeSmall}>
+            <Typography style={styles.currencyTextSmall}>{subasta.moneda}</Typography>
+          </View>
+        </View>
+      </View>
+
+      {/* Body derecho */}
+      <View style={styles.compactBody}>
+        <View style={styles.compactHeaderRow}>
+          <Badge tone="info">PRÓXIMA</Badge>
+          <Typography variant="caption" muted style={styles.compactSegmento} numberOfLines={1}>
+            Segmento: {SEGMENTO_LABEL[subasta.segmento]}
+          </Typography>
+        </View>
+
+        <Typography variant="h3" numberOfLines={2} style={styles.compactTitulo}>
+          {subasta.titulo}
+        </Typography>
+
+        <View style={styles.metaRow}>
+          <Icon name="calendar" size={14} color={colors.textMuted} />
+          <Typography variant="caption" muted style={styles.metaText}>
+            {formatFecha(subasta.fechaInicio)}
+          </Typography>
+        </View>
+
+        <View style={styles.metaRow}>
+          <Icon name="search" size={14} color={colors.textMuted} />
+          <Typography variant="caption" muted numberOfLines={1} style={styles.metaText}>
+            {subasta.ubicacion}
+          </Typography>
+        </View>
+
+        <Typography variant="caption" muted>
+          Categoría: {CATEGORIA_LABEL[subasta.categoria]}
+        </Typography>
+      </View>
+    </Card>
+  );
+}
+
+// ── Mapeo segmento → tema visual del placeholder ─────────────────────────────
 
 type SegmentoTheme = { bg: string; fg: string; icon: IconName };
 
@@ -128,65 +174,124 @@ const SEGMENTO_THEME: Record<SubastaSegmento, SegmentoTheme> = {
 function formatFecha(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  const dia = String(d.getDate()).padStart(2, '0');
-  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const dia = d.getDate();
+  const mes = meses[d.getMonth()];
   const hora = String(d.getHours()).padStart(2, '0');
   const min = String(d.getMinutes()).padStart(2, '0');
-  return `${dia}/${mes} a las ${hora}:${min}`;
+  return `${dia} ${mes} - ${hora}:${min}`;
 }
 
 // ── Estilos ──────────────────────────────────────────────────────────────────
 
+const CARD_WIDTH = 280;
+
 const styles = StyleSheet.create({
+  // ── Card grande (activa) ──
   card: {
+    width: CARD_WIDTH,
     overflow: 'hidden',
   },
-  hero: {
-    height: 140,
+  imageArea: {
+    height: 180,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroTopRow: {
+  imageTopLeft: {
     position: 'absolute',
     top: spacing.md,
     left: spacing.md,
+  },
+  imageBottomRight: {
+    position: 'absolute',
+    bottom: spacing.md,
     right: spacing.md,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
   },
-  body: {
-    padding: spacing.base,
-    gap: spacing.xs,
-  },
-  author: {
-    marginBottom: spacing.sm,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-    marginBottom: spacing.xs,
-  },
-  chip: {
-    backgroundColor: colors.surfaceMuted,
+  currencyBadge: {
+    backgroundColor: colors.surface,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    paddingVertical: 4,
     borderWidth: 1,
     borderColor: colors.borderMuted,
   },
-  chipText: {
+  currencyText: {
     fontSize: fontSize.xs,
+    fontWeight: fontWeight.bold,
+    color: colors.text,
+    letterSpacing: letterSpacing.wider,
+  },
+  body: {
+    padding: spacing.base,
+    gap: 2,
+  },
+  segmentoLabel: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.bold,
     color: colors.textMuted,
-    fontWeight: fontWeight.medium,
+    letterSpacing: letterSpacing.wider,
+  },
+  categoria: {
+    marginBottom: spacing.xs,
+  },
+  titulo: {
+    marginBottom: spacing.sm,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs + 2,
-    marginTop: 2,
+    marginBottom: spacing.sm,
   },
   metaText: {
     flexShrink: 1,
+  },
+
+  // ── Card compacta (próxima) ──
+  cardCompact: {
+    flexDirection: 'row',
+    overflow: 'hidden',
+    minHeight: 140,
+  },
+  compactImage: {
+    width: 110,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compactCurrencyWrap: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    left: spacing.sm,
+  },
+  currencyBadgeSmall: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xs,
+    paddingHorizontal: spacing.xs + 2,
+    paddingVertical: 1,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+  },
+  currencyTextSmall: {
+    fontSize: 9,
+    fontWeight: fontWeight.bold,
+    color: colors.text,
+    letterSpacing: letterSpacing.wider,
+  },
+  compactBody: {
+    flex: 1,
+    padding: spacing.md,
+    gap: 4,
+  },
+  compactHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: 2,
+  },
+  compactSegmento: {
+    flexShrink: 1,
+  },
+  compactTitulo: {
+    marginBottom: spacing.xs,
   },
 });
