@@ -9,12 +9,9 @@ import {
   fontWeight,
   letterSpacing,
 } from '../theme';
-import {
-  ItemCatalogo,
-  ITEM_ESTADO_LABEL,
-  SubastaMoneda,
-} from '../types/subasta';
+import { ItemCatalogo, ITEM_ESTADO_LABEL } from '../types/subasta';
 import { SEGMENTO_THEME } from './SubastaCard';
+import { formatPrecio } from '../utils/format';
 
 /**
  * Card horizontal de un ítem del catálogo de una subasta (tarea #11).
@@ -54,7 +51,7 @@ export function ItemCatalogoCard({
 
   return (
     <Card
-      onPress={onPress as any}
+      onPress={onPress}
       variant="flat"
       padding="none"
       style={[styles.card, style]}
@@ -107,13 +104,6 @@ const ESTADO_TONE: Record<ItemCatalogo['estado'], EstadoBadge> = {
   vendido: { tone: 'success', variant: 'soft' },
   no_vendido: { tone: 'neutral', variant: 'soft' },
 };
-
-function formatPrecio(monto: number, moneda: SubastaMoneda): string {
-  const formatted = new Intl.NumberFormat('es-AR', {
-    maximumFractionDigits: 0,
-  }).format(monto);
-  return `${moneda} ${formatted}`;
-}
 
 // ── Estilos ─────────────────────────────────────────────────────────────────
 
