@@ -20,6 +20,7 @@ import CuentaBancariaScreen from './src/screens/CuentaBancariaScreen';
 import ChequeCertificadoScreen from './src/screens/ChequeCertificadoScreen';
 import ValidandoPagoScreen from './src/screens/ValidandoPagoScreen';
 import UIShowcaseScreen from './src/screens/UIShowcaseScreen';
+import SubastasScreen from './src/screens/SubastasScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -40,6 +41,7 @@ export type RootStackParamList = {
   Home: undefined;
   Details: undefined;
   UIShowcase: undefined;
+  Subastas: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -71,6 +73,7 @@ export default function App() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Details" component={DetailsScreen} />
         <Stack.Screen name="UIShowcase" component={UIShowcaseScreen} />
+        <Stack.Screen name="Subastas" component={SubastasScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
