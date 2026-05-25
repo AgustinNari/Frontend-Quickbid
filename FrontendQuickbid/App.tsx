@@ -19,6 +19,7 @@ import NuevaTarjetaScreen from './src/screens/NuevaTarjetaScreen';
 import CuentaBancariaScreen from './src/screens/CuentaBancariaScreen';
 import ChequeCertificadoScreen from './src/screens/ChequeCertificadoScreen';
 import ValidandoPagoScreen from './src/screens/ValidandoPagoScreen';
+import UIShowcaseScreen from './src/screens/UIShowcaseScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -38,6 +39,7 @@ export type RootStackParamList = {
   ValidandoPago: undefined;
   Home: undefined;
   Details: undefined;
+  UIShowcase: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -68,6 +70,7 @@ export default function App() {
         <Stack.Screen name="RecuperacionCuenta" component={RecuperacionCuentaScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Details" component={DetailsScreen} />
+        <Stack.Screen name="UIShowcase" component={UIShowcaseScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
