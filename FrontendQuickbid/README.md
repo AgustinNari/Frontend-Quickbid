@@ -1,97 +1,188 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# FrontendQuickbid
 
-# Getting Started
+App móvil del proyecto académico **QuickBid**, desarrollada en React Native con TypeScript.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## Requisitos previos
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+Asegurate de tener instalado lo siguiente antes de continuar:
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+| Herramienta | Versión mínima | Cómo verificar |
+|---|---|---|
+| Node.js | 22.11.0 | `node --version` |
+| Java JDK | 17 o 21 | `java -version` |
+| Android Studio | Cualquier versión reciente | — |
+| Git | Cualquier versión | `git --version` |
 
-```sh
-# Using npm
-npm start
+> **Guía oficial de entorno:** https://reactnative.dev/docs/set-up-your-environment
 
-# OR using Yarn
-yarn start
+---
+
+## Configuración de Android
+
+### 1. Instalar el SDK de Android
+
+Desde **Android Studio → SDK Manager**, asegurate de tener instalado:
+
+- **SDK Platform:** Android 14 (API 33) o superior
+- **SDK Tools:** Android SDK Build-Tools, NDK (Side by side), CMake
+
+### 2. Configurar variables de entorno
+
+#### Windows
+
+Agregá las siguientes variables de entorno del sistema (buscá "Variables de entorno" en el menú inicio):
+
+```
+ANDROID_HOME = C:\Users\<tu-usuario>\AppData\Local\Android\Sdk
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+Y agregá al `PATH`:
+```
+%ANDROID_HOME%\platform-tools
+%ANDROID_HOME%\emulator
 ```
 
-### iOS
+#### macOS / Linux
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+Agregá al final de tu `~/.zshrc` o `~/.bashrc`:
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+```bash
+export ANDROID_HOME=$HOME/Library/Android/sdk        # macOS
+# export ANDROID_HOME=$HOME/Android/Sdk              # Linux
 
-```sh
-bundle install
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+export PATH=$PATH:$ANDROID_HOME/emulator
 ```
 
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
+Luego recargá el archivo:
+```bash
+source ~/.zshrc
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+---
 
-```sh
-# Using npm
-npm run ios
+## Instalación del proyecto
 
-# OR using Yarn
-yarn ios
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/AgustinNari/FE-DAI.git
+cd FE-DAI/FrontendQuickbid
+
+# 2. Instalar dependencias
+npm install
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+---
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Levantar la app
 
-## Step 3: Modify your app
+### Opción A — Dispositivo físico (recomendado)
 
-Now that you have successfully run the app, let's make changes!
+1. Activá **Opciones de desarrollador** en tu celular:
+   - Ir a `Ajustes → Acerca del teléfono → Número de compilación` y tocalo 7 veces
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+2. Activá **Depuración USB** dentro de Opciones de desarrollador
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+3. Conectá el celular por USB a la PC
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+4. Verificá que el dispositivo sea reconocido:
+   ```bash
+   adb devices
+   # Debe mostrar tu dispositivo como "device" (no "unauthorized")
+   ```
 
-## Congratulations! :tada:
+5. En una terminal, iniciá el bundler de Metro:
+   ```bash
+   npm start
+   ```
 
-You've successfully run and modified your React Native App. :partying_face:
+6. En otra terminal, instalá y lanzá la app:
 
-### Now what?
+   **macOS / Linux:**
+   ```bash
+   npm run android
+   ```
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+   **Windows:**
+   ```bash
+   cd android && .\gradlew.bat app:installDebug -PreactNativeDevServerPort=8081
+   ```
+   Luego abrí la app en el celular. Si muestra un error de conexión, ejecutá:
+   ```bash
+   adb reverse tcp:8081 tcp:8081
+   ```
 
-# Troubleshooting
+### Opción B — Emulador de Android Studio
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+1. Abrí Android Studio → `Tools → Device Manager`
+2. Creá un Virtual Device: `+ → Create Virtual Device → Pixel 6 → API 33 → Finish`
+3. Iniciá el emulador
+4. En una terminal, ejecutá:
+   ```bash
+   npm start
+   ```
+5. En otra terminal:
+   ```bash
+   npm run android
+   ```
 
-# Learn More
+---
 
-To learn more about React Native, take a look at the following resources:
+## Estructura del proyecto
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+```
+FrontendQuickbid/
+├── src/
+│   ├── components/
+│   │   ├── Card.tsx          # Tarjeta reutilizable
+│   │   └── PrimaryButton.tsx # Botón principal reutilizable
+│   ├── screens/
+│   │   ├── HomeScreen.tsx    # Pantalla principal
+│   │   └── DetailsScreen.tsx # Pantalla de detalle
+│   └── styles/
+│       └── globalStyles.ts   # Estilos globales compartidos
+├── App.tsx                   # Punto de entrada y navegación
+└── index.js                  # Registro de la app
+```
+
+---
+
+## Problemas frecuentes
+
+### "adb no se reconoce como comando"
+Las variables de entorno no están configuradas o no se recargaron. Reiniciá la terminal luego de configurar `ANDROID_HOME`.
+
+### Error de conexión en dispositivo físico (Unable to load script)
+El celular no puede llegar al bundler de Metro. Ejecutá:
+```bash
+adb reverse tcp:8081 tcp:8081
+```
+Y luego recargá la app sacudiendo el celular → **Reload**.
+
+### Windows: "gradlew.bat no se reconoce"
+Usá el script alternativo desde la carpeta `android/`:
+```bash
+cd android && .\gradlew.bat app:installDebug -PreactNativeDevServerPort=8081
+```
+
+### Windows: El build crashea (Gradle daemon disappeared)
+Puede ser un problema de memoria virtual o interferencia de Windows Defender. Soluciones:
+1. Agregá exclusiones en Windows Defender para las carpetas `android/`, el SDK de Android y `~/.gradle`
+2. El proyecto ya tiene `org.gradle.daemon=false` configurado para mitigar esto
+
+### Build muy lento
+El proyecto compila solo para `arm64-v8a` (dispositivos físicos) y `x86_64` (emuladores). Si el primer build tarda, es normal — descarga el NDK y otras dependencias automáticamente. Los builds siguientes son mucho más rápidos.
+
+---
+
+## Scripts disponibles
+
+| Comando | Descripción |
+|---|---|
+| `npm start` | Inicia el bundler de Metro |
+| `npm run android` | Compila e instala en Android (macOS/Linux) |
+| `npm run android:win` | Compila e instala en Android (Windows) |
+| `npm run lint` | Corre el linter |
+| `npm test` | Corre los tests |
