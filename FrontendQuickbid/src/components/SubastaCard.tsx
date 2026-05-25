@@ -157,9 +157,14 @@ export function SubastaCardCompact({ subasta, onPress, style }: Props) {
 
 // ── Mapeo segmento → tema visual del placeholder ─────────────────────────────
 
-type SegmentoTheme = { bg: string; fg: string; icon: IconName };
+export type SegmentoTheme = { bg: string; fg: string; icon: IconName };
 
-const SEGMENTO_THEME: Record<SubastaSegmento, SegmentoTheme> = {
+/**
+ * Tema visual por segmento usado cuando no hay imagen real del item/subasta.
+ * Exportado para que otros componentes (ItemCatalogoCard, SubastaDetailScreen)
+ * mantengan la misma identidad visual por segmento.
+ */
+export const SEGMENTO_THEME: Record<SubastaSegmento, SegmentoTheme> = {
   arte: { bg: '#F5E6F8', fg: '#9333EA', icon: 'image' },
   joyas: { bg: colors.warningSoft, fg: colors.warning, icon: 'star' },
   vehiculos: { bg: colors.infoSoft, fg: colors.info, icon: 'check-doc' },

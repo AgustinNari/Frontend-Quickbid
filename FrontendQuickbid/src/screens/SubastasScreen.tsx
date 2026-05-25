@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, SafeAreaView, ScrollView, FlatList, StyleSheet, Alert } from 'react-native';
+import { View, SafeAreaView, ScrollView, FlatList, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import {
@@ -84,7 +84,7 @@ export default function SubastasScreen({ navigation }: Props) {
   const isEmpty = filtered.length === 0;
 
   const handleOpenSubasta = (s: SubastaResumen) => {
-    Alert.alert(s.titulo, 'El detalle de la subasta todavía no está implementado (tarea #11).');
+    navigation.navigate('SubastaDetail', { id: s.id });
   };
 
   return (
