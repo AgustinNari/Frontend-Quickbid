@@ -1,51 +1,57 @@
 import React, { useMemo, useState } from 'react';
-import { View, SafeAreaView, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, SafeAreaView, ScrollView, FlatList, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import {
   Heading,
   Body,
-  Caption,
   Typography,
-  TextField,
   Icon,
   EmptyState,
-  ScreenContainer,
+  Loader,
 } from '../ui';
-import { colors, spacing, layout } from '../theme';
+import { colors, spacing, layout, radius, fontSize, fontWeight } from '../theme';
 import BottomNavBar, { NavTab } from '../components/BottomNavBar';
-import { SubastaCard } from '../components/SubastaCard';
+import { SubastaCard, SubastaCardCompact } from '../components/SubastaCard';
 import { FilterChips, FilterOption } from '../components/FilterChips';
 import { MOCK_SUBASTAS } from '../mocks/subastas';
-import { SubastaSegmento, SEGMENTO_LABEL, SubastaResumen } from '../types/subasta';
+import {
+  SubastaSegmento,
+  SubastaCategoria,
+  SubastaMoneda,
+  SEGMENTO_LABEL,
+  CATEGORIA_LABEL,
+  SubastaResumen,
+} from '../types/subasta';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Subastas'>;
 
 /**
  * Pantalla principal de subastas (tarea #10 del Trello).
  *
- * Muestra:
- *  - Header con brand y subtítulo.
- *  - Buscador (filtra por título y rematador).
- *  - Chips de segmento (Todos / Arte / Joyas / ...).
- *  - Sección "Activas" (subastas en vivo).
- *  - Sección "Próximas".
- *  - EmptyState si el filtro deja la lista vacía.
- *  - BottomNavBar pegado al fondo.
+ * Alineada al Figma (frame "Subastas Activas", 178:1469):
+ *  - Header con brand QuickBid.
+ *  - Sección "Subastas Activas":
+ *      • Título + toggle de moneda (Todas / ARS / USD) a la derecha.
+ *      • Carrusel horizontal con cards grandes (imagen + body + botón Entrar).
+ *  - Filtros de segmento (Todo, Joyas, Arte, Vehículos, ...).
+ *  - Filtros de categoría (Todo, Plata, Oro, Platino, ...).
+ *  - Sección "Próximas Subastas" con cards horizontales compactas.
+ *  - BottomNavBar al fondo con tab "subastas" activo.
  *
- * Datos: mockeados desde `src/mocks/subastas.ts`. Cuando el endpoint
- * `GET /api/subastas` esté listo, reemplazar `MOCK_SUBASTAS` por
- * una llamada con TanStack Query.
+ * Cuando el endpoint GET /api/subastas esté listo, reemplazar MOCK_SUBASTAS
+ * por una llamada con TanStack Query y los filtros van como query params.
  */
 export default function SubastasScreen({ navigation }: Props) {
-  const [query, setQuery] = useState('');
   const [segmento, setSegmento] = useState<SubastaSegmento | null>(null);
+  const [categoria, setCategoria] = useState<SubastaCategoria | null>(null);
+  const [moneda, setMoneda] = useState<SubastaMoneda | null>(null);
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
 
-  // Opciones de filtro derivadas de los segmentos disponibles.
+  // Opciones de filtros
   const segmentoOptions = useMemo<FilterOption<SubastaSegmento>[]>(
     () => [
-      { value: null, label: 'Todas' },
+      { value: null, label: 'Todo' },
       ...(Object.entries(SEGMENTO_LABEL) as [SubastaSegmento, string][]).map(
         ([value, label]) => ({ value, label }),
       ),
@@ -53,26 +59,32 @@ export default function SubastasScreen({ navigation }: Props) {
     [],
   );
 
-  // Filtrado cliente-side (mientras no haya backend).
+  const categoriaOptions = useMemo<FilterOption<SubastaCategoria>[]>(
+    () => [
+      { value: null, label: 'Todo' },
+      ...(Object.entries(CATEGORIA_LABEL) as [SubastaCategoria, string][]).map(
+        ([value, label]) => ({ value, label }),
+      ),
+    ],
+    [],
+  );
+
+  // Filtrado client-side
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
     return MOCK_SUBASTAS.filter((s) => {
       if (segmento && s.segmento !== segmento) return false;
-      if (q) {
-        const haystack = `${s.titulo} ${s.rematador} ${s.ubicacion}`.toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
+      if (categoria && s.categoria !== categoria) return false;
+      if (moneda && s.moneda !== moneda) return false;
       return true;
     });
-  }, [query, segmento]);
+  }, [segmento, categoria, moneda]);
 
   const activas = filtered.filter((s) => s.estado === 'activa');
   const proximas = filtered.filter((s) => s.estado === 'proxima');
   const isEmpty = filtered.length === 0;
 
   const handleOpenSubasta = (s: SubastaResumen) => {
-    // Cuando esté hecha la pantalla de detalle (tarea #11) navegamos a ella.
-    Alert.alert(s.titulo, 'El detalle de la subasta todavía no está implementado.');
+    Alert.alert(s.titulo, 'El detalle de la subasta todavía no está implementado (tarea #11).');
   };
 
   return (
@@ -82,92 +94,103 @@ export default function SubastasScreen({ navigation }: Props) {
         <Typography variant="h2" primary>
           QuickBid
         </Typography>
-        <Icon name="bell" size={22} color={colors.textMuted} />
       </View>
 
       <ScrollView
         contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.intro}>
-          <Heading>Subastas</Heading>
-          <Body muted>
-            Descubrí piezas únicas en remates en vivo y próximos.
-          </Body>
+        {/* Sección Activas: título + toggle de moneda */}
+        <View style={styles.activasHeader}>
+          <View style={styles.activasTitleRow}>
+            <View style={styles.livePulse} />
+            <Heading>Subastas Activas</Heading>
+          </View>
+
+          <View style={styles.currencyToggle}>
+            <CurrencyChip
+              label="ARS"
+              selected={moneda === 'ARS'}
+              onPress={() => setMoneda(moneda === 'ARS' ? null : 'ARS')}
+            />
+            <CurrencyChip
+              label="USD"
+              selected={moneda === 'USD'}
+              onPress={() => setMoneda(moneda === 'USD' ? null : 'USD')}
+            />
+          </View>
         </View>
 
-        {/* Search */}
-        <View style={styles.searchWrap}>
-          <TextField
-            placeholder="Buscar por título, rematador, ubicación..."
-            leftIcon={<Icon name="search" color={colors.textSubtle} />}
-            value={query}
-            onChangeText={setQuery}
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="search"
-            containerStyle={styles.searchContainer}
+        {/* Carrusel horizontal de activas */}
+        {activas.length > 0 ? (
+          <FlatList
+            data={activas}
+            keyExtractor={(s) => s.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.carrusel}
+            renderItem={({ item }) => (
+              <SubastaCard subasta={item} onPress={() => handleOpenSubasta(item)} />
+            )}
+            ItemSeparatorComponent={() => <View style={{ width: spacing.md }} />}
+          />
+        ) : (
+          <View style={styles.activasEmpty}>
+            <Body muted>No hay subastas en vivo con estos filtros.</Body>
+          </View>
+        )}
+
+        {/* Filtros */}
+        <View style={styles.filtersWrap}>
+          <FilterChips
+            options={segmentoOptions}
+            value={segmento}
+            onChange={setSegmento}
+          />
+          <View style={{ height: spacing.sm }} />
+          <FilterChips
+            options={categoriaOptions}
+            value={categoria}
+            onChange={setCategoria}
           />
         </View>
 
-        {/* Filtros de segmento */}
-        <FilterChips
-          options={segmentoOptions}
-          value={segmento}
-          onChange={setSegmento}
-          style={styles.filters}
-        />
-
-        {/* Vacío */}
-        {isEmpty ? (
-          <View style={styles.emptyWrap}>
-            <EmptyState
-              icon={<Icon name="inbox" size={48} color={colors.textSubtle} />}
-              title="Sin resultados"
-              description={
-                query
-                  ? `No encontramos subastas que coincidan con "${query}".`
-                  : 'Probá quitar los filtros para ver más subastas.'
-              }
-              actionLabel="Limpiar filtros"
-              onAction={() => {
-                setQuery('');
-                setSegmento(null);
-              }}
-            />
-          </View>
-        ) : null}
-
-        {/* Activas */}
-        {activas.length > 0 ? (
-          <Section
-            title="En vivo"
-            count={activas.length}
-            tone="danger"
-          >
-            {activas.map((s) => (
-              <SubastaCard
-                key={s.id}
-                subasta={s}
-                onPress={() => handleOpenSubasta(s)}
-              />
-            ))}
-          </Section>
-        ) : null}
-
         {/* Próximas */}
-        {proximas.length > 0 ? (
-          <Section title="Próximas" count={proximas.length}>
-            {proximas.map((s) => (
-              <SubastaCard
-                key={s.id}
-                subasta={s}
-                onPress={() => handleOpenSubasta(s)}
-              />
-            ))}
-          </Section>
-        ) : null}
+        <View style={styles.proximasWrap}>
+          <Heading style={styles.proximasTitle}>Próximas Subastas</Heading>
+
+          {proximas.length === 0 ? (
+            isEmpty ? (
+              <View style={styles.emptyWrap}>
+                <EmptyState
+                  icon={<Icon name="inbox" size={48} color={colors.textSubtle} />}
+                  title="Sin resultados"
+                  description="No encontramos subastas con esos filtros. Probá quitar alguno."
+                  actionLabel="Limpiar filtros"
+                  onAction={() => {
+                    setSegmento(null);
+                    setCategoria(null);
+                    setMoneda(null);
+                  }}
+                />
+              </View>
+            ) : (
+              <Body muted style={styles.metaCenter}>
+                No hay subastas próximas con estos filtros.
+              </Body>
+            )
+          ) : (
+            <View style={styles.proximasList}>
+              {proximas.map((s) => (
+                <SubastaCardCompact
+                  key={s.id}
+                  subasta={s}
+                  onPress={() => handleOpenSubasta(s)}
+                />
+              ))}
+            </View>
+          )}
+        </View>
       </ScrollView>
 
       <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} />
@@ -175,34 +198,27 @@ export default function SubastasScreen({ navigation }: Props) {
   );
 }
 
-// ── Sección con título + contador + slot de hijos ────────────────────────────
+// ── Chip de moneda (toggle compacto) ─────────────────────────────────────────
 
-type SectionProps = {
-  title: string;
-  count?: number;
-  tone?: 'danger' | 'neutral';
-  children: React.ReactNode;
-};
-
-function Section({ title, count, tone = 'neutral', children }: SectionProps) {
+function CurrencyChip({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
   return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <View style={styles.sectionTitleRow}>
-          {tone === 'danger' ? <View style={styles.livePulse} /> : null}
-          <Typography variant="overline" color={colors.text}>
-            {title.toUpperCase()}
-          </Typography>
-        </View>
-        {count != null ? (
-          <Caption muted>
-            {count} {count === 1 ? 'subasta' : 'subastas'}
-          </Caption>
-        ) : null}
-      </View>
-
-      <View style={styles.sectionContent}>{children}</View>
-    </View>
+    <Typography
+      onPress={onPress}
+      style={[
+        styles.currencyChip,
+        selected ? styles.currencyChipSelected : styles.currencyChipIdle,
+      ]}
+    >
+      {label}
+    </Typography>
   );
 }
 
@@ -214,9 +230,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: layout.screenPaddingHorizontal,
     paddingVertical: spacing.md,
     backgroundColor: colors.surface,
@@ -224,49 +237,75 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.borderMuted,
   },
   scroll: {
+    paddingTop: spacing.xl,
     paddingBottom: spacing['2xl'],
   },
-  intro: {
-    paddingHorizontal: layout.screenPaddingHorizontal,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.base,
-    gap: spacing.xs,
-  },
-  searchWrap: {
-    paddingHorizontal: layout.screenPaddingHorizontal,
-  },
-  searchContainer: {
-    marginBottom: spacing.sm,
-  },
-  filters: {
-    marginBottom: spacing.lg,
-  },
-  emptyWrap: {
-    minHeight: 320,
-  },
-  section: {
-    marginBottom: spacing['2xl'],
-  },
-  sectionHeader: {
+  activasHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: layout.screenPaddingHorizontal,
-    marginBottom: spacing.md,
+    marginBottom: spacing.base,
   },
-  sectionTitleRow: {
+  activasTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
   },
   livePulse: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.danger,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.primary,
   },
-  sectionContent: {
+  currencyToggle: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  currencyChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.pill,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  currencyChipIdle: {
+    backgroundColor: colors.surface,
+    color: colors.text,
+    borderColor: colors.border,
+  },
+  currencyChipSelected: {
+    backgroundColor: colors.primary,
+    color: colors.textInverse,
+    borderColor: colors.primary,
+  },
+  carrusel: {
     paddingHorizontal: layout.screenPaddingHorizontal,
-    gap: spacing.base,
+    paddingBottom: spacing.lg,
+  },
+  activasEmpty: {
+    paddingHorizontal: layout.screenPaddingHorizontal,
+    paddingVertical: spacing.lg,
+  },
+  filtersWrap: {
+    marginBottom: spacing.xl,
+  },
+  proximasWrap: {
+    paddingHorizontal: layout.screenPaddingHorizontal,
+  },
+  proximasTitle: {
+    marginBottom: spacing.base,
+  },
+  proximasList: {
+    gap: spacing.md,
+  },
+  emptyWrap: {
+    minHeight: 280,
+  },
+  metaCenter: {
+    textAlign: 'center',
+    marginTop: spacing.lg,
   },
 });
