@@ -260,7 +260,10 @@ function InscribirmeButton({
     );
   }
 
-  const motivo = getMotivoBloqueoInscripcion(detalle.categoria);
+  const motivo = getMotivoBloqueoInscripcion({
+    estado: detalle.estado,
+    categoria: detalle.categoria,
+  });
   if (motivo) {
     return (
       <Button variant="secondary" disabled style={styles.secondaryButton}>

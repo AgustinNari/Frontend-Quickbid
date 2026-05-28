@@ -17,7 +17,7 @@ export const MOCK_SUBASTAS: SubastaResumen[] = [
   {
     id: 'sub_001',
     titulo: 'Colección Vanguardia',
-    estado: 'activa',
+    estado: 'proxima',
     categoria: 'plata',
     segmento: 'arte',
     moneda: 'USD',
@@ -29,7 +29,7 @@ export const MOCK_SUBASTAS: SubastaResumen[] = [
   {
     id: 'sub_002',
     titulo: 'Joyas del Siglo XX',
-    estado: 'activa',
+    estado: 'proxima',
     categoria: 'oro',
     segmento: 'joyas',
     moneda: 'USD',
@@ -41,7 +41,7 @@ export const MOCK_SUBASTAS: SubastaResumen[] = [
   {
     id: 'sub_003',
     titulo: 'Subasta Anual de Clásicos',
-    estado: 'activa',
+    estado: 'proxima',
     categoria: 'platino',
     segmento: 'vehiculos',
     moneda: 'USD',
@@ -109,6 +109,34 @@ export const MOCK_SUBASTAS: SubastaResumen[] = [
     ubicacion: 'Palermo, Buenos Aires',
     rematador: 'Lucía Arruti',
     cantidadItems: 22,
+  },
+  // ── Subastas en curso (activas) — fechaInicio en el pasado proximo.
+  // El carousel "Subastas Activas" del listado se llena con estas dos.
+  // Conceptualmente: ya empezaron, cerraron inscripcion 30 min antes del
+  // inicio, los usuarios con medio validado pueden pujar en vivo (tarea #14).
+  {
+    id: 'sub_009',
+    titulo: 'Subasta de Arte Moderno',
+    estado: 'activa',
+    categoria: 'plata',
+    segmento: 'arte',
+    moneda: 'USD',
+    fechaInicio: '2026-05-27T18:00:00Z',
+    ubicacion: 'Recoleta, Buenos Aires',
+    rematador: 'Henri Lafont',
+    cantidadItems: 18,
+  },
+  {
+    id: 'sub_010',
+    titulo: 'Relojería Suiza Premium',
+    estado: 'activa',
+    categoria: 'oro',
+    segmento: 'relojeria',
+    moneda: 'ARS',
+    fechaInicio: '2026-05-27T20:30:00Z',
+    ubicacion: 'Puerto Madero, Buenos Aires',
+    rematador: 'Lucía Arruti',
+    cantidadItems: 12,
   },
 ];
 
@@ -411,6 +439,8 @@ export const MOCK_ITEM_DETALLE: Record<string, ItemDetalle> = {
     procedencia: 'Colección privada, Buenos Aires',
     dimensiones: '120 x 90 cm',
     condicion: 'Excelente',
+    cantidadPujas: 18,
+    fechaAproximada: '2024',
   },
   lot_003: {
     ...MOCK_CATALOGO['sub_001'][2],
@@ -419,6 +449,8 @@ export const MOCK_ITEM_DETALLE: Record<string, ItemDetalle> = {
     procedencia: 'Taller del artista',
     dimensiones: '45 x 30 x 25 cm',
     condicion: 'Excelente',
+    cantidadPujas: 7,
+    fechaAproximada: '2023',
   },
   lot_201: {
     ...MOCK_CATALOGO['sub_002'][0],
@@ -426,6 +458,8 @@ export const MOCK_ITEM_DETALLE: Record<string, ItemDetalle> = {
       'Collar Art Deco circa 1930 con esmeraldas colombianas talla cabochon montadas sobre platino. Incluye certificado de autenticidad de Van Cleef & Arpels Heritage.',
     procedencia: 'Colección privada europea',
     condicion: 'Excelente, restauración menor del cierre',
+    cantidadPujas: 0,
+    fechaAproximada: 'ca. 1930',
   },
   lot_301: {
     ...MOCK_CATALOGO['sub_003'][0],
@@ -433,6 +467,8 @@ export const MOCK_ITEM_DETALLE: Record<string, ItemDetalle> = {
       'Porsche 911 Carrera GTS 1972 restaurado al detalle. Matching numbers verificado. Documentación completa de origen y mantenimientos.',
     procedencia: 'Colección privada, Pebble Beach',
     condicion: 'Concours-ready',
+    cantidadPujas: 3,
+    fechaAproximada: '1972',
   },
 };
 
