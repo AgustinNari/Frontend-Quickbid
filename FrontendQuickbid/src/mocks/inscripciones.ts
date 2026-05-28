@@ -1,6 +1,6 @@
 import { ResultadoInscripcion } from '../types/inscripcion';
 import { puedeInscribirsePorCategoria } from '../types/usuario';
-import { SubastaCategoria } from '../types/subasta';
+import { SubastaCategoria, SubastaEstado } from '../types/subasta';
 import { MOCK_USUARIO_ACTUAL } from './usuarioActual';
 import { MOCK_MEDIOS_PAGO } from './mediosPago';
 import { MOCK_SUBASTAS, MOCK_SUBASTA_DETALLE } from './subastas';
@@ -139,13 +139,30 @@ export function inscribir(
  * elige despues). Devuelve `null` si si puede.
  *
  * Lo usa `SubastaDetailScreen` para decidir el label/estado del boton
- * "Inscribirme" antes de entrar al flujo completo.
+ * "Inscribirme" antes de entrar al flujo completo. Orden de prioridad de los
+ * bloqueos (igual al backend):
+ *  1. Estado de la subasta: solo "proxima" admite inscripcion.
+ *  2. Categoria del usuario insuficiente para la subasta.
+ *  3. Multa activa en la cuenta del usuario.
  */
-export function getMotivoBloqueoInscripcion(
-  subastaCategoria: SubastaCategoria,
-): { codigo: 403; mensaje: string } | null {
+export function getMotivoBloqueoInscripcion(subasta: {
+  estado: SubastaEstado;
+  categoria: SubastaCategoria;
+}): { codigo: 400 | 403; mensaje: string } | null {
+  if (subasta.estado === 'activa') {
+    return {
+      codigo: 400,
+      mensaje: 'Inscripción cerrada',
+    };
+  }
+  if (subasta.estado === 'finalizada') {
+    return {
+      codigo: 400,
+      mensaje: 'Subasta finalizada',
+    };
+  }
   if (
-    !puedeInscribirsePorCategoria(MOCK_USUARIO_ACTUAL.categoria, subastaCategoria)
+    !puedeInscribirsePorCategoria(MOCK_USUARIO_ACTUAL.categoria, subasta.categoria)
   ) {
     return {
       codigo: 403,

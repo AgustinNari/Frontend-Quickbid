@@ -4,6 +4,7 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
   Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -68,9 +69,12 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ItemDetail'>;
  * Cuando el backend exponga `GET /api/subastas/{subastaId}/catalogo/{itemId}`,
  * `subastaId` (recibido en params) se va a usar para construir la URL.
  */
+type ItemTab = 'detalles' | 'historia' | 'datos';
+
 export default function ItemDetailScreen({ navigation, route }: Props) {
   const { itemId } = route.params;
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
+  const [itemTab, setItemTab] = useState<ItemTab>('detalles');
   const [loading, setLoading] = useState(true);
   const [item, setItem] = useState<ItemDetalle | null>(null);
 
@@ -132,59 +136,32 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
                 </Card>
               ) : null}
 
-              <View style={styles.infoList}>
-                <SubastaInfoRow
-                  icon="image"
-                  label="Segmento"
-                  value={SEGMENTO_LABEL[item.segmento]}
+              {/* Tab bar — Detalles / Historia / Datos de interes (wireframe textual) */}
+              <View style={styles.tabBar}>
+                <ItemTabButton
+                  label="Detalles"
+                  active={itemTab === 'detalles'}
+                  onPress={() => setItemTab('detalles')}
                 />
-                <Divider />
-                <SubastaInfoRow
-                  icon="card"
-                  label="Moneda"
-                  value={item.moneda === 'USD' ? 'USD (US$)' : 'ARS ($)'}
+                <ItemTabButton
+                  label="Historia"
+                  active={itemTab === 'historia'}
+                  onPress={() => setItemTab('historia')}
                 />
-                {item.dimensiones ? (
-                  <>
-                    <Divider />
-                    <SubastaInfoRow
-                      icon="check-doc"
-                      label="Dimensiones"
-                      value={item.dimensiones}
-                    />
-                  </>
-                ) : null}
-                {item.procedencia ? (
-                  <>
-                    <Divider />
-                    <SubastaInfoRow
-                      icon="bank"
-                      label="Procedencia"
-                      value={item.procedencia}
-                    />
-                  </>
-                ) : null}
-                {item.condicion ? (
-                  <>
-                    <Divider />
-                    <SubastaInfoRow
-                      icon="check-circle"
-                      label="Condición"
-                      value={item.condicion}
-                      emphasized
-                    />
-                  </>
-                ) : null}
+                <ItemTabButton
+                  label="Datos de interés"
+                  active={itemTab === 'datos'}
+                  onPress={() => setItemTab('datos')}
+                />
               </View>
 
-              {item.descripcion ? (
-                <View style={styles.descripcionWrap}>
-                  <Typography style={styles.descripcionLabel}>
-                    DESCRIPCIÓN
-                  </Typography>
-                  <Body style={styles.descripcion}>{item.descripcion}</Body>
-                </View>
-              ) : null}
+              {itemTab === 'detalles' ? (
+                <TabDetalles item={item} />
+              ) : itemTab === 'historia' ? (
+                <TabHistoria item={item} />
+              ) : (
+                <TabDatos item={item} />
+              )}
             </View>
           </ScrollView>
 
@@ -287,6 +264,161 @@ function Divider() {
   return <View style={styles.divider} />;
 }
 
+// ── Tab system del item (wireframe textual: Detalles / Historia / Datos) ─────
+
+function ItemTabButton({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      style={[styles.tab, active ? styles.tabActive : null]}
+    >
+      <Typography
+        style={[styles.tabLabel, active ? styles.tabLabelActive : null]}
+        numberOfLines={1}
+      >
+        {label}
+      </Typography>
+    </TouchableOpacity>
+  );
+}
+
+/**
+ * Tab "Detalles" — info estructural del item: segmento, moneda y, si esta
+ * disponible, cantidad de pujas. Es el tab default por ser el mas informativo
+ * para alguien que recien abre el item.
+ */
+function TabDetalles({ item }: { item: ItemDetalle }) {
+  return (
+    <View style={styles.infoList}>
+      <SubastaInfoRow
+        icon="image"
+        label="Segmento"
+        value={SEGMENTO_LABEL[item.segmento]}
+      />
+      <Divider />
+      <SubastaInfoRow
+        icon="card"
+        label="Moneda"
+        value={item.moneda === 'USD' ? 'USD (US$)' : 'ARS ($)'}
+      />
+      {item.cantidadPujas !== undefined ? (
+        <>
+          <Divider />
+          <SubastaInfoRow
+            icon="plus-circle"
+            label="Pujas registradas"
+            value={`${item.cantidadPujas} ${
+              item.cantidadPujas === 1 ? 'puja' : 'pujas'
+            }`}
+            emphasized
+          />
+        </>
+      ) : null}
+    </View>
+  );
+}
+
+/**
+ * Tab "Historia" — narrativa del item: descripcion larga, autor y procedencia.
+ * Si el item no tiene descripcion, muestra mensaje vacio.
+ */
+function TabHistoria({ item }: { item: ItemDetalle }) {
+  const hasContent = item.descripcion || item.autor || item.procedencia;
+  if (!hasContent) {
+    return <TabEmpty mensaje="Este lote aun no tiene historia cargada." />;
+  }
+  return (
+    <View style={styles.tabPanel}>
+      {item.descripcion ? (
+        <View style={styles.descripcionWrap}>
+          <Typography style={styles.descripcionLabel}>DESCRIPCIÓN</Typography>
+          <Body style={styles.descripcion}>{item.descripcion}</Body>
+        </View>
+      ) : null}
+      {item.autor || item.procedencia ? (
+        <View style={styles.infoList}>
+          {item.autor ? (
+            <SubastaInfoRow
+              icon="star"
+              label="Autor / Artista"
+              value={item.autor}
+            />
+          ) : null}
+          {item.autor && item.procedencia ? <Divider /> : null}
+          {item.procedencia ? (
+            <SubastaInfoRow
+              icon="bank"
+              label="Procedencia"
+              value={item.procedencia}
+            />
+          ) : null}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/**
+ * Tab "Datos de interes" — informacion fisica / fechas / condicion del item.
+ * Si nada de eso esta disponible, muestra mensaje vacio.
+ */
+function TabDatos({ item }: { item: ItemDetalle }) {
+  const hasContent =
+    item.dimensiones || item.condicion || item.fechaAproximada;
+  if (!hasContent) {
+    return <TabEmpty mensaje="Sin datos adicionales para este lote." />;
+  }
+  return (
+    <View style={styles.infoList}>
+      {item.dimensiones ? (
+        <SubastaInfoRow
+          icon="check-doc"
+          label="Dimensiones"
+          value={item.dimensiones}
+        />
+      ) : null}
+      {item.dimensiones && item.condicion ? <Divider /> : null}
+      {item.condicion ? (
+        <SubastaInfoRow
+          icon="check-circle"
+          label="Condición"
+          value={item.condicion}
+          emphasized
+        />
+      ) : null}
+      {(item.dimensiones || item.condicion) && item.fechaAproximada ? (
+        <Divider />
+      ) : null}
+      {item.fechaAproximada ? (
+        <SubastaInfoRow
+          icon="calendar"
+          label="Fecha aproximada"
+          value={item.fechaAproximada}
+        />
+      ) : null}
+    </View>
+  );
+}
+
+function TabEmpty({ mensaje }: { mensaje: string }) {
+  return (
+    <View style={styles.tabEmpty}>
+      <Body muted style={styles.tabEmptyText}>
+        {mensaje}
+      </Body>
+    </View>
+  );
+}
+
 // ── Mapeos de presentación ─────────────────────────────────────────────────
 
 type HeroBadgeTone = {
@@ -379,6 +511,45 @@ const styles = StyleSheet.create({
     fontSize: fontSize['2xl'],
     fontWeight: fontWeight.bold,
     color: colors.text,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.base,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+  },
+  tabActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  tabLabel: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.text,
+    letterSpacing: letterSpacing.wide,
+  },
+  tabLabelActive: {
+    color: colors.textInverse,
+  },
+  tabPanel: {
+    gap: spacing.base,
+  },
+  tabEmpty: {
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
+  },
+  tabEmptyText: {
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   infoList: {
     backgroundColor: colors.surface,

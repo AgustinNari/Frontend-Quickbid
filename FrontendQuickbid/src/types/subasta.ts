@@ -127,6 +127,17 @@ export type ItemDetalle = ItemCatalogo & {
   procedencia?: string;
   dimensiones?: string;
   condicion?: string;
+  /**
+   * Cantidad total de pujas registradas sobre el item.
+   * Lo describe el wireframe textual ("pujasTotales"). Util para que el
+   * usuario tenga contexto de cuanta actividad hubo antes de pujar.
+   */
+  cantidadPujas?: number;
+  /**
+   * Fecha aproximada de creacion/origen del item (ej. "ca. 1930", "2024").
+   * Se muestra en la tab "Datos de interes".
+   */
+  fechaAproximada?: string;
 };
 
 /**
