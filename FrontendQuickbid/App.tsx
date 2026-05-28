@@ -24,6 +24,8 @@ import SubastasScreen from './src/screens/SubastasScreen';
 import SubastaDetailScreen from './src/screens/SubastaDetailScreen';
 import CatalogoSubastaScreen from './src/screens/CatalogoSubastaScreen';
 import ItemDetailScreen from './src/screens/ItemDetailScreen';
+import InscripcionSubastaScreen from './src/screens/InscripcionSubastaScreen';
+import InscripcionExitoScreen from './src/screens/InscripcionExitoScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -48,6 +50,8 @@ export type RootStackParamList = {
   SubastaDetail: { id: string };
   CatalogoSubasta: { subastaId: string; titulo?: string };
   ItemDetail: { itemId: string; subastaId: string };
+  InscripcionSubasta: { subastaId: string };
+  InscripcionExito: { subastaId: string; idMedioPago: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -83,6 +87,8 @@ export default function App() {
         <Stack.Screen name="SubastaDetail" component={SubastaDetailScreen} />
         <Stack.Screen name="CatalogoSubasta" component={CatalogoSubastaScreen} />
         <Stack.Screen name="ItemDetail" component={ItemDetailScreen} />
+        <Stack.Screen name="InscripcionSubasta" component={InscripcionSubastaScreen} />
+        <Stack.Screen name="InscripcionExito" component={InscripcionExitoScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

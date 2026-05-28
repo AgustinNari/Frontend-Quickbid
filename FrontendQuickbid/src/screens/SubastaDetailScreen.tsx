@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -33,6 +32,10 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { SubastaInfoRow } from '../components/SubastaInfoRow';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
 import { getMockDetalle } from '../mocks/subastas';
+import {
+  estaInscripto,
+  getMotivoBloqueoInscripcion,
+} from '../mocks/inscripciones';
 import {
   SubastaDetalle,
   SEGMENTO_LABEL,
@@ -93,10 +96,8 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
   };
 
   const handleInscribirme = () => {
-    Alert.alert(
-      'Inscripción a subasta',
-      'Esta acción está pendiente y se va a implementar en una tarea posterior (#13).',
-    );
+    if (!detalle) return;
+    navigation.navigate('InscripcionSubasta', { subastaId: detalle.id });
   };
 
   return (
@@ -217,23 +218,10 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
             >
               Entrar al catálogo
             </Button>
-            {detalle.inscripto ? (
-              <Button
-                variant="secondary"
-                disabled
-                style={styles.secondaryButton}
-              >
-                Ya estás inscripto
-              </Button>
-            ) : (
-              <Button
-                variant="secondary"
-                onPress={handleInscribirme}
-                style={styles.secondaryButton}
-              >
-                Inscribirme
-              </Button>
-            )}
+            <InscribirmeButton
+              detalle={detalle}
+              onInscribirme={handleInscribirme}
+            />
           </View>
         </>
       )}
@@ -244,6 +232,53 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
 }
 
 // ── Sub-componentes ────────────────────────────────────────────────────────
+
+/**
+ * Botón secundario "Inscribirme" / "Ya estás inscripto" / variantes bloqueadas.
+ *
+ * La lógica vive acá adentro para no inflar el componente principal. Estados:
+ *  - Inscripto         → "Ya estás inscripto"            (disabled)
+ *  - Categoría insuf.  → "Categoría insuficiente"        (disabled)
+ *  - Multa activa      → "Regularizá tu multa"           (disabled)
+ *  - OK                → "Inscribirme"                    (activo, navega)
+ *
+ * Las dos primeras se chequean en orden de prioridad: si el usuario está
+ * inscripto, ese estado gana sobre cualquier otro bloqueo.
+ */
+function InscribirmeButton({
+  detalle,
+  onInscribirme,
+}: {
+  detalle: SubastaDetalle;
+  onInscribirme: () => void;
+}) {
+  if (estaInscripto(detalle.id)) {
+    return (
+      <Button variant="secondary" disabled style={styles.secondaryButton}>
+        Ya estás inscripto
+      </Button>
+    );
+  }
+
+  const motivo = getMotivoBloqueoInscripcion(detalle.categoria);
+  if (motivo) {
+    return (
+      <Button variant="secondary" disabled style={styles.secondaryButton}>
+        {motivo.mensaje}
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      variant="secondary"
+      onPress={onInscribirme}
+      style={styles.secondaryButton}
+    >
+      Inscribirme
+    </Button>
+  );
+}
 
 function Hero({ detalle }: { detalle: SubastaDetalle }) {
   const theme = SEGMENTO_THEME[detalle.segmento];
