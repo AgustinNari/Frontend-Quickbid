@@ -11,15 +11,14 @@ import {
 import Svg, { Path, Rect, Line } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Identity'>;
-
-const BLUE = '#0055D1';
 
 function BackIcon() {
   return (
     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path d="M15 18l-6-6 6-6" stroke={BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M15 18l-6-6 6-6" stroke={colors.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -27,11 +26,11 @@ function BackIcon() {
 function IdCardIcon() {
   return (
     <Svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-      <Rect x="4" y="12" width="40" height="28" rx="3" stroke={BLUE} strokeWidth="2" />
-      <Rect x="10" y="20" width="12" height="12" rx="1.5" stroke={BLUE} strokeWidth="1.8" />
-      <Line x1="26" y1="22" x2="38" y2="22" stroke={BLUE} strokeWidth="1.8" strokeLinecap="round" />
-      <Line x1="26" y1="27" x2="38" y2="27" stroke={BLUE} strokeWidth="1.8" strokeLinecap="round" />
-      <Line x1="26" y1="32" x2="34" y2="32" stroke={BLUE} strokeWidth="1.8" strokeLinecap="round" />
+      <Rect x="4" y="12" width="40" height="28" rx="3" stroke={colors.primary} strokeWidth="2" />
+      <Rect x="10" y="20" width="12" height="12" rx="1.5" stroke={colors.primary} strokeWidth="1.8" />
+      <Line x1="26" y1="22" x2="38" y2="22" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" />
+      <Line x1="26" y1="27" x2="38" y2="27" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" />
+      <Line x1="26" y1="32" x2="34" y2="32" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" />
     </Svg>
   );
 }
@@ -39,14 +38,14 @@ function IdCardIcon() {
 function BarcodeIcon() {
   return (
     <Svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-      <Line x1="8"  y1="12" x2="8"  y2="36" stroke={BLUE} strokeWidth="2.5" strokeLinecap="round" />
-      <Line x1="13" y1="12" x2="13" y2="36" stroke={BLUE} strokeWidth="1.5" strokeLinecap="round" />
-      <Line x1="17" y1="12" x2="17" y2="36" stroke={BLUE} strokeWidth="3"   strokeLinecap="round" />
-      <Line x1="22" y1="12" x2="22" y2="36" stroke={BLUE} strokeWidth="1.5" strokeLinecap="round" />
-      <Line x1="26" y1="12" x2="26" y2="36" stroke={BLUE} strokeWidth="2.5" strokeLinecap="round" />
-      <Line x1="30" y1="12" x2="30" y2="36" stroke={BLUE} strokeWidth="1.5" strokeLinecap="round" />
-      <Line x1="34" y1="12" x2="34" y2="36" stroke={BLUE} strokeWidth="3"   strokeLinecap="round" />
-      <Line x1="39" y1="12" x2="39" y2="36" stroke={BLUE} strokeWidth="1.5" strokeLinecap="round" />
+      <Line x1="8"  y1="12" x2="8"  y2="36" stroke={colors.primary} strokeWidth="2.5" strokeLinecap="round" />
+      <Line x1="13" y1="12" x2="13" y2="36" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" />
+      <Line x1="17" y1="12" x2="17" y2="36" stroke={colors.primary} strokeWidth="3"   strokeLinecap="round" />
+      <Line x1="22" y1="12" x2="22" y2="36" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" />
+      <Line x1="26" y1="12" x2="26" y2="36" stroke={colors.primary} strokeWidth="2.5" strokeLinecap="round" />
+      <Line x1="30" y1="12" x2="30" y2="36" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" />
+      <Line x1="34" y1="12" x2="34" y2="36" stroke={colors.primary} strokeWidth="3"   strokeLinecap="round" />
+      <Line x1="39" y1="12" x2="39" y2="36" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" />
     </Svg>
   );
 }
@@ -131,55 +130,55 @@ export default function IdentityScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  safe: { flex: 1, backgroundColor: colors.white },
 
   // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
+    backgroundColor: colors.white,
+    paddingHorizontal: spacing.base,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    gap: 8,
+    borderBottomColor: colors.borderMuted,
+    gap: spacing.xs,
   },
   backBtn: { padding: 2 },
-  brand: { fontSize: 18, fontWeight: 'bold', color: BLUE },
+  brand: { fontSize: fontSize.xl, fontWeight: 'bold', color: colors.primary },
 
   // Scroll
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
     paddingTop: 28,
-    paddingBottom: 32,
+    paddingBottom: spacing['2xl'],
   },
 
   // Títulos
   title: {
-    fontSize: 28,
+    fontSize: fontSize['4xl'],
     fontWeight: 'bold',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 6,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: fontSize.base,
+    color: colors.textMuted,
     marginBottom: 28,
   },
 
   // Secciones
-  section: { marginBottom: 24 },
+  section: { marginBottom: spacing.xl },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: fontSize.lg,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 4,
   },
   sectionDesc: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 12,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    marginBottom: spacing.md,
   },
 
   // Upload box
@@ -187,26 +186,26 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#93C5FD',
     borderStyle: 'dashed',
-    borderRadius: 10,
+    borderRadius: radius.base,
     paddingVertical: 28,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F8FAFF',
-    gap: 8,
+    gap: spacing.xs,
   },
   uploadText: {
-    fontSize: 15,
+    fontSize: fontSize.md,
     fontWeight: '600',
-    color: BLUE,
+    color: colors.primary,
   },
   uploadFormats: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: fontSize.sm,
+    color: colors.textSubtle,
   },
   preview: {
     width: '100%',
     height: 160,
-    borderRadius: 8,
+    borderRadius: radius.md,
   },
 
   spacer: { minHeight: 16 },
@@ -214,17 +213,17 @@ const styles = StyleSheet.create({
   // Botón
   btn: {
     flexDirection: 'row',
-    backgroundColor: BLUE,
-    borderRadius: 10,
-    height: 52,
+    backgroundColor: colors.primary,
+    borderRadius: radius.base,
+    height: controlHeight.base,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
-    marginTop: 8,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xs,
   },
   btnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: colors.textInverse,
+    fontSize: fontSize.lg,
     fontWeight: '600',
   },
 });

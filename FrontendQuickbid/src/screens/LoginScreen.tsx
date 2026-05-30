@@ -13,6 +13,7 @@ import {
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -21,10 +22,10 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 function UserIcon() {
   return (
     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="8" r="4" stroke="#9CA3AF" strokeWidth="1.8" />
+      <Circle cx="12" cy="8" r="4" stroke={colors.textSubtle} strokeWidth="1.8" />
       <Path
         d="M4 20c0-3.866 3.582-7 8-7s8 3.134 8 7"
-        stroke="#9CA3AF"
+        stroke={colors.textSubtle}
         strokeWidth="1.8"
         strokeLinecap="round"
       />
@@ -37,11 +38,11 @@ function LockIcon() {
     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
       <Rect
         x="5" y="11" width="14" height="10" rx="2"
-        stroke="#9CA3AF" strokeWidth="1.8"
+        stroke={colors.textSubtle} strokeWidth="1.8"
       />
       <Path
         d="M8 11V7a4 4 0 0 1 8 0v4"
-        stroke="#9CA3AF"
+        stroke={colors.textSubtle}
         strokeWidth="1.8"
         strokeLinecap="round"
       />
@@ -50,9 +51,6 @@ function LockIcon() {
 }
 
 // ── Componentes ───────────────────────────────────────────────────────────────
-
-const BLUE = '#0055D1';
-const BG   = '#F3F4F6';
 
 export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail]       = useState('');
@@ -84,7 +82,7 @@ export default function LoginScreen({ navigation }: Props) {
             <TextInput
               style={styles.input}
               placeholder="nombre@ejemplo.com"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textSubtle}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -100,7 +98,7 @@ export default function LoginScreen({ navigation }: Props) {
             <TextInput
               style={styles.input}
               placeholder="••••••••••"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textSubtle}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -144,72 +142,72 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   flex: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: colors.background,
   },
 
   // Header
   header: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 24,
+    backgroundColor: colors.white,
+    paddingHorizontal: spacing.xl,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.borderMuted,
   },
   brand: {
-    fontSize: 20,
+    fontSize: fontSize['2xl'],
     fontWeight: 'bold',
-    color: BLUE,
+    color: colors.primary,
   },
 
   // Scroll
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
     paddingTop: 36,
     paddingBottom: 36,
   },
 
   // Títulos
   title: {
-    fontSize: 32,
+    fontSize: fontSize['5xl'],
     fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 8,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 32,
+    fontSize: fontSize.lg,
+    color: colors.textMuted,
+    marginBottom: spacing['2xl'],
   },
 
   // Inputs
   label: {
-    fontSize: 12,
+    fontSize: fontSize.sm,
     fontWeight: '500',
-    color: '#374151',
+    color: colors.textLabel,
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    backgroundColor: colors.white,
+    borderRadius: radius.base,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border,
     paddingHorizontal: 14,
-    height: 52,
-    marginBottom: 20,
+    height: controlHeight.base,
+    marginBottom: spacing.lg,
     gap: 10,
   },
   input: {
     flex: 1,
-    fontSize: 15,
-    color: '#111827',
+    fontSize: fontSize.md,
+    color: colors.text,
     padding: 0,
   },
 
@@ -219,25 +217,25 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   forgotText: {
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
     textDecorationLine: 'underline',
   },
 
   // Botones
   btn: {
     flexDirection: 'row',
-    backgroundColor: BLUE,
-    borderRadius: 10,
-    height: 52,
+    backgroundColor: colors.primary,
+    borderRadius: radius.base,
+    height: controlHeight.base,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
-    paddingHorizontal: 20,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   btnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: colors.textInverse,
+    fontSize: fontSize.lg,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -249,12 +247,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   footerText: {
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
     textAlign: 'center',
   },
   footerLink: {
-    color: BLUE,
+    color: colors.primary,
     fontWeight: '600',
   },
 });
