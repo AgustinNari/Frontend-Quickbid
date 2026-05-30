@@ -5,13 +5,14 @@ import {
   TextInput,
   Alert,
   ScrollView,
+  StyleSheet,
 } from 'react-native';
 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { RootStackParamList } from '../../App';
 
-import { globalStyles } from '../styles/globalStyles';
+import { colors, spacing, radius, fontSize } from '../theme';
 
 import PrimaryButton from '../components/PrimaryButton';
 import Card from '../components/Card';
@@ -22,26 +23,26 @@ export default function HomeScreen({ navigation }: Props) {
   const [name, setName] = useState('');
 
   return (
-    <ScrollView style={globalStyles.container}>
-      <View style={globalStyles.centerContainer}>
-        <View style={{ backgroundColor: '#61dafb', padding: 16, borderRadius: 8, marginBottom: 16, width: '100%' }}>
-          <Text style={{ color: '#000', fontSize: 20, fontWeight: 'bold', textAlign: 'center' }}>
+    <ScrollView style={styles.container}>
+      <View style={styles.centerContainer}>
+        <View style={styles.statusBanner}>
+          <Text style={styles.statusText}>
             ✅ APP FUNCIONANDO
           </Text>
         </View>
 
-        <Text style={globalStyles.title}>
+        <Text style={styles.title}>
           🚀 QuickBid
         </Text>
 
-        <Text style={globalStyles.subtitle}>
+        <Text style={styles.subtitle}>
           Pantalla principal de prueba
         </Text>
 
         <TextInput
           placeholder="Escribí algo..."
-          placeholderTextColor="#888"
-          style={globalStyles.input}
+          placeholderTextColor={colors.textSubtle}
+          style={styles.input}
           value={name}
           onChangeText={setName}
         />
@@ -56,21 +57,58 @@ export default function HomeScreen({ navigation }: Props) {
           onPress={() => navigation.navigate('Details')}
         />
 
-        <Card
-          title="Card 1"
-          description="Esto es una card de prueba."
-        />
-
-        <Card
-          title="Card 2"
-          description="Ideal para probar UI rápido."
-        />
-
-        <Card
-          title="Card 3"
-          description="Después la reemplazás por datos reales."
-        />
+        <Card title="Card 1" description="Esto es una card de prueba." />
+        <Card title="Card 2" description="Ideal para probar UI rápido." />
+        <Card title="Card 3" description="Después la reemplazás por datos reales." />
       </View>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  statusBanner: {
+    backgroundColor: colors.primaryLight,
+    padding: spacing.base,
+    borderRadius: radius.sm,
+    marginBottom: spacing.base,
+    width: '100%',
+  },
+  statusText: {
+    color: colors.textInverse,
+    fontSize: fontSize['2xl'],
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  title: {
+    fontSize: fontSize['4xl'],
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: spacing.xs,
+  },
+  subtitle: {
+    fontSize: fontSize.lg,
+    color: colors.textMuted,
+    marginBottom: spacing.lg,
+  },
+  input: {
+    width: '100%',
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radius.base,
+    marginBottom: spacing.md,
+    fontSize: fontSize.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    color: colors.text,
+  },
+});
