@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { View, SafeAreaView, ScrollView, FlatList, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -11,7 +11,7 @@ import {
   Loader,
 } from '../ui';
 import { colors, spacing, layout, radius, fontSize, fontWeight } from '../theme';
-import BottomNavBar, { NavTab } from '../components/BottomNavBar';
+import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { SubastaCard, SubastaCardCompact } from '../components/SubastaCard';
 import { FilterChips, FilterOption } from '../components/FilterChips';
 import { MOCK_SUBASTAS } from '../mocks/subastas';
@@ -43,10 +43,19 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Subastas'>;
  * por una llamada con TanStack Query y los filtros van como query params.
  */
 export default function SubastasScreen({ navigation }: Props) {
+  const scrollRef = useRef<ScrollView>(null);
   const [segmento, setSegmento] = useState<SubastaSegmento | null>(null);
   const [categoria, setCategoria] = useState<SubastaCategoria | null>(null);
   const [moneda, setMoneda] = useState<SubastaMoneda | null>(null);
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
+
+  const handleTabPress = (tab: NavTab) => {
+    setActiveTab(tab);
+    if (tab === 'subastas') {
+      scrollRef.current?.scrollTo({ y: 0, animated: true });
+    }
+    // Agregar navegación a otras tabs cuando existan esas pantallas
+  };
 
   // Opciones de filtros
   const segmentoOptions = useMemo<FilterOption<SubastaSegmento>[]>(
@@ -97,6 +106,7 @@ export default function SubastasScreen({ navigation }: Props) {
       </View>
 
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
@@ -193,7 +203,7 @@ export default function SubastasScreen({ navigation }: Props) {
         </View>
       </ScrollView>
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} />
+      <BottomNavBar activeTab={activeTab} onTabPress={handleTabPress} navigation={navigation} />
     </SafeAreaView>
   );
 }
@@ -230,6 +240,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: layout.screenPaddingHorizontal,
     paddingVertical: spacing.md,
     backgroundColor: colors.surface,
@@ -238,7 +250,7 @@ const styles = StyleSheet.create({
   },
   scroll: {
     paddingTop: spacing.xl,
-    paddingBottom: spacing['2xl'],
+    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
   },
   activasHeader: {
     flexDirection: 'row',

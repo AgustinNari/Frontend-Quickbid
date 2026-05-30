@@ -17,6 +17,9 @@ export const MOCK_USUARIO_ACTUAL: UsuarioActual = {
   nombre: 'Lázaro',
   apellido: 'Casalla',
   email: 'lazaro.casalla@example.com',
-  categoria: 'plata',
+  categoria: 'oro',
   multaActiva: false,
+  quickbidId: '2024-LC',
+  puntos: 1050,
+  miembroDesde: 'marzo 2023',
 };

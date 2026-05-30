@@ -12,22 +12,15 @@ import {
 import Svg, { Path, Rect, Circle, Line } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import BottomNavBar, { NavTab } from '../components/BottomNavBar';
+import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { colors, spacing, radius, fontSize, shadow } from '../theme';
+import { ScreenHeader } from '../components/ScreenHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MetodosPago'>;
 
 const SCREEN_W = Dimensions.get('window').width;
 
 // ── Iconos ────────────────────────────────────────────────────────────────────
-
-function BackIcon() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path d="M15 18l-6-6 6-6" stroke={colors.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
 
 function CardIcon() {
   return (
@@ -159,13 +152,7 @@ export default function MetodosPagoScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <BackIcon />
-        </TouchableOpacity>
-        <Text style={styles.brand}>QuickBid</Text>
-      </View>
+      <ScreenHeader onBack={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>Métodos de pago</Text>
@@ -224,7 +211,7 @@ export default function MetodosPagoScreen({ navigation }: Props) {
         </TouchableOpacity>
       </Modal>
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} />
+      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
 
     </SafeAreaView>
   );
@@ -235,24 +222,11 @@ export default function MetodosPagoScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    paddingHorizontal: spacing.base,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderMuted,
-    gap: spacing.xs,
-  },
-  backBtn: { padding: 2 },
-  brand:   { fontSize: fontSize.xl, fontWeight: 'bold', color: colors.primary },
-
   scroll: {
     flexGrow: 1,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
-    paddingBottom: spacing['2xl'],
+    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
   },
 
   title:    { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 4 },

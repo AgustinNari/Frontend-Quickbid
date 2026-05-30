@@ -14,22 +14,9 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
+import { ScreenHeader } from '../components/ScreenHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
-
-function BackIcon() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M15 18l-6-6 6-6"
-        stroke={colors.primary}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
 
 function GlobeIcon() {
   return (
@@ -69,13 +56,7 @@ export default function RegisterScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <BackIcon />
-        </TouchableOpacity>
-        <Text style={styles.brand}>QuickBid</Text>
-      </View>
+      <ScreenHeader onBack={() => navigation.goBack()} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -165,26 +146,6 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    paddingHorizontal: spacing.base,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderMuted,
-    gap: spacing.xs,
-  },
-  backBtn: {
-    padding: 2,
-  },
-  brand: {
-    fontSize: fontSize.xl,
-    fontWeight: 'bold',
-    color: colors.primary,
   },
 
   // Scroll
