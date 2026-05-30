@@ -13,24 +13,16 @@ import {
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
+import { ScreenHeader } from '../components/ScreenHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EnlaceRegistro'>;
-
-const BLUE = '#0055D1';
-
-function BackIcon() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path d="M15 18l-6-6 6-6" stroke={BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
 
 function MailIcon() {
   return (
     <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <Rect x="3" y="5" width="18" height="14" rx="2" stroke="#9CA3AF" strokeWidth="1.8" />
-      <Path d="M3 7l9 6 9-6" stroke="#9CA3AF" strokeWidth="1.8" strokeLinecap="round" />
+      <Rect x="3" y="5" width="18" height="14" rx="2" stroke={colors.textSubtle} strokeWidth="1.8" />
+      <Path d="M3 7l9 6 9-6" stroke={colors.textSubtle} strokeWidth="1.8" strokeLinecap="round" />
     </Svg>
   );
 }
@@ -38,9 +30,9 @@ function MailIcon() {
 function InfoIcon() {
   return (
     <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="9" stroke="#6B7280" strokeWidth="1.8" />
-      <Path d="M12 11v5" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" />
-      <Circle cx="12" cy="7.5" r="1" fill="#6B7280" />
+      <Circle cx="12" cy="12" r="9" stroke={colors.textMuted} strokeWidth="1.8" />
+      <Path d="M12 11v5" stroke={colors.textMuted} strokeWidth="1.8" strokeLinecap="round" />
+      <Circle cx="12" cy="7.5" r="1" fill={colors.textMuted} />
     </Svg>
   );
 }
@@ -51,12 +43,7 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
 
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <BackIcon />
-        </TouchableOpacity>
-        <Text style={styles.brand}>QuickBid</Text>
-      </View>
+      <ScreenHeader onBack={() => navigation.goBack()} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -78,7 +65,7 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
               value={email}
               onChangeText={setEmail}
               placeholder="ejemplo@correo.com"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textSubtle}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -113,69 +100,56 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  flex: { flex: 1, backgroundColor: '#FFFFFF' },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    gap: 8,
-  },
-  backBtn: { padding: 2 },
-  brand:   { fontSize: 18, fontWeight: 'bold', color: BLUE },
+  safe: { flex: 1, backgroundColor: colors.white },
+  flex: { flex: 1, backgroundColor: colors.white },
 
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
     paddingTop: 28,
-    paddingBottom: 32,
+    paddingBottom: spacing['2xl'],
   },
 
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 14,
     lineHeight: 34,
   },
   body: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: fontSize.base,
+    color: colors.textMuted,
     lineHeight: 22,
     marginBottom: 28,
   },
 
   label: {
-    fontSize: 13,
+    fontSize: fontSize.sm,
     fontWeight: '600',
-    color: '#111827',
-    marginBottom: 8,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 8,
+    backgroundColor: colors.background,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.borderMuted,
     paddingHorizontal: 14,
     height: 48,
-    marginBottom: 20,
+    marginBottom: spacing.lg,
     gap: 10,
   },
-  input: { flex: 1, fontSize: 15, color: '#111827', padding: 0 },
+  input: { flex: 1, fontSize: fontSize.md, color: colors.text, padding: 0 },
 
   infoBox: {
     flexDirection: 'row',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 10,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.base,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.borderMuted,
     padding: 14,
     gap: 10,
     marginBottom: 28,
@@ -184,20 +158,20 @@ const styles = StyleSheet.create({
   infoIcon: { marginTop: 1 },
   infoText: {
     flex: 1,
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
     lineHeight: 20,
   },
-  infoBold: { fontWeight: '700', color: '#374151' },
+  infoBold: { fontWeight: '700', color: colors.textLabel },
 
   spacer: { flex: 1, minHeight: 16 },
 
   btn: {
-    backgroundColor: BLUE,
-    borderRadius: 10,
-    height: 52,
+    backgroundColor: colors.primary,
+    borderRadius: radius.base,
+    height: controlHeight.base,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  btnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  btnText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600' },
 });

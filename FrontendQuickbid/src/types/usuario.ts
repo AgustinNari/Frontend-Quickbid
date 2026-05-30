@@ -52,4 +52,10 @@ export type UsuarioActual = {
   categoria: Categoria;
   /** True si el usuario tiene una multa pendiente que le bloquea participar. */
   multaActiva: boolean;
+  /** ID público visible del usuario en la plataforma (ej: "2024-NL"). */
+  quickbidId?: string;
+  /** Puntos acumulados en la plataforma. */
+  puntos?: number;
+  /** Fecha de registro legible (ej: "marzo 2023"). */
+  miembroDesde?: string;
 };

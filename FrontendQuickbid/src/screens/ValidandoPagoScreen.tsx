@@ -6,27 +6,20 @@ import {
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import BottomNavBar, { NavTab } from '../components/BottomNavBar';
+import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
+import { ScreenHeader } from '../components/ScreenHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ValidandoPago'>;
-const BLUE = '#0055D1';
-
-function BackIcon() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path d="M15 18l-6-6 6-6" stroke={BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
 
 function PaymentCheckIcon() {
   return (
     <Svg width="80" height="60" viewBox="0 0 80 60" fill="none">
       {/* Tarjeta */}
-      <Rect x="2" y="8" width="76" height="44" rx="5" stroke="#D1D5DB" strokeWidth="2" fill="#F9FAFB" />
+      <Rect x="2" y="8" width="76" height="44" rx="5" stroke={colors.border} strokeWidth="2" fill={colors.surfaceMuted} />
       {/* Círculo con check */}
-      <Circle cx="40" cy="30" r="13" stroke={BLUE} strokeWidth="1.8" fill="none" />
-      <Path d="M34 30l4 4 8-8" stroke={BLUE} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx="40" cy="30" r="13" stroke={colors.primary} strokeWidth="1.8" fill="none" />
+      <Path d="M34 30l4 4 8-8" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -49,12 +42,7 @@ export default function ValidandoPagoScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
 
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <BackIcon />
-        </TouchableOpacity>
-        <Text style={styles.brand}>QuickBid</Text>
-      </View>
+      <ScreenHeader onBack={() => navigation.goBack()} />
 
       <View style={styles.container}>
 
@@ -91,56 +79,48 @@ export default function ValidandoPagoScreen({ navigation }: Props) {
 
       </View>
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} />
+      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-
-  header: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: '#E5E7EB', gap: 8,
-  },
-  backBtn: { padding: 2 },
-  brand:   { fontSize: 18, fontWeight: 'bold', color: BLUE },
+  safe: { flex: 1, backgroundColor: colors.white },
 
   container: {
-    flex: 1, paddingHorizontal: 24, paddingTop: 36, paddingBottom: 24, alignItems: 'center',
+    flex: 1, paddingHorizontal: spacing.xl, paddingTop: 36, paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg, alignItems: 'center',
   },
 
   iconCard: {
-    alignItems: 'center', backgroundColor: '#F9FAFB',
-    borderRadius: 16, padding: 24, width: '100%', marginBottom: 32,
+    alignItems: 'center', backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.xl, padding: spacing.xl, width: '100%', marginBottom: spacing['2xl'],
   },
   progressTrack: {
-    width: '60%', height: 4, backgroundColor: '#E5E7EB',
+    width: '60%', height: 4, backgroundColor: colors.borderMuted,
     borderRadius: 2, marginTop: 18, overflow: 'hidden',
   },
-  progressFill:   { height: '100%', backgroundColor: BLUE, borderRadius: 2 },
-  verifyingLabel: { fontSize: 12, fontWeight: '700', color: BLUE, marginTop: 10, letterSpacing: 1 },
+  progressFill:   { height: '100%', backgroundColor: colors.primary, borderRadius: 2 },
+  verifyingLabel: { fontSize: fontSize.sm, fontWeight: '700', color: colors.primary, marginTop: 10, letterSpacing: 1 },
 
   title: {
-    fontSize: 24, fontWeight: 'bold', color: '#111827',
-    textAlign: 'center', marginBottom: 12,
+    fontSize: fontSize['3xl'], fontWeight: 'bold', color: colors.text,
+    textAlign: 'center', marginBottom: spacing.md,
   },
   body: {
-    fontSize: 14, color: '#6B7280', textAlign: 'center',
-    lineHeight: 22, marginBottom: 24,
+    fontSize: fontSize.base, color: colors.textMuted, textAlign: 'center',
+    lineHeight: 22, marginBottom: spacing.xl,
   },
 
   infoBox: {
-    backgroundColor: '#EFF6FF', borderRadius: 12,
-    padding: 16, width: '100%', gap: 6,
+    backgroundColor: colors.infoSoft, borderRadius: radius.lg,
+    padding: spacing.base, width: '100%', gap: 6,
   },
-  infoTitle: { fontSize: 14, fontWeight: '700', color: BLUE, textAlign: 'center' },
-  infoBody:  { fontSize: 13, color: BLUE, textAlign: 'center', lineHeight: 20 },
+  infoTitle: { fontSize: fontSize.base, fontWeight: '700', color: colors.primary, textAlign: 'center' },
+  infoBody:  { fontSize: fontSize.sm, color: colors.primary, textAlign: 'center', lineHeight: 20 },
 
   btn: {
-    backgroundColor: BLUE, borderRadius: 10, height: 52,
+    backgroundColor: colors.primary, borderRadius: radius.base, height: controlHeight.base,
     width: '100%', alignItems: 'center', justifyContent: 'center',
   },
-  btnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  btnText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600' },
 });

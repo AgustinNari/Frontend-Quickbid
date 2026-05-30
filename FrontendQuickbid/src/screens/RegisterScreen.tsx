@@ -13,32 +13,18 @@ import {
 import Svg, { Path, Circle } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
+import { ScreenHeader } from '../components/ScreenHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
-
-const BLUE = '#0055D1';
-
-function BackIcon() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M15 18l-6-6 6-6"
-        stroke={BLUE}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
 
 function GlobeIcon() {
   return (
     <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="9" stroke="#9CA3AF" strokeWidth="1.8" />
+      <Circle cx="12" cy="12" r="9" stroke={colors.textSubtle} strokeWidth="1.8" />
       <Path
         d="M12 3c-2.5 3-4 5.5-4 9s1.5 6 4 9M12 3c2.5 3 4 5.5 4 9s-1.5 6-4 9M3 12h18"
-        stroke="#9CA3AF"
+        stroke={colors.textSubtle}
         strokeWidth="1.8"
         strokeLinecap="round"
       />
@@ -51,7 +37,7 @@ function ChevronIcon() {
     <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
       <Path
         d="M6 9l6 6 6-6"
-        stroke="#9CA3AF"
+        stroke={colors.textSubtle}
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -70,13 +56,7 @@ export default function RegisterScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <BackIcon />
-        </TouchableOpacity>
-        <Text style={styles.brand}>QuickBid</Text>
-      </View>
+      <ScreenHeader onBack={() => navigation.goBack()} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -99,7 +79,7 @@ export default function RegisterScreen({ navigation }: Props) {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textSubtle}
           />
 
           {/* NOMBRE */}
@@ -110,7 +90,7 @@ export default function RegisterScreen({ navigation }: Props) {
             onChangeText={setNombre}
             placeholder="Ingresá tu nombre"
             autoCorrect={false}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textSubtle}
           />
 
           {/* APELLIDO */}
@@ -121,7 +101,7 @@ export default function RegisterScreen({ navigation }: Props) {
             onChangeText={setApellido}
             placeholder="Ingresá tu apellido"
             autoCorrect={false}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textSubtle}
           />
 
           {/* DOMICILIO LEGAL */}
@@ -132,7 +112,7 @@ export default function RegisterScreen({ navigation }: Props) {
             onChangeText={setDomicilio}
             placeholder="Calle, número, ciudad"
             autoCorrect={false}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textSubtle}
           />
 
           {/* PAÍS DE ORIGEN */}
@@ -161,71 +141,51 @@ export default function RegisterScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   flex: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    gap: 8,
-  },
-  backBtn: {
-    padding: 2,
-  },
-  brand: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: BLUE,
+    backgroundColor: colors.background,
   },
 
   // Scroll
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
     paddingTop: 28,
-    paddingBottom: 32,
+    paddingBottom: spacing['2xl'],
   },
 
   // Títulos
   title: {
-    fontSize: 28,
+    fontSize: fontSize['4xl'],
     fontWeight: 'bold',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 6,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: fontSize.base,
+    color: colors.textMuted,
     marginBottom: 28,
   },
 
   // Inputs
   label: {
-    fontSize: 12,
+    fontSize: fontSize.sm,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.textLabel,
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border,
     paddingHorizontal: 14,
     height: 48,
-    fontSize: 15,
-    color: '#111827',
+    fontSize: fontSize.md,
+    color: colors.text,
     marginBottom: 18,
   },
 
@@ -233,10 +193,10 @@ const styles = StyleSheet.create({
   selectRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border,
     paddingHorizontal: 14,
     height: 48,
     marginBottom: 18,
@@ -244,11 +204,11 @@ const styles = StyleSheet.create({
   },
   selectText: {
     flex: 1,
-    fontSize: 15,
-    color: '#9CA3AF',
+    fontSize: fontSize.md,
+    color: colors.textSubtle,
   },
   selectTextFilled: {
-    color: '#111827',
+    color: colors.text,
   },
 
   spacer: {
@@ -259,17 +219,17 @@ const styles = StyleSheet.create({
   // Botón
   btn: {
     flexDirection: 'row',
-    backgroundColor: BLUE,
-    borderRadius: 10,
-    height: 52,
+    backgroundColor: colors.primary,
+    borderRadius: radius.base,
+    height: controlHeight.base,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
-    marginTop: 12,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.md,
   },
   btnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: colors.textInverse,
+    fontSize: fontSize.lg,
     fontWeight: '600',
     textAlign: 'center',
   },

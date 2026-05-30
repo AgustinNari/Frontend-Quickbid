@@ -19,29 +19,25 @@ type Props = {
   onBack?: () => void;
 };
 
-const SIDE_SLOT = 32;
+const BACK_SIZE = 24; // tamaño del área táctil del botón back
 
 export function ScreenHeader({ onBack }: Props) {
   return (
     <View style={styles.header}>
-      {onBack ? (
+      {onBack && (
         <TouchableOpacity
           onPress={onBack}
           activeOpacity={0.7}
-          style={styles.sideSlot}
+          style={styles.backSlot}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Icon name="arrow-left" color={colors.primary} size={22} />
         </TouchableOpacity>
-      ) : (
-        <View style={styles.sideSlot} />
       )}
 
       <Typography variant="h2" primary>
         QuickBid
       </Typography>
-
-      <View style={styles.sideSlot} />
     </View>
   );
 }
@@ -50,16 +46,15 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: spacing.sm,
     paddingHorizontal: layout.screenPaddingHorizontal,
     paddingVertical: spacing.md,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderMuted,
   },
-  sideSlot: {
-    width: SIDE_SLOT,
-    height: SIDE_SLOT,
+  backSlot: {
+    width: BACK_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
   },

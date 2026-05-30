@@ -10,24 +10,16 @@ import {
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import BottomNavBar, { NavTab } from '../components/BottomNavBar';
+import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
+import { ScreenHeader } from '../components/ScreenHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeleccionTipoPago'>;
 
-const BLUE = '#0055D1';
-
 // ── Iconos ────────────────────────────────────────────────────────────────────
 
-function BackIcon() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path d="M15 18l-6-6 6-6" stroke={BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
 function CardIcon({ active }: { active: boolean }) {
-  const c = active ? BLUE : '#6B7280';
+  const c = active ? colors.primary : colors.textMuted;
   return (
     <Svg width="26" height="26" viewBox="0 0 24 24" fill="none">
       <Rect x="2" y="5" width="20" height="14" rx="2" stroke={c} strokeWidth="1.7" />
@@ -37,7 +29,7 @@ function CardIcon({ active }: { active: boolean }) {
 }
 
 function BankIcon({ active }: { active: boolean }) {
-  const c = active ? BLUE : '#6B7280';
+  const c = active ? colors.primary : colors.textMuted;
   return (
     <Svg width="26" height="26" viewBox="0 0 24 24" fill="none">
       <Path d="M3 21h18M3 10h18M5 6l7-3 7 3" stroke={c} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
@@ -47,7 +39,7 @@ function BankIcon({ active }: { active: boolean }) {
 }
 
 function CheckDocIcon({ active }: { active: boolean }) {
-  const c = active ? BLUE : '#6B7280';
+  const c = active ? colors.primary : colors.textMuted;
   return (
     <Svg width="26" height="26" viewBox="0 0 24 24" fill="none">
       <Rect x="4" y="2" width="16" height="20" rx="2" stroke={c} strokeWidth="1.7" />
@@ -59,8 +51,8 @@ function CheckDocIcon({ active }: { active: boolean }) {
 function RadioIcon({ active }: { active: boolean }) {
   return (
     <Svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <Circle cx="11" cy="11" r="10" stroke={active ? BLUE : '#D1D5DB'} strokeWidth="1.8" />
-      {active && <Circle cx="11" cy="11" r="6" fill={BLUE} />}
+      <Circle cx="11" cy="11" r="10" stroke={active ? colors.primary : colors.border} strokeWidth="1.8" />
+      {active && <Circle cx="11" cy="11" r="6" fill={colors.primary} />}
     </Svg>
   );
 }
@@ -90,13 +82,7 @@ export default function SeleccionTipoPagoScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <BackIcon />
-        </TouchableOpacity>
-        <Text style={styles.brand}>QuickBid</Text>
-      </View>
+      <ScreenHeader onBack={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={styles.scroll}>
 
@@ -142,7 +128,7 @@ export default function SeleccionTipoPagoScreen({ navigation }: Props) {
         </TouchableOpacity>
       </View>
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} />
+      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
 
     </SafeAreaView>
   );
@@ -151,88 +137,74 @@ export default function SeleccionTipoPagoScreen({ navigation }: Props) {
 // ── Estilos ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F3F4F6' },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    gap: 8,
-  },
-  backBtn: { padding: 2 },
-  brand:   { fontSize: 18, fontWeight: 'bold', color: BLUE },
+  safe: { flex: 1, backgroundColor: colors.background },
 
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.lg,
     paddingTop: 28,
-    paddingBottom: 24,
+    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
   },
 
-  title:    { fontSize: 28, fontWeight: 'bold', color: '#111827', marginBottom: 6 },
-  subtitle: { fontSize: 14, color: '#6B7280', marginBottom: 28 },
+  title:    { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 6 },
+  subtitle: { fontSize: fontSize.base, color: colors.textMuted, marginBottom: 28 },
 
   // Opciones
   option: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    padding: 16,
+    borderColor: colors.borderMuted,
+    padding: spacing.base,
     marginBottom: 14,
     gap: 14,
   },
   optionActive: {
-    borderColor: BLUE,
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.primary,
+    backgroundColor: colors.white,
   },
 
   iconWrap: {
     width: 44,
     height: 44,
-    borderRadius: 10,
-    backgroundColor: '#F3F4F6',
+    borderRadius: radius.base,
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconWrapActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.infoSoft,
   },
 
   optionText: { flex: 1 },
   optionName: {
-    fontSize: 15,
+    fontSize: fontSize.md,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.textLabel,
     marginBottom: 3,
   },
   optionNameActive: {
-    color: BLUE,
+    color: colors.primary,
   },
   optionDesc: {
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
   },
 
   // Footer con botón
   footer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#F3F4F6',
-    paddingBottom: 16,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.base,
+    backgroundColor: colors.background,
   },
   btn: {
-    backgroundColor: BLUE,
-    borderRadius: 10,
-    height: 52,
+    backgroundColor: colors.primary,
+    borderRadius: radius.base,
+    height: controlHeight.base,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  btnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  btnText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600' },
 });

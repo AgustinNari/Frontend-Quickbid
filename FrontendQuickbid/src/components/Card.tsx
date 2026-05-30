@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { colors, radius, spacing, fontSize } from '../theme';
 
 type Props = {
   title: string;
@@ -17,22 +18,24 @@ export default function Card({ title, description }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#2d333b',
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 15,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    marginBottom: spacing.sm,
     width: '100%',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
 
   title: {
-    color: '#61dafb',
-    fontSize: 20,
+    color: colors.primary,
+    fontSize: fontSize.xl,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: spacing.xs,
   },
 
   description: {
-    color: '#fff',
-    fontSize: 15,
+    color: colors.text,
+    fontSize: fontSize.md,
   },
 });

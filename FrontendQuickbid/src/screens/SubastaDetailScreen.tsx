@@ -27,7 +27,7 @@ import {
   fontWeight,
   letterSpacing,
 } from '../theme';
-import BottomNavBar, { NavTab } from '../components/BottomNavBar';
+import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SubastaInfoRow } from '../components/SubastaInfoRow';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
@@ -226,7 +226,7 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
         </>
       )}
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} />
+      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
     </SafeAreaView>
   );
 }
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scroll: {
-    paddingBottom: spacing['2xl'],
+    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
   },
   errorWrap: {
     flex: 1,
@@ -473,6 +473,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     paddingHorizontal: layout.screenPaddingHorizontal,
     paddingVertical: spacing.base,
+    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.sm,
     gap: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.borderMuted,

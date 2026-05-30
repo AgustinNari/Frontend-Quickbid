@@ -12,28 +12,21 @@ import {
 import Svg, { Path, Rect, Circle, Line } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import BottomNavBar, { NavTab } from '../components/BottomNavBar';
+import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import { colors, spacing, radius, fontSize, shadow } from '../theme';
+import { ScreenHeader } from '../components/ScreenHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MetodosPago'>;
 
-const BLUE        = '#0055D1';
-const SCREEN_W    = Dimensions.get('window').width;
+const SCREEN_W = Dimensions.get('window').width;
 
 // ── Iconos ────────────────────────────────────────────────────────────────────
-
-function BackIcon() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path d="M15 18l-6-6 6-6" stroke={BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
 
 function CardIcon() {
   return (
     <Svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-      <Rect x="2" y="5" width="20" height="14" rx="2" stroke="#6B7280" strokeWidth="1.6" />
-      <Path d="M2 10h20" stroke="#6B7280" strokeWidth="1.6" strokeLinecap="round" />
+      <Rect x="2" y="5" width="20" height="14" rx="2" stroke={colors.textMuted} strokeWidth="1.6" />
+      <Path d="M2 10h20" stroke={colors.textMuted} strokeWidth="1.6" strokeLinecap="round" />
     </Svg>
   );
 }
@@ -41,8 +34,8 @@ function CardIcon() {
 function BankIcon() {
   return (
     <Svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-      <Path d="M3 21h18M3 10h18M5 6l7-3 7 3" stroke="#6B7280" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M6 10v11M10 10v11M14 10v11M18 10v11" stroke="#6B7280" strokeWidth="1.6" strokeLinecap="round" />
+      <Path d="M3 21h18M3 10h18M5 6l7-3 7 3" stroke={colors.textMuted} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M6 10v11M10 10v11M14 10v11M18 10v11" stroke={colors.textMuted} strokeWidth="1.6" strokeLinecap="round" />
     </Svg>
   );
 }
@@ -50,8 +43,8 @@ function BankIcon() {
 function CheckDocIcon() {
   return (
     <Svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-      <Rect x="4" y="2" width="16" height="20" rx="2" stroke="#6B7280" strokeWidth="1.6" />
-      <Path d="M8 10h8M8 14h5M8 6h8" stroke="#6B7280" strokeWidth="1.6" strokeLinecap="round" />
+      <Rect x="4" y="2" width="16" height="20" rx="2" stroke={colors.textMuted} strokeWidth="1.6" />
+      <Path d="M8 10h8M8 14h5M8 6h8" stroke={colors.textMuted} strokeWidth="1.6" strokeLinecap="round" />
     </Svg>
   );
 }
@@ -59,9 +52,9 @@ function CheckDocIcon() {
 function DotsIcon() {
   return (
     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="5"  r="1.3" fill="#6B7280" />
-      <Circle cx="12" cy="12" r="1.3" fill="#6B7280" />
-      <Circle cx="12" cy="19" r="1.3" fill="#6B7280" />
+      <Circle cx="12" cy="5"  r="1.3" fill={colors.textMuted} />
+      <Circle cx="12" cy="12" r="1.3" fill={colors.textMuted} />
+      <Circle cx="12" cy="19" r="1.3" fill={colors.textMuted} />
     </Svg>
   );
 }
@@ -71,7 +64,7 @@ function StarIcon() {
     <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
       <Path
         d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-        stroke="#6B7280" strokeWidth="1.6" strokeLinejoin="round"
+        stroke={colors.textMuted} strokeWidth="1.6" strokeLinejoin="round"
       />
     </Svg>
   );
@@ -81,7 +74,7 @@ function TrashIcon() {
   return (
     <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
       <Path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
-        stroke="#EF4444" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        stroke={colors.danger} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -159,13 +152,7 @@ export default function MetodosPagoScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <BackIcon />
-        </TouchableOpacity>
-        <Text style={styles.brand}>QuickBid</Text>
-      </View>
+      <ScreenHeader onBack={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>Métodos de pago</Text>
@@ -224,7 +211,7 @@ export default function MetodosPagoScreen({ navigation }: Props) {
         </TouchableOpacity>
       </Modal>
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} />
+      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
 
     </SafeAreaView>
   );
@@ -233,108 +220,91 @@ export default function MetodosPagoScreen({ navigation }: Props) {
 // ── Estilos ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F3F4F6' },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    gap: 8,
-  },
-  backBtn: { padding: 2 },
-  brand:   { fontSize: 18, fontWeight: 'bold', color: BLUE },
+  safe: { flex: 1, backgroundColor: colors.background },
 
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 32,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
   },
 
-  title:    { fontSize: 28, fontWeight: 'bold', color: '#111827', marginBottom: 4 },
-  subtitle: { fontSize: 14, color: '#6B7280', marginBottom: 28 },
+  title:    { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 4 },
+  subtitle: { fontSize: fontSize.base, color: colors.textMuted, marginBottom: 28 },
 
   sectionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#111827' },
+  sectionTitle: { fontSize: fontSize.lg, fontWeight: '600', color: colors.text },
   addBtn: {
-    backgroundColor: BLUE,
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
     paddingVertical: 6,
   },
-  addBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
+  addBtnText: { color: colors.textInverse, fontSize: fontSize.sm, fontWeight: '600' },
 
   listCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.borderMuted,
   },
-  divider: { height: 1, backgroundColor: '#F3F4F6', marginHorizontal: 16 },
+  divider: { height: 1, backgroundColor: colors.background, marginHorizontal: spacing.base },
 
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.base,
     paddingVertical: 14,
-    gap: 12,
+    gap: spacing.md,
   },
   itemIconWrap: {
     width: 40,
     height: 40,
-    borderRadius: 8,
-    backgroundColor: '#F3F4F6',
+    borderRadius: radius.md,
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   itemInfo:    { flex: 1 },
-  itemName:    { fontSize: 14, fontWeight: '600', color: '#111827', marginBottom: 2 },
-  itemDetails: { fontSize: 12, color: '#6B7280' },
+  itemName:    { fontSize: fontSize.base, fontWeight: '600', color: colors.text, marginBottom: 2 },
+  itemDetails: { fontSize: fontSize.sm, color: colors.textMuted },
 
   principalBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: BLUE,
+    backgroundColor: colors.primary,
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
     marginTop: 5,
   },
-  principalText: { fontSize: 10, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.5 },
+  principalText: { fontSize: fontSize.xs, fontWeight: '700', color: colors.textInverse, letterSpacing: 0.5 },
 
   dotsBtn: { padding: 4 },
 
   // Dropdown via Modal
   dropdown: {
     position: 'absolute',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    backgroundColor: colors.white,
+    borderRadius: radius.base,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.borderMuted,
     minWidth: 190,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.14,
-    shadowRadius: 10,
-    elevation: 10,
+    ...shadow.lg,
   },
   dropdownItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.base,
     paddingVertical: 14,
-    gap: 12,
+    gap: spacing.md,
   },
-  dropdownText:    { fontSize: 14, color: '#111827' },
-  dropdownDanger:  { fontSize: 14, color: '#EF4444', fontWeight: '500' },
-  dropdownDivider: { height: 1, backgroundColor: '#F3F4F6' },
+  dropdownText:    { fontSize: fontSize.base, color: colors.text },
+  dropdownDanger:  { fontSize: fontSize.base, color: colors.danger, fontWeight: '500' },
+  dropdownDivider: { height: 1, backgroundColor: colors.background },
 });

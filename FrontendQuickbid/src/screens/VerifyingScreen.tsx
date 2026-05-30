@@ -10,28 +10,20 @@ import {
 import Svg, { Rect, Circle, Path } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
+import { ScreenHeader } from '../components/ScreenHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Verifying'>;
-
-const BLUE = '#0055D1';
-
-function BackIcon() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path d="M15 18l-6-6 6-6" stroke={BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
 
 function IdVerifyIcon() {
   return (
     <Svg width="80" height="60" viewBox="0 0 80 60" fill="none">
-      <Rect x="2" y="8" width="76" height="44" rx="5" stroke="#D1D5DB" strokeWidth="2" fill="#F9FAFB" />
-      <Circle cx="22" cy="30" r="10" stroke="#D1D5DB" strokeWidth="1.8" />
-      <Path d="M18 30l3 3 5-5" stroke="#D1D5DB" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <Rect x="38" y="22" width="28" height="3" rx="1.5" fill="#E5E7EB" />
-      <Rect x="38" y="29" width="22" height="3" rx="1.5" fill="#E5E7EB" />
-      <Rect x="38" y="36" width="16" height="3" rx="1.5" fill="#E5E7EB" />
+      <Rect x="2" y="8" width="76" height="44" rx="5" stroke={colors.border} strokeWidth="2" fill={colors.surfaceMuted} />
+      <Circle cx="22" cy="30" r="10" stroke={colors.border} strokeWidth="1.8" />
+      <Path d="M18 30l3 3 5-5" stroke={colors.border} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <Rect x="38" y="22" width="28" height="3" rx="1.5" fill={colors.borderMuted} />
+      <Rect x="38" y="29" width="22" height="3" rx="1.5" fill={colors.borderMuted} />
+      <Rect x="38" y="36" width="16" height="3" rx="1.5" fill={colors.borderMuted} />
     </Svg>
   );
 }
@@ -56,13 +48,7 @@ export default function VerifyingScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate('Login')}>
-          <BackIcon />
-        </TouchableOpacity>
-        <Text style={styles.brand}>QuickBid</Text>
-      </View>
+      <ScreenHeader onBack={() => navigation.navigate('Login')} />
 
       <View style={styles.container}>
 
@@ -109,57 +95,43 @@ export default function VerifyingScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    gap: 8,
-  },
-  backBtn: { padding: 2 },
-  brand: { fontSize: 18, fontWeight: 'bold', color: BLUE },
+  safe: { flex: 1, backgroundColor: colors.white },
 
   // Contenido
   container: {
     flex: 1,
     paddingHorizontal: 28,
     paddingTop: 40,
-    paddingBottom: 32,
+    paddingBottom: spacing['2xl'],
     alignItems: 'center',
   },
 
   // Icono
   iconWrap: {
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
-    padding: 24,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
     width: '100%',
     marginBottom: 36,
   },
   progressTrack: {
     width: '60%',
     height: 4,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.borderMuted,
     borderRadius: 2,
     marginTop: 16,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: BLUE,
+    backgroundColor: colors.primary,
     borderRadius: 2,
   },
   verifyingText: {
-    fontSize: 13,
-    color: BLUE,
-    marginTop: 8,
+    fontSize: fontSize.sm,
+    color: colors.primary,
+    marginTop: spacing.xs,
     fontWeight: '500',
   },
 
@@ -167,47 +139,47 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#111827',
+    color: colors.text,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.base,
   },
   body: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: fontSize.base,
+    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: 16,
+    marginBottom: spacing.base,
   },
   highlight: {
-    fontSize: 14,
+    fontSize: fontSize.base,
     fontWeight: '600',
-    color: BLUE,
+    color: colors.primary,
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: 16,
+    marginBottom: spacing.base,
   },
   hint: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: fontSize.sm,
+    color: colors.textSubtle,
     textAlign: 'center',
     marginBottom: 'auto',
-    marginTop: 8,
+    marginTop: spacing.xs,
   },
 
   // Botón
   btn: {
     flexDirection: 'row',
-    backgroundColor: BLUE,
-    borderRadius: 10,
-    height: 52,
+    backgroundColor: colors.primary,
+    borderRadius: radius.base,
+    height: controlHeight.base,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 32,
+    marginTop: spacing['2xl'],
   },
   btnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: colors.textInverse,
+    fontSize: fontSize.lg,
     fontWeight: '600',
   },
 });
