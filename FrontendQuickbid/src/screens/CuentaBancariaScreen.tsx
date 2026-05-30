@@ -7,14 +7,14 @@ import Svg, { Path } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import BottomNavBar, { NavTab } from '../components/BottomNavBar';
+import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CuentaBancaria'>;
-const BLUE = '#0055D1';
 
 function BackIcon() {
   return (
     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path d="M15 18l-6-6 6-6" stroke={BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M15 18l-6-6 6-6" stroke={colors.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -49,7 +49,7 @@ export default function CuentaBancariaScreen({ navigation }: Props) {
             value={cbu}
             onChangeText={setCbu}
             placeholder="Ej: 0140000000000000000000"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textSubtle}
             keyboardType="numeric"
             maxLength={22}
             autoCorrect={false}
@@ -61,7 +61,7 @@ export default function CuentaBancariaScreen({ navigation }: Props) {
             value={alias}
             onChangeText={setAlias}
             placeholder="juan.perez.mp"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textSubtle}
             autoCapitalize="none"
             autoCorrect={false}
           />
@@ -72,7 +72,7 @@ export default function CuentaBancariaScreen({ navigation }: Props) {
             value={entidad}
             onChangeText={setEntidad}
             placeholder="Mercado Pago"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textSubtle}
             autoCorrect={false}
           />
 
@@ -82,7 +82,7 @@ export default function CuentaBancariaScreen({ navigation }: Props) {
             value={cuit}
             onChangeText={setCuit}
             placeholder="20-XXXXXXXX-X"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textSubtle}
             keyboardType="numeric"
             autoCorrect={false}
           />
@@ -102,33 +102,33 @@ export default function CuentaBancariaScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: '#FFFFFF' },
+  safe:   { flex: 1, backgroundColor: colors.white },
   header: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: '#E5E7EB', gap: 8,
+    backgroundColor: colors.white, paddingHorizontal: spacing.base, paddingVertical: 14,
+    borderBottomWidth: 1, borderBottomColor: colors.borderMuted, gap: spacing.xs,
   },
   backBtn: { padding: 2 },
-  brand:   { fontSize: 18, fontWeight: 'bold', color: BLUE },
+  brand:   { fontSize: fontSize.xl, fontWeight: 'bold', color: colors.primary },
 
-  scroll: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 28, paddingBottom: 24 },
+  scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingTop: 28, paddingBottom: spacing.xl },
 
-  title:    { fontSize: 28, fontWeight: 'bold', color: '#111827', marginBottom: 6 },
-  subtitle: { fontSize: 14, color: '#6B7280', marginBottom: 28 },
+  title:    { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 6 },
+  subtitle: { fontSize: fontSize.base, color: colors.textMuted, marginBottom: 28 },
 
   label: {
-    fontSize: 12, fontWeight: '600', color: '#374151',
+    fontSize: fontSize.sm, fontWeight: '600', color: colors.textLabel,
     letterSpacing: 0.5, marginBottom: 6,
   },
   input: {
-    backgroundColor: '#FFFFFF', borderRadius: 8, borderWidth: 1,
-    borderColor: '#D1D5DB', paddingHorizontal: 14, height: 48,
-    fontSize: 15, color: '#111827', marginBottom: 18,
+    backgroundColor: colors.white, borderRadius: radius.md, borderWidth: 1,
+    borderColor: colors.border, paddingHorizontal: 14, height: 48,
+    fontSize: fontSize.md, color: colors.text, marginBottom: 18,
   },
 
   btn: {
-    backgroundColor: BLUE, borderRadius: 10, height: 52,
-    alignItems: 'center', justifyContent: 'center', marginTop: 8,
+    backgroundColor: colors.primary, borderRadius: radius.base, height: controlHeight.base,
+    alignItems: 'center', justifyContent: 'center', marginTop: spacing.xs,
   },
-  btnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  btnText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600' },
 });

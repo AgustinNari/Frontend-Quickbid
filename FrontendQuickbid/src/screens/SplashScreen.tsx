@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Image, StyleSheet, StatusBar } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { colors, spacing } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
@@ -15,7 +16,7 @@ export default function SplashScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
+      <StatusBar backgroundColor={colors.white} barStyle="dark-content" />
 
       <Image
         source={require('../assets/images/logo.png')}
@@ -31,10 +32,10 @@ export default function SplashScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 20,
+    gap: spacing.lg,
   },
   logo: {
     width: 220,
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
   loadingBar: {
     width: 120,
     height: 3,
-    backgroundColor: '#0055D1',
+    backgroundColor: colors.primary,
     borderRadius: 2,
   },
 });

@@ -13,15 +13,14 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Security'>;
-
-const BLUE = '#0055D1';
 
 function BackIcon() {
   return (
     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path d="M15 18l-6-6 6-6" stroke={BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M15 18l-6-6 6-6" stroke={colors.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -31,13 +30,13 @@ function EyeIcon({ visible }: { visible: boolean }) {
     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
       {visible ? (
         <>
-          <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#9CA3AF" strokeWidth="1.8" />
-          <Path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" stroke="#9CA3AF" strokeWidth="1.8" />
+          <Path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke={colors.textSubtle} strokeWidth="1.8" />
+          <Path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" stroke={colors.textSubtle} strokeWidth="1.8" />
         </>
       ) : (
         <>
-          <Path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="#9CA3AF" strokeWidth="1.8" strokeLinecap="round" />
-          <Path d="M1 1l22 22" stroke="#9CA3AF" strokeWidth="1.8" strokeLinecap="round" />
+          <Path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke={colors.textSubtle} strokeWidth="1.8" strokeLinecap="round" />
+          <Path d="M1 1l22 22" stroke={colors.textSubtle} strokeWidth="1.8" strokeLinecap="round" />
         </>
       )}
     </Svg>
@@ -77,7 +76,7 @@ export default function SecurityScreen({ navigation }: Props) {
               onChangeText={setPassword}
               secureTextEntry={!showPass}
               placeholder="••••••••"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textSubtle}
             />
             <TouchableOpacity onPress={() => setShowPass(v => !v)} style={styles.eyeBtn}>
               <EyeIcon visible={showPass} />
@@ -94,7 +93,7 @@ export default function SecurityScreen({ navigation }: Props) {
               onChangeText={setConfirm}
               secureTextEntry={!showConf}
               placeholder="••••••••"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textSubtle}
             />
             <TouchableOpacity onPress={() => setShowConf(v => !v)} style={styles.eyeBtn}>
               <EyeIcon visible={showConf} />
@@ -117,63 +116,63 @@ export default function SecurityScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  flex: { flex: 1, backgroundColor: '#F3F4F6' },
+  safe: { flex: 1, backgroundColor: colors.white },
+  flex: { flex: 1, backgroundColor: colors.background },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
+    backgroundColor: colors.white,
+    paddingHorizontal: spacing.base,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    gap: 8,
+    borderBottomColor: colors.borderMuted,
+    gap: spacing.xs,
   },
   backBtn: { padding: 2 },
-  brand: { fontSize: 18, fontWeight: 'bold', color: BLUE },
+  brand: { fontSize: fontSize.xl, fontWeight: 'bold', color: colors.primary },
 
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
     paddingTop: 28,
-    paddingBottom: 32,
+    paddingBottom: spacing['2xl'],
   },
 
-  title:    { fontSize: 28, fontWeight: 'bold', color: '#111827', marginBottom: 6 },
-  subtitle: { fontSize: 14, color: '#6B7280', marginBottom: 28 },
+  title:    { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 6 },
+  subtitle: { fontSize: fontSize.base, color: colors.textMuted, marginBottom: 28 },
 
   label: {
-    fontSize: 12,
+    fontSize: fontSize.sm,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.textLabel,
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border,
     paddingHorizontal: 14,
     height: 48,
-    marginBottom: 8,
+    marginBottom: spacing.xs,
   },
-  input:   { flex: 1, fontSize: 15, color: '#111827', padding: 0 },
+  input:   { flex: 1, fontSize: fontSize.md, color: colors.text, padding: 0 },
   eyeBtn:  { padding: 4 },
-  hint:    { fontSize: 12, color: '#6B7280', marginBottom: 20 },
+  hint:    { fontSize: fontSize.sm, color: colors.textMuted, marginBottom: spacing.lg },
 
   spacer: { flex: 1, minHeight: 20 },
 
   btn: {
-    backgroundColor: BLUE,
-    borderRadius: 10,
-    height: 52,
+    backgroundColor: colors.primary,
+    borderRadius: radius.base,
+    height: controlHeight.base,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 16,
+    marginTop: spacing.base,
   },
-  btnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  btnText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600' },
 });
