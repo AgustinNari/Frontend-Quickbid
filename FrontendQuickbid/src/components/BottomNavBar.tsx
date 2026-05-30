@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Image,
 } from 'react-native';
+import { NavigationProp } from '@react-navigation/native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { colors, shadow } from '../theme';
 
@@ -16,6 +17,9 @@ const WHITE = colors.white;
 const BAR_HEIGHT    = 68;
 const LOGO_SIZE     = 64;
 const LOGO_OVERHANG = 26; // cuánto sobresale el logo por encima de la barra
+
+/** Altura total que ocupa el BottomNavBar en el layout (bar + overhang del logo). */
+export const BOTTOM_NAV_HEIGHT = LOGO_OVERHANG + BAR_HEIGHT; // 94px
 
 // ── Iconos ────────────────────────────────────────────────────────────────────
 
@@ -86,18 +90,31 @@ function NavItem({ icon, label, active, onPress }: NavItemProps) {
 type Props = {
   activeTab?: NavTab;
   onTabPress?: (tab: NavTab) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  navigation?: NavigationProp<any>;
 };
 
-export default function BottomNavBar({ activeTab = 'subastas', onTabPress }: Props) {
-  const press = (tab: NavTab) => onTabPress?.(tab);
+export default function BottomNavBar({ activeTab = 'subastas', onTabPress, navigation }: Props) {
+  const press = (tab: NavTab) => {
+    onTabPress?.(tab);
+    if (tab === 'subastas') {
+      navigation?.navigate('Subastas' as never);
+    } else if (tab === 'menu') {
+      navigation?.navigate('MenuLateral' as never);
+    } else if (tab === 'notif') {
+      navigation?.navigate('Notificaciones' as never);
+    } else if (tab === 'consignar') {
+      navigation?.navigate('Consignaciones' as never);
+    }
+  };
 
   return (
     // El wrapper ocupa espacio en el layout (no es absolute)
     // Su altura = LOGO_OVERHANG + BAR_HEIGHT
-    <View style={styles.wrapper}>
+    <View style={styles.wrapper} pointerEvents="box-none">
 
       {/* Logo central — posicionado absolute dentro del wrapper, sobresale hacia arriba */}
-      <View style={styles.centerElevated}>
+      <View style={styles.centerElevated} pointerEvents="box-none">
         <TouchableOpacity
           style={styles.centerCircle}
           onPress={() => press('subastas')}
@@ -131,9 +148,14 @@ export default function BottomNavBar({ activeTab = 'subastas', onTabPress }: Pro
 // ── Estilos ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  // Wrapper en flujo normal — empuja el contenido hacia arriba
+  // Wrapper absolute — flota sobre el contenido, no empuja el layout
   wrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     height: LOGO_OVERHANG + BAR_HEIGHT,
+    backgroundColor: 'transparent',
   },
 
   // Logo: absolute dentro del wrapper, centrado, zIndex alto
@@ -144,6 +166,7 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     zIndex: 10,
+    backgroundColor: 'transparent',
   },
   centerCircle: {
     width: LOGO_SIZE,
