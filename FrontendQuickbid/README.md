@@ -38,11 +38,20 @@ Agregá las siguientes variables de entorno del sistema (buscá "Variables de en
 ANDROID_HOME = C:\Users\<tu-usuario>\AppData\Local\Android\Sdk
 ```
 
+> **Nota:** Si instalaste el SDK en otra ubicación (ej. `E:\Android\Sdk`), usá esa ruta.  
+> Podés verificar con: `[System.Environment]::GetEnvironmentVariable("ANDROID_HOME", "User")` en PowerShell.
+
 Y agregá al `PATH`:
 ```
 %ANDROID_HOME%\platform-tools
 %ANDROID_HOME%\emulator
 ```
+
+Además, **creá el archivo `android/local.properties`** con el path al SDK (no se commitea):
+```
+sdk.dir=E\:\\Android\\Sdk
+```
+Reemplazá la ruta por donde tengas el SDK instalado.
 
 #### macOS / Linux
 
@@ -98,20 +107,25 @@ npm install
    npm start
    ```
 
-6. En otra terminal, instalá y lanzá la app:
+6. En **otra terminal**, buildea e instalá la app:
 
    **macOS / Linux:**
    ```bash
    npm run android
    ```
 
-   **Windows:**
+   **Windows (comando completo, build + reverse en uno):**
    ```bash
-   cd android && .\gradlew.bat app:installDebug -PreactNativeDevServerPort=8081
+   npm run android:device
    ```
-   Luego abrí la app en el celular. Si muestra un error de conexión, ejecutá:
+
+   > Este comando hace `adb reverse tcp:8081 tcp:8081` automáticamente antes del build.  
+   > Es necesario para que el celular pueda comunicarse con Metro en la PC.
+
+   Si la app ya está instalada y solo querés reconectar Metro (ej. reiniciaste la PC):
    ```bash
-   adb reverse tcp:8081 tcp:8081
+   npm run reverse
+   # luego en el celu: sacudir → Reload
    ```
 
 ### Opción B — Emulador de Android Studio
@@ -183,6 +197,8 @@ El proyecto compila solo para `arm64-v8a` (dispositivos físicos) y `x86_64` (em
 |---|---|
 | `npm start` | Inicia el bundler de Metro |
 | `npm run android` | Compila e instala en Android (macOS/Linux) |
-| `npm run android:win` | Compila e instala en Android (Windows) |
+| `npm run android:win` | Compila e instala en Android (Windows, gradlew directo) |
+| `npm run android:device` | **Windows con dispositivo físico** — hace `adb reverse` + build en un paso |
+| `npm run reverse` | Solo reenvía el puerto 8081 al celular (útil si Metro ya corre y solo perdiste conexión) |
 | `npm run lint` | Corre el linter |
 | `npm test` | Corre los tests |
