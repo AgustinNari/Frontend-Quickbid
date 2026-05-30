@@ -101,7 +101,7 @@ export default function LimitedAccessScreen({ navigation }: Props) {
           <Text style={styles.btnPrimaryText}>Agregar Medio de Pago</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.btnSecondary} activeOpacity={0.85} onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity style={styles.btnSecondary} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>
           <Text style={styles.btnSecondaryText}>Continuar como Observador</Text>
         </TouchableOpacity>
 
