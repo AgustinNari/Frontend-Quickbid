@@ -26,6 +26,12 @@ import CatalogoSubastaScreen from './src/screens/CatalogoSubastaScreen';
 import ItemDetailScreen from './src/screens/ItemDetailScreen';
 import InscripcionSubastaScreen from './src/screens/InscripcionSubastaScreen';
 import InscripcionExitoScreen from './src/screens/InscripcionExitoScreen';
+import MenuLateralScreen from './src/screens/MenuLateralScreen';
+import NotificacionesScreen from './src/screens/NotificacionesScreen';
+import HistorialScreen from './src/screens/HistorialScreen';
+import PerfilScreen from './src/screens/PerfilScreen';
+import EstadisticasScreen from './src/screens/EstadisticasScreen';
+import ConsignacionesScreen from './src/screens/ConsignacionesScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -52,6 +58,12 @@ export type RootStackParamList = {
   ItemDetail: { itemId: string; subastaId: string };
   InscripcionSubasta: { subastaId: string };
   InscripcionExito: { subastaId: string; idMedioPago: string };
+  MenuLateral: undefined;
+  Notificaciones: undefined;
+  Historial: undefined;
+  Perfil: undefined;
+  Estadisticas: undefined;
+  Consignaciones: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -89,6 +101,16 @@ export default function App() {
         <Stack.Screen name="ItemDetail" component={ItemDetailScreen} />
         <Stack.Screen name="InscripcionSubasta" component={InscripcionSubastaScreen} />
         <Stack.Screen name="InscripcionExito" component={InscripcionExitoScreen} />
+        <Stack.Screen name="Notificaciones" component={NotificacionesScreen} />
+        <Stack.Screen name="Historial" component={HistorialScreen} />
+        <Stack.Screen name="Perfil" component={PerfilScreen} />
+        <Stack.Screen name="Estadisticas" component={EstadisticasScreen} />
+        <Stack.Screen name="Consignaciones" component={ConsignacionesScreen} />
+        <Stack.Screen
+          name="MenuLateral"
+          component={MenuLateralScreen}
+          options={{ presentation: 'transparentModal', animation: 'slide_from_right' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
