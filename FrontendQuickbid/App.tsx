@@ -19,6 +19,13 @@ import NuevaTarjetaScreen from './src/screens/NuevaTarjetaScreen';
 import CuentaBancariaScreen from './src/screens/CuentaBancariaScreen';
 import ChequeCertificadoScreen from './src/screens/ChequeCertificadoScreen';
 import ValidandoPagoScreen from './src/screens/ValidandoPagoScreen';
+import UIShowcaseScreen from './src/screens/UIShowcaseScreen';
+import SubastasScreen from './src/screens/SubastasScreen';
+import SubastaDetailScreen from './src/screens/SubastaDetailScreen';
+import CatalogoSubastaScreen from './src/screens/CatalogoSubastaScreen';
+import ItemDetailScreen from './src/screens/ItemDetailScreen';
+import InscripcionSubastaScreen from './src/screens/InscripcionSubastaScreen';
+import InscripcionExitoScreen from './src/screens/InscripcionExitoScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -38,6 +45,13 @@ export type RootStackParamList = {
   ValidandoPago: undefined;
   Home: undefined;
   Details: undefined;
+  UIShowcase: undefined;
+  Subastas: undefined;
+  SubastaDetail: { id: string };
+  CatalogoSubasta: { subastaId: string; titulo?: string };
+  ItemDetail: { itemId: string; subastaId: string };
+  InscripcionSubasta: { subastaId: string };
+  InscripcionExito: { subastaId: string; idMedioPago: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -68,6 +82,13 @@ export default function App() {
         <Stack.Screen name="RecuperacionCuenta" component={RecuperacionCuentaScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Details" component={DetailsScreen} />
+        <Stack.Screen name="UIShowcase" component={UIShowcaseScreen} />
+        <Stack.Screen name="Subastas" component={SubastasScreen} />
+        <Stack.Screen name="SubastaDetail" component={SubastaDetailScreen} />
+        <Stack.Screen name="CatalogoSubasta" component={CatalogoSubastaScreen} />
+        <Stack.Screen name="ItemDetail" component={ItemDetailScreen} />
+        <Stack.Screen name="InscripcionSubasta" component={InscripcionSubastaScreen} />
+        <Stack.Screen name="InscripcionExito" component={InscripcionExitoScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
