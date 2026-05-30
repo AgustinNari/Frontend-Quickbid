@@ -5,6 +5,7 @@ import {
   StyleSheet,
   GestureResponderEvent,
 } from 'react-native';
+import { colors, radius, spacing, fontSize, controlHeight } from '../theme';
 
 type Props = {
   title: string;
@@ -13,7 +14,7 @@ type Props = {
 
 export default function PrimaryButton({ title, onPress }: Props) {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
+    <TouchableOpacity style={styles.button} onPress={onPress} activeOpacity={0.85}>
       <Text style={styles.text}>{title}</Text>
     </TouchableOpacity>
   );
@@ -21,18 +22,19 @@ export default function PrimaryButton({ title, onPress }: Props) {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#61dafb',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginVertical: 8,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.xl,
+    borderRadius: radius.base,
+    marginVertical: spacing.xs,
     width: '100%',
+    height: controlHeight.base,
     alignItems: 'center',
+    justifyContent: 'center',
   },
 
   text: {
-    color: '#20232a',
+    color: colors.textInverse,
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: fontSize.lg,
   },
 });

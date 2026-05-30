@@ -7,10 +7,11 @@ import {
   Image,
 } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
+import { colors, shadow } from '../theme';
 
-const BLUE  = '#0055D1';
-const GRAY  = '#6B7280';
-const WHITE = '#FFFFFF';
+const BLUE  = colors.primary;
+const GRAY  = colors.textMuted;
+const WHITE = colors.white;
 
 const BAR_HEIGHT    = 68;
 const LOGO_SIZE     = 64;
@@ -173,11 +174,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingBottom: 14,
     paddingHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 12,
+    ...shadow.topBar,
   },
 
   item:        { flex: 1, alignItems: 'center', gap: 4 },

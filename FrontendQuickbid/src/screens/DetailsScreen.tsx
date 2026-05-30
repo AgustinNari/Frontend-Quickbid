@@ -6,7 +6,7 @@ import {
   StyleSheet,
 } from 'react-native';
 
-import { globalStyles } from '../styles/globalStyles';
+import { colors, spacing, radius, fontSize } from '../theme';
 
 const data = [
   { id: '1', title: 'Elemento 1' },
@@ -18,7 +18,7 @@ const data = [
 
 export default function DetailsScreen() {
   return (
-    <View style={globalStyles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>
           📋 Lista de prueba
@@ -42,30 +42,32 @@ export default function DetailsScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   header: {
-    padding: 20,
+    padding: spacing.lg,
     alignItems: 'center',
   },
-
   title: {
-    color: '#61dafb',
-    fontSize: 28,
+    color: colors.primary,
+    fontSize: fontSize['3xl'],
     fontWeight: 'bold',
   },
-
   list: {
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.lg,
   },
-
   item: {
-    backgroundColor: '#2d333b',
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 12,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    borderRadius: radius.base,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-
   itemText: {
-    color: '#fff',
-    fontSize: 18,
+    color: colors.text,
+    fontSize: fontSize.xl,
   },
 });
