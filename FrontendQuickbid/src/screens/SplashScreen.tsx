@@ -3,16 +3,24 @@ import { View, Image, StyleSheet, StatusBar } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { colors, spacing } from '../theme';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
 export default function SplashScreen({ navigation }: Props) {
+  const { isAuthenticated, isRestoring } = useAuth();
+
   useEffect(() => {
+    if (isRestoring) return; // Esperar a que AsyncStorage termine de restaurar
     const timer = setTimeout(() => {
-      navigation.replace('Login');
+      if (isAuthenticated) {
+        navigation.replace('Subastas');
+      } else {
+        navigation.replace('Login');
+      }
     }, 2000);
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [isRestoring, isAuthenticated, navigation]);
 
   return (
     <View style={styles.container}>

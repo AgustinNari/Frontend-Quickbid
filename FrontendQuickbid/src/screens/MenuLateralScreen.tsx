@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,8 @@ import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, fontWeight } from '../theme';
-import { MOCK_USUARIO_ACTUAL } from '../mocks/usuarioActual';
+import { useAuth } from '../context/AuthContext';
+import { notificacionesApi } from '../api/notificaciones';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MenuLateral'>;
 
@@ -125,13 +126,20 @@ function MenuItem({ icon, label, active, badge, onPress }: MenuItemProps) {
 // ── Pantalla ──────────────────────────────────────────────────────────────────
 
 export default function MenuLateralScreen({ navigation }: Props) {
-  const usuario = MOCK_USUARIO_ACTUAL;
+  const { user, logout } = useAuth();
+  const [noLeidas, setNoLeidas] = useState(0);
 
   const close = () => navigation.goBack();
 
-  // Detect the route underneath this modal (MenuLateral sits on top as a transparentModal)
   const state = navigation.getState();
   const currentRoute = state.routes[state.routes.length - 2]?.name;
+
+  useEffect(() => {
+    if (!user) return;
+    notificacionesApi.listar({ leidas: false })
+      .then(res => setNoLeidas(res.data?.noLeidas ?? 0))
+      .catch(() => {});
+  }, [user]);
 
   const categoriaLabel: Record<string, string> = {
     comun: 'COMÚN',
@@ -140,6 +148,9 @@ export default function MenuLateralScreen({ navigation }: Props) {
     oro: 'ORO',
     platino: 'PLATINO',
   };
+
+  const nombre = user ? `${user.nombre}` : 'Invitado';
+  const categoria = user?.categoria ?? 'comun';
 
   return (
     <View style={styles.root}>
@@ -162,17 +173,17 @@ export default function MenuLateralScreen({ navigation }: Props) {
             </View>
 
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{usuario.nombre} {usuario.apellido}</Text>
+              <Text style={styles.profileName}>{nombre}</Text>
               <View style={styles.categoriaBadge}>
                 <Text style={styles.categoriaText}>
-                  {categoriaLabel[usuario.categoria] ?? usuario.categoria}
+                  {categoriaLabel[categoria] ?? categoria}
                 </Text>
               </View>
             </View>
           </View>
 
           <View style={styles.idRow}>
-            <Text style={styles.idText}>QUICKBID ID: {usuario.quickbidId ?? '—'}</Text>
+            <Text style={styles.idText}>{user?.email ?? ''}</Text>
             <View style={styles.verificadoBadge}>
               <Text style={styles.verificadoText}>Nivel Verificado</Text>
             </View>
@@ -201,7 +212,7 @@ export default function MenuLateralScreen({ navigation }: Props) {
           <MenuItem
             icon={<BellIcon color={currentRoute === 'Notificaciones' ? colors.primary : colors.textMuted} />}
             label="Notificaciones"
-            badge={3}
+            badge={noLeidas}
             active={currentRoute === 'Notificaciones'}
             onPress={() => { close(); navigation.navigate('Notificaciones'); }}
           />
@@ -218,7 +229,7 @@ export default function MenuLateralScreen({ navigation }: Props) {
           <TouchableOpacity
             style={styles.logoutButton}
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('Login')}
+            onPress={() => { logout(); navigation.reset({ index: 0, routes: [{ name: 'Login' }] }); }}
           >
             <LogoutIcon />
             <View>

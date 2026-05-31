@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import Svg, { Path, Rect, Line } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -82,21 +83,19 @@ export default function IdentityScreen({ route, navigation }: Props) {
   const [backImage,  setBackImage]  = useState<string | null>(null);
   const [loading,    setLoading]    = useState(false);
 
-  /**
-   * Simula la selección de imagen. En producción aquí iría react-native-image-picker.
-   * Por ahora asignamos un placeholder base64 mínimo para poder llamar al backend.
-   */
-  const PLACEHOLDER_DNI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-
-  function handleSelectFront() {
-    // TODO: reemplazar con react-native-image-picker
-    setFrontImage(PLACEHOLDER_DNI);
+  function seleccionarImagen(setter: (uri: string) => void) {
+    launchImageLibrary(
+      { mediaType: 'photo', quality: 0.8, includeBase64: false },
+      response => {
+        if (response.didCancel || response.errorCode) return;
+        const asset = response.assets?.[0];
+        if (asset?.uri) setter(asset.uri);
+      },
+    );
   }
 
-  function handleSelectBack() {
-    // TODO: reemplazar con react-native-image-picker
-    setBackImage(PLACEHOLDER_DNI);
-  }
+  function handleSelectFront() { seleccionarImagen(setFrontImage); }
+  function handleSelectBack()  { seleccionarImagen(setBackImage);  }
 
   async function handleCompletar() {
     if (!frontImage) {
@@ -106,9 +105,11 @@ export default function IdentityScreen({ route, navigation }: Props) {
 
     setLoading(true);
     try {
-      // Enviamos solo el frente del DNI como fotoDni (concatenamos si hay dorso)
-      const fotoDni = backImage ? `${frontImage}|${backImage}` : frontImage;
-      await authApi.etapa2({ email, fotoDni });
+      const frente = { uri: frontImage, name: 'frente.jpg', type: 'image/jpeg' };
+      const dorso  = backImage
+        ? { uri: backImage, name: 'dorso.jpg', type: 'image/jpeg' }
+        : frente; // si no hay dorso enviamos el frente dos veces como fallback
+      await authApi.etapa2(email, frente, dorso);
       navigation.navigate('Verifying');
     } catch (e) {
       const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';

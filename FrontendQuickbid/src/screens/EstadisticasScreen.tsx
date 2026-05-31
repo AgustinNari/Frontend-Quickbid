@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import Svg, { Path, Polyline } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -13,30 +14,50 @@ import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, fontWeight, layout } from '../theme';
 import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { MOCK_ESTADISTICAS, PeriodoStats } from '../mocks/estadisticas';
+import { FadeIn } from '../components/FadeIn';
+import { perfilApi, EstadisticasData } from '../api/perfil';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Estadisticas'>;
 
-const MESES = ['E','F','M','A','M','J','J','A','S','O','N','D'];
+// Mapa de período frontend → backend
+type PeriodoFE = 'mes' | 'trimestre' | 'año' | 'total';
+const PERIODO_API: Record<PeriodoFE, 'mes' | 'trimestre' | 'anual'> = {
+  mes:       'mes',
+  trimestre: 'trimestre',
+  año:       'anual',
+  total:     'anual', // backend no tiene 'total' — usamos anual como fallback
+};
 
-const PERIODOS: { id: PeriodoStats; label: string }[] = [
+const PERIODOS: { id: PeriodoFE; label: string }[] = [
   { id: 'mes',       label: 'Mes'       },
   { id: 'trimestre', label: 'Trimestre' },
   { id: 'año',       label: 'Año'       },
   { id: 'total',     label: 'Total'     },
 ];
 
+function formatMonto(valor: number): string {
+  return '$' + valor.toLocaleString('es-AR');
+}
+
 // ── Gráfico de barras ─────────────────────────────────────────────────────────
 
 const BAR_MAX_H = 90;
 const BAR_WIDTH = 14;
 
-function BarChart({ valores }: { valores: number[] }) {
+function BarChart({ puntos }: { puntos: { etiqueta: string; valor: number }[] }) {
+  if (puntos.length === 0) {
+    return (
+      <View style={chartStyles.empty}>
+        <Text style={chartStyles.emptyText}>Sin datos para el período</Text>
+      </View>
+    );
+  }
+  const maxValor = Math.max(...puntos.map(p => p.valor), 1);
   return (
     <View style={chartStyles.wrap}>
-      {valores.map((v, i) => {
-        const isLast = i === valores.length - 1;
-        const h = Math.max(4, Math.round(v * BAR_MAX_H));
+      {puntos.map((p, i) => {
+        const isLast = i === puntos.length - 1;
+        const h = Math.max(4, Math.round((p.valor / maxValor) * BAR_MAX_H));
         return (
           <View key={i} style={chartStyles.col}>
             <View style={chartStyles.barTrack}>
@@ -45,7 +66,7 @@ function BarChart({ valores }: { valores: number[] }) {
                 { height: h, backgroundColor: isLast ? colors.primary : '#93C5FD' },
               ]} />
             </View>
-            <Text style={chartStyles.label}>{MESES[i]}</Text>
+            <Text style={chartStyles.label} numberOfLines={1}>{p.etiqueta}</Text>
           </View>
         );
       })}
@@ -62,20 +83,11 @@ const chartStyles = StyleSheet.create({
     paddingTop: 4,
   },
   col: { alignItems: 'center', flex: 1 },
-  barTrack: {
-    height: BAR_MAX_H,
-    justifyContent: 'flex-end',
-  },
-  bar: {
-    width: BAR_WIDTH,
-    borderRadius: 3,
-  },
-  label: {
-    fontSize: 9,
-    color: colors.textSubtle,
-    marginTop: 4,
-    fontWeight: '500',
-  },
+  barTrack: { height: BAR_MAX_H, justifyContent: 'flex-end' },
+  bar:   { width: BAR_WIDTH, borderRadius: 3 },
+  label: { fontSize: 9, color: colors.textSubtle, marginTop: 4, fontWeight: '500' },
+  empty: { height: BAR_MAX_H + 20, alignItems: 'center', justifyContent: 'center' },
+  emptyText: { fontSize: fontSize.sm, color: colors.textSubtle },
 });
 
 // ── Ícono de tendencia ────────────────────────────────────────────────────────
@@ -96,9 +108,28 @@ function TrendIcon({ pos }: { pos: boolean }) {
 
 export default function EstadisticasScreen({ navigation }: Props) {
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
-  const [periodo, setPeriodo] = useState<PeriodoStats>('mes');
+  const [periodo,   setPeriodo]   = useState<PeriodoFE>('mes');
+  const [data,      setData]      = useState<EstadisticasData | null>(null);
+  const [loading,   setLoading]   = useState(true);
 
-  const data = MOCK_ESTADISTICAS[periodo];
+  const cargar = useCallback(async (p: PeriodoFE) => {
+    setLoading(true);
+    try {
+      const res = await perfilApi.getEstadisticas(PERIODO_API[p]);
+      if (res.data) setData(res.data);
+    } catch {
+      // sin conexión — mantiene datos anteriores
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { cargar(periodo); }, [periodo, cargar]);
+
+  const totalPujado  = data?.totalPujado  ?? 0;
+  const totalPagado  = data?.totalPagado  ?? 0;
+  const pctExito     = data?.porcentajeExito ?? 0;
+  const serie        = data?.serieHistorica ?? [];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -125,57 +156,45 @@ export default function EstadisticasScreen({ navigation }: Props) {
           ))}
         </View>
 
-        {/* Total invertido */}
-        <View style={styles.totalCard}>
-          <View style={styles.totalHeader}>
-            <Text style={styles.totalLabel}>TOTAL INVERTIDO</Text>
-            <TrendIcon pos={data.variacionPos} />
-          </View>
-          <Text style={styles.totalMonto}>{data.totalInvertido}</Text>
-          <Text style={styles.totalVariacion}>
-            ARS · <Text style={{ color: data.variacionPos ? '#4ADE80' : '#F87171' }}>{data.variacion}</Text>
-          </Text>
-        </View>
+        {loading ? (
+          <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+        ) : (
+          <FadeIn>
+            {/* Total pujado */}
+            <View style={styles.totalCard}>
+              <View style={styles.totalHeader}>
+                <Text style={styles.totalLabel}>TOTAL PUJADO</Text>
+                <TrendIcon pos={totalPujado >= 0} />
+              </View>
+              <Text style={styles.totalMonto}>{formatMonto(totalPujado)}</Text>
+              <Text style={styles.totalVariacion}>ARS · Período: {periodo}</Text>
+            </View>
 
-        {/* Métricas */}
-        <View style={styles.metricsRow}>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricLabel}>TASA DE VICTORIAS</Text>
-            <Text style={styles.metricValor}>{data.tasaVictorias}%</Text>
-            <Text style={[styles.metricVar, { color: data.tasaVictoriasPos ? '#16A34A' : '#DC2626' }]}>
-              {data.tasaVictoriasVar}
-            </Text>
-          </View>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricLabel}>PUJA PROMEDIO</Text>
-            <Text style={styles.metricValor}>{data.pujaPromedio}</Text>
-            <Text style={[styles.metricVar, { color: data.pujaPromedioPos ? '#16A34A' : '#DC2626' }]}>
-              {data.pujaPromedioVar}
-            </Text>
-          </View>
-        </View>
+            {/* Métricas */}
+            <View style={styles.metricsRow}>
+              <View style={styles.metricCard}>
+                <Text style={styles.metricLabel}>TASA DE ÉXITO</Text>
+                <Text style={styles.metricValor}>{pctExito}%</Text>
+                <Text style={[styles.metricVar, { color: pctExito >= 50 ? '#16A34A' : '#DC2626' }]}>
+                  {pctExito >= 50 ? 'Por encima promedio' : 'Por debajo promedio'}
+                </Text>
+              </View>
+              <View style={styles.metricCard}>
+                <Text style={styles.metricLabel}>TOTAL PAGADO</Text>
+                <Text style={styles.metricValor}>{formatMonto(totalPagado)}</Text>
+                <Text style={[styles.metricVar, { color: colors.textMuted }]}>
+                  en compras ganadas
+                </Text>
+              </View>
+            </View>
 
-        {/* Gráfico */}
-        <View style={styles.chartCard}>
-          <Text style={styles.chartTitulo}>GASTOS POR MES</Text>
-          <BarChart valores={data.gastosPorMes} />
-        </View>
-
-        {/* Segmento top */}
-        <Text style={styles.seccionLabel}>SEGMENTO TOP</Text>
-        <View style={styles.segmentoCard}>
-          <View style={styles.segmentoIconWrap}>
-            <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <Path d="M12 2L2 7l10 5 10-5-10-5z" stroke={colors.primary} strokeWidth="1.8" strokeLinejoin="round" />
-              <Path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </View>
-          <View style={styles.segmentoInfo}>
-            <Text style={styles.segmentoNombre}>{data.segmentoTop.nombre}</Text>
-            <Text style={styles.segmentoDetalle}>{data.segmentoTop.detalle}</Text>
-          </View>
-          <Text style={styles.segmentoPct}>{data.segmentoTop.porcentaje}%</Text>
-        </View>
+            {/* Gráfico */}
+            <View style={styles.chartCard}>
+              <Text style={styles.chartTitulo}>ACTIVIDAD POR PERÍODO</Text>
+              <BarChart puntos={serie} />
+            </View>
+          </FadeIn>
+        )}
 
       </ScrollView>
 
@@ -194,10 +213,9 @@ const styles = StyleSheet.create({
     paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
   },
 
-  titulo: { fontSize: fontSize['4xl'], fontWeight: fontWeight.bold, color: colors.text, marginBottom: spacing.xs },
+  titulo:    { fontSize: fontSize['4xl'], fontWeight: fontWeight.bold, color: colors.text, marginBottom: spacing.xs },
   subtitulo: { fontSize: fontSize.base, color: colors.textMuted, marginBottom: spacing.base },
 
-  // Tabs
   tabsRow: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
@@ -207,34 +225,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderMuted,
   },
-  tab: {
-    flex: 1,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    borderRadius: radius.md,
-  },
-  tabActive: { backgroundColor: colors.primary },
-  tabLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.medium, color: colors.textMuted },
+  tab:            { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderRadius: radius.md },
+  tabActive:      { backgroundColor: colors.primary },
+  tabLabel:       { fontSize: fontSize.sm, fontWeight: fontWeight.medium, color: colors.textMuted },
   tabLabelActive: { color: colors.white, fontWeight: fontWeight.semibold },
 
-  // Total card — fondo oscuro
   totalCard: {
     backgroundColor: '#0F172A',
     borderRadius: radius.xl,
     padding: spacing.xl,
     marginBottom: spacing.base,
   },
-  totalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  totalLabel: { fontSize: fontSize.xs, fontWeight: fontWeight.bold, color: '#94A3B8', letterSpacing: 0.8 },
-  totalMonto: { fontSize: 32, fontWeight: fontWeight.bold, color: colors.white, marginBottom: spacing.xs },
+  totalHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
+  totalLabel:     { fontSize: fontSize.xs, fontWeight: fontWeight.bold, color: '#94A3B8', letterSpacing: 0.8 },
+  totalMonto:     { fontSize: 32, fontWeight: fontWeight.bold, color: colors.white, marginBottom: spacing.xs },
   totalVariacion: { fontSize: fontSize.sm, color: '#94A3B8' },
 
-  // Métricas
   metricsRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.base },
   metricCard: {
     flex: 1,
@@ -249,7 +255,6 @@ const styles = StyleSheet.create({
   metricValor: { fontSize: fontSize['4xl'], fontWeight: fontWeight.bold, color: colors.text },
   metricVar:   { fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
 
-  // Chart
   chartCard: {
     backgroundColor: colors.surface,
     borderRadius: radius.xl,
@@ -265,35 +270,4 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     marginBottom: spacing.base,
   },
-
-  // Segmento top
-  seccionLabel: {
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.bold,
-    color: colors.textSubtle,
-    letterSpacing: 0.8,
-    marginBottom: spacing.sm,
-  },
-  segmentoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    padding: spacing.base,
-    gap: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-  },
-  segmentoIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.base,
-    backgroundColor: colors.infoSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  segmentoInfo: { flex: 1, gap: 3 },
-  segmentoNombre: { fontSize: fontSize.md, fontWeight: fontWeight.semibold, color: colors.text },
-  segmentoDetalle: { fontSize: fontSize.sm, color: colors.textMuted },
-  segmentoPct: { fontSize: fontSize['3xl'], fontWeight: fontWeight.bold, color: colors.primary },
 });

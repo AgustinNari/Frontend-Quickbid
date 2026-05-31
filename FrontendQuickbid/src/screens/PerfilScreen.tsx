@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -13,7 +14,9 @@ import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, fontWeight, layout } from '../theme';
 import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { MOCK_USUARIO_ACTUAL } from '../mocks/usuarioActual';
+import { useAuth } from '../context/AuthContext';
+import { perfilApi, PerfilData } from '../api/perfil';
+import { FadeIn } from '../components/FadeIn';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Perfil'>;
 
@@ -91,14 +94,33 @@ function SectionRow({ icon, label, sublabel, onPress }: SectionRowProps) {
 
 export default function PerfilScreen({ navigation }: Props) {
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
-  const usuario = MOCK_USUARIO_ACTUAL;
-  const cfg = CATEGORIA_CONFIG[usuario.categoria] ?? CATEGORIA_CONFIG.comun;
-  const iniciales = `${usuario.nombre[0]}${usuario.apellido[0]}`.toUpperCase();
+  const { user } = useAuth();
+  const [perfil,   setPerfil]   = useState<PerfilData | null>(null);
+  const [loading,  setLoading]  = useState(true);
+
+  useEffect(() => {
+    perfilApi.getPerfil()
+      .then(res => res.data && setPerfil(res.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Fallback al contexto de auth mientras carga /perfil
+  const nombre    = perfil?.nombre    ?? user?.nombre    ?? '';
+  const iniciales = perfil?.iniciales ?? (nombre ? nombre.split(' ').map(p => p[0]).join('').toUpperCase() : '?');
+  const categoria = perfil?.categoria ?? user?.categoria ?? 'comun';
+  const email     = perfil?.email     ?? user?.email     ?? '';
+  const cfg = CATEGORIA_CONFIG[categoria] ?? CATEGORIA_CONFIG.comun;
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={() => navigation.goBack()} />
 
+      {loading && (
+        <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 16 }} />
+      )}
+
+      <FadeIn key={loading ? 'loading' : 'loaded'} duration={250}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
         <Text style={styles.titulo}>Mi perfil</Text>
@@ -119,8 +141,8 @@ export default function PerfilScreen({ navigation }: Props) {
 
             {/* Info */}
             <View style={styles.cardInfo}>
-              <Text style={styles.cardNombre}>{usuario.nombre} {usuario.apellido}</Text>
-              <Text style={styles.cardEmail}>{usuario.email}</Text>
+              <Text style={styles.cardNombre}>{nombre}</Text>
+              <Text style={styles.cardEmail}>{email}</Text>
               <View style={[styles.categoriaBadge, { backgroundColor: cfg.bg }]}>
                 <Text style={[styles.categoriaText, { color: cfg.color }]}>🏆 {cfg.label}</Text>
               </View>
@@ -128,9 +150,6 @@ export default function PerfilScreen({ navigation }: Props) {
 
           </View>
 
-          {usuario.miembroDesde && (
-            <Text style={styles.miembro}>Miembro desde {usuario.miembroDesde}</Text>
-          )}
         </View>
 
         {/* Sección ACTIVIDAD */}
@@ -173,6 +192,7 @@ export default function PerfilScreen({ navigation }: Props) {
         <Text style={styles.footer}>QuickBid v2.4.1 · Todos los derechos reservados</Text>
 
       </ScrollView>
+      </FadeIn>
 
       <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
     </SafeAreaView>

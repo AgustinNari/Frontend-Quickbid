@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform,
+  ActivityIndicator, Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { mediosPagoApi } from '../api/mediosPago';
+import { ApiError } from '../api/client';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CuentaBancaria'>;
 
@@ -15,8 +18,37 @@ export default function CuentaBancariaScreen({ navigation }: Props) {
   const [cbu,      setCbu]      = useState('');
   const [alias,    setAlias]    = useState('');
   const [entidad,  setEntidad]  = useState('');
-  const [cuit,     setCuit]     = useState('');
+  const [loading,  setLoading]  = useState(false);
   const [activeTab,setActiveTab]= useState<NavTab>('subastas');
+
+  async function handleEnviar() {
+    if (!cbu.trim() || !entidad.trim()) {
+      Alert.alert('Campos requeridos', 'Completá el CBU/CVU y la entidad bancaria.');
+      return;
+    }
+    const digitos = cbu.replace(/\D/g, '');
+    if (digitos.length !== 22) {
+      Alert.alert('CBU/CVU inválido', 'Debe tener exactamente 22 dígitos.');
+      return;
+    }
+    setLoading(true);
+    try {
+      await mediosPagoApi.crear({
+        tipo: 'cuenta_bancaria',
+        moneda: 'ARS',
+        numeroCuenta: digitos,
+        nombreBanco: entidad.trim(),
+        alias: alias.trim() || undefined,
+        nacional: true,
+      });
+      navigation.navigate('ValidandoPago');
+    } catch (e) {
+      const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';
+      Alert.alert('Error', msg);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -27,18 +59,28 @@ export default function CuentaBancariaScreen({ navigation }: Props) {
 
           <Text style={styles.title}>Cuenta Bancaria</Text>
           <Text style={styles.subtitle}>
-            Ingresa los datos para realizar y recibir transferencias.
+            Ingresá los datos para realizar y recibir transferencias.
           </Text>
 
           <Text style={styles.label}>CBU O CVU (22 DÍGITOS)</Text>
           <TextInput
             style={styles.input}
             value={cbu}
-            onChangeText={setCbu}
+            onChangeText={v => setCbu(v.replace(/\D/g, '').slice(0, 22))}
             placeholder="Ej: 0140000000000000000000"
             placeholderTextColor={colors.textSubtle}
             keyboardType="numeric"
             maxLength={22}
+            autoCorrect={false}
+          />
+
+          <Text style={styles.label}>ENTIDAD BANCARIA</Text>
+          <TextInput
+            style={styles.input}
+            value={entidad}
+            onChangeText={setEntidad}
+            placeholder="Ej: Banco Galicia"
+            placeholderTextColor={colors.textSubtle}
             autoCorrect={false}
           />
 
@@ -53,31 +95,13 @@ export default function CuentaBancariaScreen({ navigation }: Props) {
             autoCorrect={false}
           />
 
-          <Text style={styles.label}>ENTIDAD BANCARIA</Text>
-          <TextInput
-            style={styles.input}
-            value={entidad}
-            onChangeText={setEntidad}
-            placeholder="Mercado Pago"
-            placeholderTextColor={colors.textSubtle}
-            autoCorrect={false}
-          />
-
-          <Text style={styles.label}>CUIT / CUIL DEL TITULAR</Text>
-          <TextInput
-            style={styles.input}
-            value={cuit}
-            onChangeText={setCuit}
-            placeholder="20-XXXXXXXX-X"
-            placeholderTextColor={colors.textSubtle}
-            keyboardType="numeric"
-            autoCorrect={false}
-          />
-
           <View style={{ flex: 1, minHeight: 24 }} />
 
-          <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={() => navigation.navigate('ValidandoPago')}>
-            <Text style={styles.btnText}>Enviar para verificación</Text>
+          <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={handleEnviar} disabled={loading}>
+            {loading
+              ? <ActivityIndicator color={colors.textInverse} />
+              : <Text style={styles.btnText}>Enviar para verificación</Text>
+            }
           </TouchableOpacity>
 
         </ScrollView>

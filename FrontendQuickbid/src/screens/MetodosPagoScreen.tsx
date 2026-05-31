@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,18 @@ import {
   ScrollView,
   Modal,
   Dimensions,
+  Alert,
+  type ViewProps,
 } from 'react-native';
-import Svg, { Path, Rect, Circle, Line } from 'react-native-svg';
+import Svg, { Path, Rect, Circle } from 'react-native-svg';
+import { ActivityIndicator } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { colors, spacing, radius, fontSize, shadow } from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { FadeIn } from '../components/FadeIn';
+import { mediosPagoApi, MedioPagoData } from '../api/mediosPago';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MetodosPago'>;
 
@@ -79,7 +84,7 @@ function TrashIcon() {
   );
 }
 
-// ── Datos hardcodeados — TODO: reemplazar con datos reales del backend ─────────
+// ── Tipo de visualización derivado del backend ────────────────────────────────
 
 type PaymentMethod = {
   id: number;
@@ -89,21 +94,51 @@ type PaymentMethod = {
   isPrincipal: boolean;
 };
 
-const MOCK_METHODS: PaymentMethod[] = [
-  { id: 1, type: 'card',  name: 'Visa Signature',      details: 'Termina en 1009 • Vence 08/26',    isPrincipal: true  },
-  { id: 2, type: 'bank',  name: 'Cuenta Corriente',    details: 'Banco Galicia •••• 5590',           isPrincipal: false },
-  { id: 3, type: 'check', name: 'Cheque Certificado',  details: 'Verificación pendiente • ID: 299',  isPrincipal: false },
-];
+/** Si el backend no detectó la marca, la inferimos del enmascarado o asumimos "Tarjeta". */
+function inferirMarca(m: MedioPagoData): string {
+  if (m.marca && m.marca !== 'Otra') return m.marca;
+  const ultimos4 = m.datosEnmascarados?.replace(/\D/g, '') ?? '';
+  // El enmascarado es "**** **** **** XXXX" — no tenemos el primer dígito,
+  // así que usamos el titular o simplemente "Tarjeta".
+  if (m.titular) {
+    // heurística: si el titular contiene "visa"/"master"/"amex" (raro pero posible)
+    const t = m.titular.toLowerCase();
+    if (t.includes('visa'))   return 'Visa';
+    if (t.includes('master')) return 'Mastercard';
+    if (t.includes('amex'))   return 'Amex';
+  }
+  return 'Tarjeta';
+}
+
+function adaptarMedio(m: MedioPagoData): PaymentMethod {
+  const type: PaymentMethod['type'] =
+    m.tipo === 'cuenta_bancaria' ? 'bank' :
+    m.tipo === 'cheque'          ? 'check' : 'card';
+
+  const marcaFinal = type === 'card' ? inferirMarca(m) : null;
+
+  const name =
+    marcaFinal ? `${marcaFinal} ${m.tipo === 'tarjeta_credito' ? 'Crédito' : 'Débito'}` :
+    m.tipo === 'cuenta_bancaria' ? 'Cuenta Bancaria' :
+    `Cheque ${m.datosEnmascarados}`;
+
+  const details =
+    m.tipo === 'cuenta_bancaria' ? m.datosEnmascarados :
+    m.tipo === 'cheque'          ? `Estado: ${m.estado}` :
+    `${m.datosEnmascarados} · ${m.moneda}`;
+
+  return { id: m.id, type, name, details, isPrincipal: m.esPrincipal };
+}
 
 // ── Item de método de pago ────────────────────────────────────────────────────
 
 type ItemProps = {
   method: PaymentMethod;
-  onDotsPress: (ref: TouchableOpacity | null) => void;
+  onDotsPress: (ref: View | null) => void;
 };
 
 function PaymentItem({ method, onDotsPress }: ItemProps) {
-  const dotsRef = useRef<TouchableOpacity>(null);
+  const dotsRef = useRef<View>(null);
   const icons   = { card: <CardIcon />, bank: <BankIcon />, check: <CheckDocIcon /> };
 
   return (
@@ -136,9 +171,41 @@ export default function MetodosPagoScreen({ navigation }: Props) {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [menuPos,    setMenuPos]    = useState({ top: 0, right: 0 });
   const [activeTab,  setActiveTab]  = useState<NavTab>('subastas');
+  const [methods,    setMethods]    = useState<PaymentMethod[]>([]);
+  const [loading,    setLoading]    = useState(true);
 
-  const handleDotsPress = (id: number, btn: TouchableOpacity | null) => {
-    btn?.measureInWindow((x, y, width, height) => {
+  const cargar = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await mediosPagoApi.listar();
+      if (res.data) setMethods(res.data.medios.map(adaptarMedio));
+    } catch { /* sin conexión */ }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { cargar(); }, [cargar]);
+
+  const handleEliminar = async (id: number) => {
+    Alert.alert('Eliminar medio', '¿Estás seguro?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Eliminar', style: 'destructive', onPress: async () => {
+        try {
+          await mediosPagoApi.eliminar(id);
+          cargar();
+        } catch { Alert.alert('Error', 'No se pudo eliminar'); }
+      }},
+    ]);
+  };
+
+  const handleMarcarPrincipal = async (id: number) => {
+    try {
+      await mediosPagoApi.marcarPrincipal(id);
+      cargar();
+    } catch { Alert.alert('Error', 'No se pudo actualizar'); }
+  };
+
+  const handleDotsPress = (id: number, btn: View | null) => {
+    btn?.measureInWindow((x: number, y: number, width: number, height: number) => {
       setMenuPos({
         top:   y + height + 4,
         right: SCREEN_W - x - width,
@@ -168,15 +235,27 @@ export default function MetodosPagoScreen({ navigation }: Props) {
 
         {/* Lista */}
         <View style={styles.listCard}>
-          {MOCK_METHODS.map((m, index) => (
-            <View key={m.id}>
-              <PaymentItem
-                method={m}
-                onDotsPress={(ref) => handleDotsPress(m.id, ref)}
-              />
-              {index < MOCK_METHODS.length - 1 && <View style={styles.divider} />}
-            </View>
-          ))}
+          {loading ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ padding: 24 }} />
+          ) : methods.length === 0 ? (
+            <FadeIn>
+              <Text style={{ padding: 16, color: colors.textMuted, textAlign: 'center' }}>
+                No tenés métodos de pago registrados.
+              </Text>
+            </FadeIn>
+          ) : (
+            <FadeIn>
+              {methods.map((m, index) => (
+                <View key={m.id}>
+                  <PaymentItem
+                    method={m}
+                    onDotsPress={(ref) => handleDotsPress(m.id, ref)}
+                  />
+                  {index < methods.length - 1 && <View style={styles.divider} />}
+                </View>
+              ))}
+            </FadeIn>
+          )}
         </View>
       </ScrollView>
 
@@ -198,12 +277,18 @@ export default function MetodosPagoScreen({ navigation }: Props) {
             activeOpacity={1}
             style={[styles.dropdown, { top: menuPos.top, right: menuPos.right }]}
           >
-            <TouchableOpacity style={styles.dropdownItem} onPress={closeMenu}>
+            <TouchableOpacity style={styles.dropdownItem} onPress={() => {
+                closeMenu();
+                if (openMenuId != null) handleMarcarPrincipal(openMenuId);
+              }}>
               <Text style={styles.dropdownText}>Fijar como principal</Text>
               <StarIcon />
             </TouchableOpacity>
             <View style={styles.dropdownDivider} />
-            <TouchableOpacity style={styles.dropdownItem} onPress={closeMenu}>
+            <TouchableOpacity style={styles.dropdownItem} onPress={() => {
+                closeMenu();
+                if (openMenuId != null) handleEliminar(openMenuId);
+              }}>
               <Text style={styles.dropdownDanger}>Borrar método</Text>
               <TrashIcon />
             </TouchableOpacity>

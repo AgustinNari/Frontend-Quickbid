@@ -58,8 +58,8 @@ export default function SecurityScreen({ route, navigation }: Props) {
       Alert.alert('Campos requeridos', 'Completá ambos campos.');
       return;
     }
-    if (password.length < 6) {
-      Alert.alert('Clave muy corta', 'La clave debe tener al menos 6 caracteres.');
+    if (password.length < 8) {
+      Alert.alert('Clave muy corta', 'La clave debe tener al menos 8 caracteres.');
       return;
     }
     if (password !== confirm) {
@@ -70,16 +70,15 @@ export default function SecurityScreen({ route, navigation }: Props) {
     setLoading(true);
     try {
       if (isRegistro) {
-        // Flujo de registro — etapa3
-        await authApi.etapa3({ email: params.email, clave: password });
-        Alert.alert(
-          'Registro completado',
-          'Ya podés iniciar sesión con tu cuenta.',
-          [{ text: 'Ir al Login', onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] }) }],
-        );
+        // Flujo de registro — etapa3 usa setupToken
+        const setupToken = (params as { mode: 'registro'; setupToken: string }).setupToken;
+        const res = await authApi.etapa3({ setupToken, clave: password, claveConfirmacion: confirm });
+        if (!res.data) throw new Error('Respuesta inválida del servidor.');
+        login(res.data);
+        navigation.reset({ index: 0, routes: [{ name: 'Subastas' }] });
       } else {
         // Flujo de recuperación — cambiarClave
-        await authApi.cambiarClave(params.token, password);
+        await authApi.cambiarClave((params as { mode: 'recuperacion'; token: string }).token, password, confirm);
         Alert.alert(
           'Clave actualizada',
           'Tu contraseña fue cambiada. Iniciá sesión.',
@@ -121,7 +120,7 @@ export default function SecurityScreen({ route, navigation }: Props) {
               <EyeIcon visible={showPass} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.hint}>Mínimo 6 caracteres.</Text>
+          <Text style={styles.hint}>Mínimo 8 caracteres.</Text>
 
           <Text style={styles.label}>REPETIR CONTRASEÑA</Text>
           <View style={styles.inputRow}>

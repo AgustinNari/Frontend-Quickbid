@@ -197,6 +197,8 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.base,
+    paddingBottom: spacing.base,
+    marginBottom: BOTTOM_NAV_HEIGHT,
     backgroundColor: colors.background,
   },
   btn: {

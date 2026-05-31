@@ -52,16 +52,19 @@ export async function apiFetch<T = null>(
     headers,
   });
 
-  let body: ApiResponse<T>;
+  let body: ApiResponse<T> | null = null;
   try {
-    body = await response.json();
+    const text = await response.text();
+    if (text) body = JSON.parse(text);
   } catch {
     throw new ApiError(response.status, 'Error al parsear la respuesta del servidor');
   }
 
   if (!response.ok) {
-    throw new ApiError(response.status, body.message ?? 'Error del servidor', body.errors);
+    const msg = (body && typeof body === 'object' && body.message) ? body.message : 'Error del servidor';
+    const errors = (body && typeof body === 'object') ? body.errors : undefined;
+    throw new ApiError(response.status, msg, errors);
   }
 
-  return body;
+  return (body ?? {}) as ApiResponse<T>;
 }

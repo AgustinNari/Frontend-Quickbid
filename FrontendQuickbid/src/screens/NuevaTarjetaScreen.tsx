@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform,
+  ActivityIndicator, Alert,
 } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -9,6 +10,8 @@ import { RootStackParamList } from '../../App';
 import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { mediosPagoApi } from '../api/mediosPago';
+import { ApiError } from '../api/client';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NuevaTarjeta'>;
 
@@ -21,12 +24,72 @@ function MiniCardIcon() {
   );
 }
 
+function formatNumero(raw: string) {
+  const digits = raw.replace(/\D/g, '').slice(0, 16);
+  return digits.replace(/(.{4})/g, '$1 ').trim();
+}
+
+function formatVencimiento(raw: string) {
+  const digits = raw.replace(/\D/g, '').slice(0, 4);
+  if (digits.length >= 3) return digits.slice(0, 2) + '/' + digits.slice(2);
+  return digits;
+}
+
 export default function NuevaTarjetaScreen({ navigation }: Props) {
   const [nombre,     setNombre]     = useState('');
   const [numero,     setNumero]     = useState('');
   const [vencimiento,setVencimiento]= useState('');
   const [cvv,        setCvv]        = useState('');
+  const [moneda] = useState<'ARS' | 'USD'>('ARS');
+  const [tipo,       setTipo]       = useState<'tarjeta_credito' | 'tarjeta_debito'>('tarjeta_credito');
+  const [loading,    setLoading]    = useState(false);
   const [activeTab,  setActiveTab]  = useState<NavTab>('subastas');
+
+  async function handleEnviar() {
+    if (!nombre.trim() || !numero.trim() || !vencimiento.trim() || !cvv.trim()) {
+      Alert.alert('Campos requeridos', 'Completá todos los campos.');
+      return;
+    }
+    const digitos = numero.replace(/\s/g, '');
+    if (digitos.length !== 16) {
+      Alert.alert('Número inválido', 'El número debe tener 16 dígitos.');
+      return;
+    }
+    if (cvv.length < 3) {
+      Alert.alert('CVV inválido', 'El CVV debe tener 3 dígitos.');
+      return;
+    }
+    const [mm, aa] = vencimiento.split('/');
+    const mes = parseInt(mm, 10);
+    const anio = parseInt('20' + aa, 10);
+    const hoy = new Date();
+    if (!mm || !aa || aa.length !== 2 || mes < 1 || mes > 12) {
+      Alert.alert('Vencimiento inválido', 'Usá el formato MM/AA.');
+      return;
+    }
+    if (anio < hoy.getFullYear() || (anio === hoy.getFullYear() && mes < hoy.getMonth() + 1)) {
+      Alert.alert('Tarjeta vencida', 'La fecha de vencimiento ya pasó.');
+      return;
+    }
+    setLoading(true);
+    try {
+      await mediosPagoApi.crear({
+        tipo,
+        moneda,
+        nombreTitular: nombre.trim(),
+        numeroTarjeta: digitos,
+        vencimiento: vencimiento.trim(),
+        cvv: cvv.trim(),
+        nacional: moneda === 'ARS',
+      });
+      navigation.navigate('ValidandoPago');
+    } catch (e) {
+      const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';
+      Alert.alert('Error', msg);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -37,6 +100,22 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
 
           <Text style={styles.title}>Nueva tarjeta</Text>
           <Text style={styles.subtitle}>Vincule una tarjeta de crédito o débito.</Text>
+
+          {/* Tipo */}
+          <Text style={styles.label}>TIPO</Text>
+          <View style={styles.segRow}>
+            {(['tarjeta_credito', 'tarjeta_debito'] as const).map(t => (
+              <TouchableOpacity
+                key={t}
+                style={[styles.seg, tipo === t && styles.segActive]}
+                onPress={() => setTipo(t)}
+                activeOpacity={0.8}>
+                <Text style={[styles.segText, tipo === t && styles.segTextActive]}>
+                  {t === 'tarjeta_credito' ? 'Crédito' : 'Débito'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           <Text style={styles.label}>NOMBRE EN LA TARJETA</Text>
           <TextInput
@@ -53,7 +132,7 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
             <TextInput
               style={styles.inputFlex}
               value={numero}
-              onChangeText={setNumero}
+              onChangeText={v => setNumero(formatNumero(v))}
               placeholder="0000 0000 0000 0000"
               placeholderTextColor={colors.textSubtle}
               keyboardType="numeric"
@@ -68,8 +147,8 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
               <TextInput
                 style={styles.input}
                 value={vencimiento}
-                onChangeText={setVencimiento}
-                placeholder="MM / YY"
+                onChangeText={v => setVencimiento(formatVencimiento(v))}
+                placeholder="MM/AA"
                 placeholderTextColor={colors.textSubtle}
                 keyboardType="numeric"
                 maxLength={5}
@@ -92,8 +171,11 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
 
           <View style={{ flex: 1, minHeight: 24 }} />
 
-          <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={() => navigation.navigate('ValidandoPago')}>
-            <Text style={styles.btnText}>Enviar para verificación</Text>
+          <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={handleEnviar} disabled={loading}>
+            {loading
+              ? <ActivityIndicator color={colors.textInverse} />
+              : <Text style={styles.btnText}>Enviar para verificación</Text>
+            }
           </TouchableOpacity>
 
         </ScrollView>
@@ -130,6 +212,17 @@ const styles = StyleSheet.create({
 
   row:      { flexDirection: 'row', gap: spacing.md },
   halfWrap: { flex: 1 },
+
+  segRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: 18 },
+  seg: {
+    flex: 1, height: 40, borderRadius: radius.md,
+    borderWidth: 1.5, borderColor: colors.borderMuted,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.white,
+  },
+  segActive: { borderColor: colors.primary, backgroundColor: colors.infoSoft },
+  segText: { fontSize: fontSize.sm, fontWeight: '600', color: colors.textMuted },
+  segTextActive: { color: colors.primary },
 
   btn: {
     backgroundColor: colors.primary, borderRadius: radius.base, height: controlHeight.base,

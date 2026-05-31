@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -13,7 +14,8 @@ import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, fontWeight, layout } from '../theme';
 import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { MOCK_NOTIFICACIONES, Notificacion, NotifTipo } from '../mocks/notificaciones';
+import { notificacionesApi, NotificacionData } from '../api/notificaciones';
+import { FadeIn } from '../components/FadeIn';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Notificaciones'>;
 
@@ -64,15 +66,86 @@ function IconPuja() {
   );
 }
 
-// ── Config visual por tipo ────────────────────────────────────────────────────
+// ── Config visual por tipo (mapeado desde tipos del backend) ──────────────────
 
-const TIPO_CONFIG: Record<NotifTipo, { bg: string; icon: React.ReactNode }> = {
-  subasta:  { bg: colors.primary,  icon: <IconSubasta /> },
-  consigna: { bg: '#16A34A',       icon: <IconConsigna /> },
-  puja:     { bg: '#D97706',       icon: <IconPuja /> },
-  pago:     { bg: '#16A34A',       icon: <IconPago /> },
+type NotifTipoVisual = 'subasta' | 'consigna' | 'puja' | 'pago' | 'catalogo';
+
+const TIPO_CONFIG: Record<NotifTipoVisual, { bg: string; icon: React.ReactNode }> = {
+  subasta:  { bg: colors.primary,   icon: <IconSubasta /> },
+  consigna: { bg: '#16A34A',        icon: <IconConsigna /> },
+  puja:     { bg: '#D97706',        icon: <IconPuja /> },
+  pago:     { bg: '#16A34A',        icon: <IconPago /> },
   catalogo: { bg: colors.textMuted, icon: <IconCatalogo /> },
 };
+
+/** Mapea el tipo del backend al visual del frontend */
+function tipoVisual(tipo: string): NotifTipoVisual {
+  if (tipo === 'puja_superada' || tipo === 'puja_ganada') return 'puja';
+  if (tipo === 'subasta_por_comenzar')                    return 'subasta';
+  if (tipo === 'catalogo_nuevo')                          return 'catalogo';
+  if (tipo === 'consignacion_aprobada' || tipo === 'consignacion_rechazada' || tipo === 'documentacion_solicitada' || tipo === 'acuerdo_pendiente') return 'consigna';
+  if (tipo === 'medio_pago_verificado' || tipo === 'multa_asignada')        return 'pago';
+  return 'subasta';
+}
+
+/** Título legible desde el tipo del backend */
+function tituloDesde(tipo: string): string {
+  const map: Record<string, string> = {
+    puja_superada:             'Tu puja fue superada',
+    puja_ganada:               'Ganaste la subasta',
+    subasta_por_comenzar:      'Subasta por comenzar',
+    catalogo_nuevo:            'Nuevo catálogo disponible',
+    consignacion_aprobada:     'Consignación aprobada',
+    consignacion_rechazada:    'Consignación rechazada',
+    documentacion_solicitada:  'Documentación requerida',
+    acuerdo_pendiente:         'Acuerdo pendiente',
+    medio_pago_verificado:     'Medio de pago verificado',
+    multa_asignada:            'Multa asignada',
+  };
+  return map[tipo] ?? tipo;
+}
+
+/** Grupo (HOY / AYER / ESTA SEMANA) desde la fecha */
+function grupoDesde(fechaIso: string): string {
+  const ahora = new Date();
+  const fecha = new Date(fechaIso);
+  const diffMs = ahora.getTime() - fecha.getTime();
+  const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDias === 0) return 'HOY';
+  if (diffDias === 1) return 'AYER';
+  return 'ESTA SEMANA';
+}
+
+/** Hora legible desde fecha ISO */
+function horaDesde(fechaIso: string): string {
+  const fecha = new Date(fechaIso);
+  return fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+}
+
+/** Tipo interno de la pantalla (derivado del backend) */
+interface Notificacion {
+  id: number;
+  tipo: NotifTipoVisual;
+  categoria: 'subastas' | 'transacciones';
+  titulo: string;
+  cuerpo: string;
+  hora: string;
+  grupo: string;
+  leida: boolean;
+}
+
+function adaptarNotificacion(n: NotificacionData): Notificacion {
+  return {
+    id:        n.id,
+    tipo:      tipoVisual(n.tipo),
+    categoria: n.categoria,
+    titulo:    tituloDesde(n.tipo),
+    cuerpo:    n.mensaje,
+    hora:      horaDesde(n.fechaCreacion),
+    grupo:     grupoDesde(n.fechaCreacion),
+    leida:     n.leida,
+  };
+}
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
@@ -108,18 +181,37 @@ function NotifItem({ notif }: { notif: Notificacion }) {
 
 export default function NotificacionesScreen({ navigation }: Props) {
   const [activeTab, setActiveTab] = useState<NavTab>('notif');
-  const [filtro, setFiltro] = useState<TabFiltro>('todo');
-  const [notifs, setNotifs] = useState(MOCK_NOTIFICACIONES);
+  const [filtro,    setFiltro]    = useState<TabFiltro>('todo');
+  const [notifs,    setNotifs]    = useState<Notificacion[]>([]);
+  const [noLeidas,  setNoLeidas]  = useState(0);
+  const [loading,   setLoading]   = useState(true);
 
-  const filtradas = useMemo(() => {
-    if (filtro === 'todo') return notifs;
-    if (filtro === 'subasta') return notifs.filter(n => n.tipo === 'subasta' || n.tipo === 'puja');
-    if (filtro === 'consigna') return notifs.filter(n => n.tipo === 'consigna' || n.tipo === 'catalogo');
-    if (filtro === 'pago') return notifs.filter(n => n.tipo === 'pago');
-    return notifs;
-  }, [notifs, filtro]);
+  const cargar = useCallback(async (tab: TabFiltro) => {
+    try {
+      setLoading(true);
+      // Traemos todas las notificaciones y filtramos localmente
+      // para evitar pérdida de datos cuando 'consigna' y 'pago' comparten
+      // la misma categoría API ('transacciones') pero son tipos visuales distintos.
+      const res = await notificacionesApi.listar({});
+      if (res.data) {
+        let items = res.data.notificaciones.map(adaptarNotificacion);
+        if (tab === 'subasta')  items = items.filter(n => n.tipo === 'subasta' || n.tipo === 'puja' || n.tipo === 'catalogo');
+        if (tab === 'consigna') items = items.filter(n => n.tipo === 'consigna');
+        if (tab === 'pago')     items = items.filter(n => n.tipo === 'pago');
+        setNotifs(items);
+        setNoLeidas(res.data.noLeidas);
+      }
+    } catch {
+      // sin conexión: mantiene la lista anterior
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const sinLeer = notifs.filter(n => !n.leida).length;
+  useEffect(() => { cargar(filtro); }, [filtro, cargar]);
+
+  const filtradas = notifs; // ya filtradas por la API
+  const sinLeer = noLeidas;
 
   const grupos = useMemo(() => {
     const map: Record<string, Notificacion[]> = {};
@@ -130,8 +222,12 @@ export default function NotificacionesScreen({ navigation }: Props) {
     return map;
   }, [filtradas]);
 
-  const marcarTodoLeido = () => {
-    setNotifs(prev => prev.map(n => ({ ...n, leida: true })));
+  const marcarTodoLeido = async () => {
+    try {
+      await notificacionesApi.marcarLeida('all');
+      setNotifs(prev => prev.map(n => ({ ...n, leida: true })));
+      setNoLeidas(0);
+    } catch { /* ignorar */ }
   };
 
   const isEmpty = filtradas.length === 0;
@@ -171,31 +267,39 @@ export default function NotificacionesScreen({ navigation }: Props) {
         ))}
       </View>
 
-      {isEmpty ? (
-        /* Empty state */
+      {loading ? (
         <View style={styles.emptyWrap}>
-          <View style={styles.emptyCircle}>
-            <Svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-              <Path d="M9 12l2 2 4-4" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <Circle cx="12" cy="12" r="9" stroke="#16A34A" strokeWidth="2" />
-            </Svg>
-          </View>
-          <Text style={styles.emptyTitle}>Estás al día</Text>
-          <Text style={styles.emptyBody}>No tenés notificaciones.{'\n'}Te avisamos cuando pase algo.</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
+      ) : isEmpty ? (
+        /* Empty state */
+        <FadeIn style={{ flex: 1 }}>
+          <View style={styles.emptyWrap}>
+            <View style={styles.emptyCircle}>
+              <Svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+                <Path d="M9 12l2 2 4-4" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <Circle cx="12" cy="12" r="9" stroke="#16A34A" strokeWidth="2" />
+              </Svg>
+            </View>
+            <Text style={styles.emptyTitle}>Estás al día</Text>
+            <Text style={styles.emptyBody}>No tenés notificaciones.{'\n'}Te avisamos cuando pase algo.</Text>
+          </View>
+        </FadeIn>
       ) : (
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          {['HOY', 'AYER', 'ESTA SEMANA'].map(grupo => {
-            const items = grupos[grupo];
-            if (!items?.length) return null;
-            return (
-              <View key={grupo}>
-                <Text style={styles.grupoLabel}>{grupo}</Text>
-                {items.map(n => <NotifItem key={n.id} notif={n} />)}
-              </View>
-            );
-          })}
-        </ScrollView>
+        <FadeIn style={{ flex: 1 }}>
+          <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+            {['HOY', 'AYER', 'ESTA SEMANA'].map(grupo => {
+              const items = grupos[grupo];
+              if (!items?.length) return null;
+              return (
+                <View key={grupo}>
+                  <Text style={styles.grupoLabel}>{grupo}</Text>
+                  {items.map(n => <NotifItem key={n.id} notif={n} />)}
+                </View>
+              );
+            })}
+          </ScrollView>
+        </FadeIn>
       )}
 
       <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />

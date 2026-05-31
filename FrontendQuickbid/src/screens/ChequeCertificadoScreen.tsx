@@ -2,31 +2,110 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform,
+  ActivityIndicator, Alert, Image,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { mediosPagoApi } from '../api/mediosPago';
+import { ApiError } from '../api/client';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChequeCertificado'>;
 
-function UploadIcon() {
+type Foto = { uri: string; name: string; type: string } | null;
+
+function UploadIcon({ done }: { done: boolean }) {
+  const c = done ? colors.primary : colors.primary;
   return (
-    <Svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-      <Path d="M12 16V4M8 8l4-4 4 4" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" />
+    <Svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      {done ? (
+        <Path d="M20 6L9 17l-5-5" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      ) : (
+        <>
+          <Path d="M12 16V4M8 8l4-4 4 4" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <Path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke={c} strokeWidth="1.8" strokeLinecap="round" />
+        </>
+      )}
     </Svg>
   );
 }
 
+function formatFecha(raw: string) {
+  const digits = raw.replace(/\D/g, '').slice(0, 8);
+  if (digits.length >= 5) return digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
+  if (digits.length >= 3) return digits.slice(0, 2) + '/' + digits.slice(2);
+  return digits;
+}
+
+/** dd/mm/aaaa → aaaa-mm-dd */
+function fechaParaApi(display: string): string {
+  const [dd, mm, aaaa] = display.split('/');
+  return `${aaaa}-${mm}-${dd}`;
+}
+
 export default function ChequeCertificadoScreen({ navigation }: Props) {
-  const [numero,   setNumero]   = useState('');
-  const [banco,    setBanco]    = useState('');
-  const [monto,    setMonto]    = useState('');
-  const [fecha,    setFecha]    = useState('');
-  const [activeTab,setActiveTab]= useState<NavTab>('subastas');
+  const [numero,    setNumero]    = useState('');
+  const [monto,     setMonto]     = useState('');
+  const [fecha,     setFecha]     = useState('');
+  const [anverso,   setAnverso]   = useState<Foto>(null);
+  const [reverso,   setReverso]   = useState<Foto>(null);
+  const [loading,   setLoading]   = useState(false);
+  const [activeTab, setActiveTab] = useState<NavTab>('subastas');
+
+  async function pickFoto(lado: 'anverso' | 'reverso') {
+    const res = await launchImageLibrary({ mediaType: 'photo', quality: 0.8 });
+    if (res.didCancel || !res.assets?.[0]) return;
+    const asset = res.assets[0];
+    const foto: Foto = {
+      uri:  asset.uri!,
+      name: asset.fileName ?? `${lado}.jpg`,
+      type: asset.type ?? 'image/jpeg',
+    };
+    if (lado === 'anverso') setAnverso(foto);
+    else setReverso(foto);
+  }
+
+  async function handleEnviar() {
+    if (!numero.trim() || !monto.trim() || !fecha.trim()) {
+      Alert.alert('Campos requeridos', 'Completá número, monto y fecha.');
+      return;
+    }
+    if (!anverso || !reverso) {
+      Alert.alert('Fotos requeridas', 'Subí la foto del frente y del dorso del cheque.');
+      return;
+    }
+    const partes = fecha.split('/');
+    if (partes.length !== 3 || partes[2].length !== 4) {
+      Alert.alert('Fecha inválida', 'Usá el formato DD/MM/AAAA.');
+      return;
+    }
+    const montoNum = parseFloat(monto.replace(',', '.'));
+    if (isNaN(montoNum) || montoNum <= 0) {
+      Alert.alert('Monto inválido', 'Ingresá un monto válido.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await mediosPagoApi.crearCheque({
+        numeroCheque:    numero.trim(),
+        monto:           montoNum,
+        fechaVencimiento: fechaParaApi(fecha),
+        fotoAnverso:     anverso,
+        fotoReverso:     reverso,
+      });
+      navigation.navigate('ValidandoPago');
+    } catch (e) {
+      const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';
+      Alert.alert('Error', msg);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -42,29 +121,19 @@ export default function ChequeCertificadoScreen({ navigation }: Props) {
           <TextInput
             style={styles.input}
             value={numero}
-            onChangeText={setNumero}
+            onChangeText={v => setNumero(v.replace(/\D/g, ''))}
             placeholder="Ej: 0000123456"
             placeholderTextColor={colors.textSubtle}
             keyboardType="numeric"
             autoCorrect={false}
           />
 
-          <Text style={styles.label}>BANCO EMISOR</Text>
-          <TextInput
-            style={styles.input}
-            value={banco}
-            onChangeText={setBanco}
-            placeholder="Ej: Banco Galicia"
-            placeholderTextColor={colors.textSubtle}
-            autoCorrect={false}
-          />
-
-          <Text style={styles.label}>MONTO</Text>
+          <Text style={styles.label}>MONTO ($)</Text>
           <TextInput
             style={styles.input}
             value={monto}
             onChangeText={setMonto}
-            placeholder="Ej: 100.000"
+            placeholder="Ej: 100000"
             placeholderTextColor={colors.textSubtle}
             keyboardType="numeric"
             autoCorrect={false}
@@ -74,21 +143,55 @@ export default function ChequeCertificadoScreen({ navigation }: Props) {
           <TextInput
             style={styles.input}
             value={fecha}
-            onChangeText={setFecha}
-            placeholder="Ej: dd/mm/aaaa"
+            onChangeText={v => setFecha(formatFecha(v))}
+            placeholder="DD/MM/AAAA"
             placeholderTextColor={colors.textSubtle}
+            keyboardType="numeric"
+            maxLength={10}
             autoCorrect={false}
           />
 
-          <Text style={styles.label}>FOTOS DEL CHEQUE (FRENTE Y DORSO)</Text>
-          <TouchableOpacity style={styles.uploadBox} activeOpacity={0.7} onPress={() => {}}>
-            <UploadIcon />
-            <Text style={styles.uploadText}>Toca para subir imágenes</Text>
-            <Text style={styles.uploadFormats}>Formatos aceptados: JPG o PNG</Text>
+          <Text style={styles.label}>FOTO FRENTE</Text>
+          <TouchableOpacity
+            style={[styles.uploadBox, anverso && styles.uploadBoxDone]}
+            activeOpacity={0.7}
+            onPress={() => pickFoto('anverso')}
+          >
+            {anverso ? (
+              <Image source={{ uri: anverso.uri }} style={styles.preview} resizeMode="cover" />
+            ) : (
+              <>
+                <UploadIcon done={false} />
+                <Text style={styles.uploadText}>Toca para subir el frente</Text>
+                <Text style={styles.uploadFormats}>JPG o PNG</Text>
+              </>
+            )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={() => navigation.navigate('ValidandoPago')}>
-            <Text style={styles.btnText}>Enviar para verificación</Text>
+          <Text style={styles.label}>FOTO DORSO</Text>
+          <TouchableOpacity
+            style={[styles.uploadBox, reverso && styles.uploadBoxDone]}
+            activeOpacity={0.7}
+            onPress={() => pickFoto('reverso')}
+          >
+            {reverso ? (
+              <Image source={{ uri: reverso.uri }} style={styles.preview} resizeMode="cover" />
+            ) : (
+              <>
+                <UploadIcon done={false} />
+                <Text style={styles.uploadText}>Toca para subir el dorso</Text>
+                <Text style={styles.uploadFormats}>JPG o PNG</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <View style={{ minHeight: 16 }} />
+
+          <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={handleEnviar} disabled={loading}>
+            {loading
+              ? <ActivityIndicator color={colors.textInverse} />
+              : <Text style={styles.btnText}>Enviar para verificación</Text>
+            }
           </TouchableOpacity>
 
         </ScrollView>
@@ -118,9 +221,14 @@ const styles = StyleSheet.create({
 
   uploadBox: {
     borderWidth: 1.5, borderColor: '#93C5FD', borderStyle: 'dashed',
-    borderRadius: radius.base, paddingVertical: 28, alignItems: 'center',
-    justifyContent: 'center', backgroundColor: '#F8FAFF', gap: spacing.xs, marginBottom: spacing.xl,
+    borderRadius: radius.base, paddingVertical: 24, alignItems: 'center',
+    justifyContent: 'center', backgroundColor: '#F8FAFF', gap: spacing.xs, marginBottom: 18,
+    minHeight: 100, overflow: 'hidden',
   },
+  uploadBoxDone: {
+    borderStyle: 'solid', borderColor: colors.primary, paddingVertical: 0,
+  },
+  preview: { width: '100%', height: 120 },
   uploadText:    { fontSize: fontSize.md, fontWeight: '600', color: colors.primary },
   uploadFormats: { fontSize: fontSize.sm, color: colors.textSubtle },
 
