@@ -106,11 +106,8 @@ if (-not $fwRule) {
 Write-Step "Levantando backend Spring Boot..."
 
 $backendLog = "$env:TEMP\quickbid-backend.log"
-$backendJob = Start-Job -ScriptBlock {
-    param($dir, $log)
-    Set-Location $dir
-    & ".\mvnw.cmd" spring-boot:run *> $log
-} -ArgumentList $BACKEND_DIR, $backendLog
+$psExeForBackend = (Get-Process -Id $PID).MainModule.FileName
+Start-Process $psExeForBackend -ArgumentList "-NoExit", "-Command", "Set-Location '$BACKEND_DIR'; .\mvnw.cmd spring-boot:run *> '$backendLog'; Read-Host 'Press Enter to close'"  -WindowStyle Minimized
 
 Write-Host "     Esperando que el backend arranque (hasta 60s)..." -ForegroundColor DarkGray
 
