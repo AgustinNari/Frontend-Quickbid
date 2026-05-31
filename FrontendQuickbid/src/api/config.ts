@@ -1,10 +1,10 @@
 /**
  * URL base del backend.
  *
- * Para probar en celular físico: usar la IP local de la PC (ambos deben estar en la misma red WiFi).
- * Para emulador Android:  cambiar a 'http://10.0.2.2:8080'
- * Para simulador iOS:     cambiar a 'http://localhost:8080'
+ * Con `adb reverse tcp:8080 tcp:8080` el celular tuneliza el tráfico directo a la PC.
+ * Esto permite usar localhost en todos los casos mientras el cable esté conectado.
  *
- * IP actual de la máquina de desarrollo: 192.168.X.X
+ * Sin cable (solo WiFi): cambiar a la IP local de la PC, ej: 'http://192.168.X.X:8080'
+ * El script dev-start.ps1 actualiza este archivo automáticamente.
  */
-export const BASE_URL = 'http://192.168.X.X:8080';
+export const BASE_URL = 'http://localhost:8080';
