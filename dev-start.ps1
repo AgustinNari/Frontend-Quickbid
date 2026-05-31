@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  QuickBid — Script de arranque para desarrollo
 #  Levanta backend + Metro + conecta el celu en un solo paso.
 #
@@ -17,14 +17,14 @@ param(
     [switch]$WifiOnly
 )
 
-# ── Configuración ────────────────────────────────────────────────────────────
+# -- Configuración ------------------------------------------------------------
 
 $BACKEND_DIR  = "$PSScriptRoot\BackendQuickbid\quickbid"
 $FRONTEND_DIR = "$PSScriptRoot\FrontendQuickbid"
 $BACKEND_PORT = 8080
 $METRO_PORT   = 8081
 
-# ── Detectar ADB ─────────────────────────────────────────────────────────────
+# -- Detectar ADB -------------------------------------------------------------
 # Busca en las ubicaciones más comunes; si no lo encuentra, intenta el PATH.
 $adbCandidates = @(
     "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe",   # Android Studio default (Windows)
@@ -39,7 +39,7 @@ if (-not $ADB) {
     if ($inPath) { $ADB = $inPath.Source }
 }
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
+# -- Helpers ------------------------------------------------------------------
 
 function Write-Step($msg) {
     Write-Host ""
@@ -68,7 +68,7 @@ function Wait-Port($port, $timeoutSec = 30) {
     return $false
 }
 
-# ── 1. Verificar que no hay instancias previas ────────────────────────────────
+# -- 1. Verificar que no hay instancias previas --------------------------------
 
 Write-Step "Limpiando procesos previos..."
 
@@ -85,7 +85,7 @@ if ($metroPid) {
     Write-Warn "Proceso anterior en puerto $METRO_PORT terminado (PID $metroPid)"
 }
 
-# ── 2. Firewall ───────────────────────────────────────────────────────────────
+# -- 2. Firewall ---------------------------------------------------------------
 
 Write-Step "Verificando regla de firewall para puerto $BACKEND_PORT..."
 
@@ -101,7 +101,7 @@ if (-not $fwRule) {
     Write-OK "Regla de firewall ya existe"
 }
 
-# ── 3. Backend ────────────────────────────────────────────────────────────────
+# -- 3. Backend ----------------------------------------------------------------
 
 Write-Step "Levantando backend Spring Boot..."
 
@@ -126,7 +126,7 @@ if ($ready) {
     exit 1
 }
 
-# ── 4. IP local ───────────────────────────────────────────────────────────────
+# -- 4. IP local ---------------------------------------------------------------
 
 $localIP = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notmatch "^127\." -and $_.PrefixOrigin -eq "Dhcp" } | Select-Object -First 1).IPAddress
 if (-not $localIP) {
@@ -161,7 +161,7 @@ export const BASE_URL = 'http://localhost:$BACKEND_PORT';
     Write-OK "config.ts configurado para ADB reverse (localhost)"
 }
 
-# ── 5. ADB / Celular ─────────────────────────────────────────────────────────
+# -- 5. ADB / Celular ---------------------------------------------------------
 
 if (-not $SkipDevice -and -not $WifiOnly) {
     Write-Step "Conectando celular via ADB..."
@@ -188,7 +188,7 @@ if (-not $SkipDevice -and -not $WifiOnly) {
     }
 }
 
-# ── 6. Metro bundler ─────────────────────────────────────────────────────────
+# -- 6. Metro bundler ---------------------------------------------------------
 
 Write-Step "Levantando Metro bundler..."
 
@@ -202,32 +202,33 @@ Start-Process $psExe -ArgumentList "-NoExit", "-Command", "Set-Location '$FRONTE
 Start-Sleep -Seconds 3
 Write-OK "Metro iniciado (puerto $METRO_PORT) — ventana separada abierta"
 
-# ── 7. Resumen ────────────────────────────────────────────────────────────────
+# -- 7. Resumen ----------------------------------------------------------------
 
 Write-Host ""
-Write-Host "  ╔══════════════════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "  ║           QuickBid — Dev Environment Ready           ║" -ForegroundColor Green
-Write-Host "  ╠══════════════════════════════════════════════════════╣" -ForegroundColor Green
-Write-Host "  ║  Backend:   http://localhost:$BACKEND_PORT                   ║" -ForegroundColor Green
-Write-Host "  ║  H2 Console: http://localhost:$BACKEND_PORT/h2-console       ║" -ForegroundColor Green
-Write-Host "  ║  Metro:     http://localhost:$METRO_PORT                     ║" -ForegroundColor Green
-Write-Host "  ║  IP local:  $localIP                           ║" -ForegroundColor Green
-Write-Host "  ╠══════════════════════════════════════════════════════╣" -ForegroundColor Green
-Write-Host "  ║  Usuarios de prueba:                                 ║" -ForegroundColor Green
-Write-Host "  ║    juan@quickbid.com   / password123                 ║" -ForegroundColor Green
-Write-Host "  ║    maria@quickbid.com  / password123                 ║" -ForegroundColor Green
-Write-Host "  ║    carlos@quickbid.com / password123                 ║" -ForegroundColor Green
-Write-Host "  ╠══════════════════════════════════════════════════════╣" -ForegroundColor Green
-Write-Host "  ║  Tokens de verificación (registro/recuperación):     ║" -ForegroundColor Green
-Write-Host "  ║    Get-Content $env:TEMP\quickbid-backend.log |      ║" -ForegroundColor Green
-Write-Host "  ║    Select-String '[DEV] Token'                       ║" -ForegroundColor Green
-Write-Host "  ╚══════════════════════════════════════════════════════╝" -ForegroundColor Green
+Write-Host "  +======================================================+" -ForegroundColor Green
+Write-Host "  |           QuickBid — Dev Environment Ready           |" -ForegroundColor Green
+Write-Host "  +======================================================+" -ForegroundColor Green
+Write-Host "  |  Backend:   http://localhost:$BACKEND_PORT                   |" -ForegroundColor Green
+Write-Host "  |  H2 Console: http://localhost:$BACKEND_PORT/h2-console       |" -ForegroundColor Green
+Write-Host "  |  Metro:     http://localhost:$METRO_PORT                     |" -ForegroundColor Green
+Write-Host "  |  IP local:  $localIP                           |" -ForegroundColor Green
+Write-Host "  +======================================================+" -ForegroundColor Green
+Write-Host "  |  Usuarios de prueba:                                 |" -ForegroundColor Green
+Write-Host "  |    juan@quickbid.com   / password123                 |" -ForegroundColor Green
+Write-Host "  |    maria@quickbid.com  / password123                 |" -ForegroundColor Green
+Write-Host "  |    carlos@quickbid.com / password123                 |" -ForegroundColor Green
+Write-Host "  +======================================================+" -ForegroundColor Green
+Write-Host "  |  Tokens de verificación (registro/recuperación):     |" -ForegroundColor Green
+Write-Host "  |    Get-Content $env:TEMP\quickbid-backend.log |      |" -ForegroundColor Green
+Write-Host "  |    Select-String '[DEV] Token'                       |" -ForegroundColor Green
+Write-Host "  +======================================================+" -ForegroundColor Green
 Write-Host ""
 
 Write-Host "  Logs:" -ForegroundColor DarkGray
-Write-Host "    Backend → $backendLog" -ForegroundColor DarkGray
-Write-Host "    Metro   → $metroLog" -ForegroundColor DarkGray
+Write-Host "    Backend -> $backendLog" -ForegroundColor DarkGray
+Write-Host "    Metro   -> $metroLog" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "  Para ver tokens en tiempo real:" -ForegroundColor DarkGray
-Write-Host "    Get-Content $backendLog -Wait | Select-String '[DEV] Token'" -ForegroundColor DarkGray
+$tokenCmd = "    Get-Content $backendLog -Wait | Select-String " + [char]39 + "[DEV] Token" + [char]39
+Write-Host $tokenCmd -ForegroundColor DarkGray
 Write-Host ""
