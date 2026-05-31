@@ -1,10 +1,10 @@
-import { Platform } from 'react-native';
-
 /**
  * URL base del backend.
- * - iOS Simulator  → localhost funciona directo
- * - Android Emulator → la máquina host es 10.0.2.2
- * - Dispositivo físico → usar la IP local de la máquina (ej: 192.168.x.x)
+ *
+ * Para probar en celular físico: usar la IP local de la PC (ambos deben estar en la misma red WiFi).
+ * Para emulador Android:  cambiar a 'http://10.0.2.2:8080'
+ * Para simulador iOS:     cambiar a 'http://localhost:8080'
+ *
+ * IP actual de la máquina de desarrollo: 192.168.X.X
  */
-export const BASE_URL =
-  Platform.OS === 'android' ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
+export const BASE_URL = 'http://192.168.X.X:8080';
