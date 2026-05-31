@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { AuthProvider } from './src/context/AuthContext';
 
 import HomeScreen from './src/screens/HomeScreen';
 import DetailsScreen from './src/screens/DetailsScreen';
@@ -37,8 +38,8 @@ export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
   Register: undefined;
-  Identity: undefined;
-  Security: undefined;
+  Identity: { email: string; nombre: string; apellido: string; telefono: string; domicilio: string };
+  Security: { mode: 'registro'; email: string } | { mode: 'recuperacion'; token: string };
   Verifying: undefined;
   LimitedAccess: undefined;
   EnlaceRegistro: undefined;
@@ -70,6 +71,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
+    <AuthProvider>
     <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Splash"
@@ -113,5 +115,6 @@ export default function App() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+    </AuthProvider>
   );
 }

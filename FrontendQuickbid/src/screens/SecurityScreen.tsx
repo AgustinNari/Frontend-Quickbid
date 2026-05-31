@@ -9,12 +9,17 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { authApi } from '../api/auth';
+import { ApiError } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Security'>;
 
@@ -36,26 +41,72 @@ function EyeIcon({ visible }: { visible: boolean }) {
   );
 }
 
-export default function SecurityScreen({ navigation }: Props) {
+export default function SecurityScreen({ route, navigation }: Props) {
+  const { login } = useAuth();
+  const params = route.params;
+
   const [password, setPassword] = useState('');
   const [confirm,  setConfirm]  = useState('');
   const [showPass, setShowPass] = useState(false);
   const [showConf, setShowConf] = useState(false);
+  const [loading,  setLoading]  = useState(false);
+
+  const isRegistro = params.mode === 'registro';
+
+  async function handleConfirmar() {
+    if (!password.trim() || !confirm.trim()) {
+      Alert.alert('Campos requeridos', 'Completá ambos campos.');
+      return;
+    }
+    if (password.length < 6) {
+      Alert.alert('Clave muy corta', 'La clave debe tener al menos 6 caracteres.');
+      return;
+    }
+    if (password !== confirm) {
+      Alert.alert('Las claves no coinciden', 'Verificá que ambas contraseñas sean iguales.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (isRegistro) {
+        // Flujo de registro — etapa3
+        await authApi.etapa3({ email: params.email, clave: password });
+        Alert.alert(
+          'Registro completado',
+          'Ya podés iniciar sesión con tu cuenta.',
+          [{ text: 'Ir al Login', onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] }) }],
+        );
+      } else {
+        // Flujo de recuperación — cambiarClave
+        await authApi.cambiarClave(params.token, password);
+        Alert.alert(
+          'Clave actualizada',
+          'Tu contraseña fue cambiada. Iniciá sesión.',
+          [{ text: 'Ir al Login', onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] }) }],
+        );
+      }
+    } catch (e) {
+      const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';
+      Alert.alert('Error', msg);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
 
       <ScreenHeader onBack={() => navigation.goBack()} />
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
-          <Text style={styles.title}>Nueva Clave</Text>
-          <Text style={styles.subtitle}>Crea una contraseña segura para tu cuenta.</Text>
+          <Text style={styles.title}>{isRegistro ? 'Nueva Clave' : 'Cambiar Clave'}</Text>
+          <Text style={styles.subtitle}>
+            {isRegistro ? 'Paso 3 de 3: Creá una contraseña segura para tu cuenta.' : 'Ingresá tu nueva contraseña.'}
+          </Text>
 
-          {/* Nueva contraseña */}
           <Text style={styles.label}>NUEVA CONTRASEÑA</Text>
           <View style={styles.inputRow}>
             <TextInput
@@ -70,9 +121,8 @@ export default function SecurityScreen({ navigation }: Props) {
               <EyeIcon visible={showPass} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.hint}>Usa 8 o más caracteres con letras y números.</Text>
+          <Text style={styles.hint}>Mínimo 6 caracteres.</Text>
 
-          {/* Repetir contraseña */}
           <Text style={styles.label}>REPETIR CONTRASEÑA</Text>
           <View style={styles.inputRow}>
             <TextInput
@@ -90,11 +140,12 @@ export default function SecurityScreen({ navigation }: Props) {
 
           <View style={styles.spacer} />
 
-          <TouchableOpacity
-            style={styles.btn}
-            activeOpacity={0.85}
-            onPress={() => navigation.navigate('LimitedAccess')}>
-            <Text style={styles.btnText}>Actualizar y acceder</Text>
+          <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={handleConfirmar} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color={colors.textInverse} />
+            ) : (
+              <Text style={styles.btnText}>{isRegistro ? 'Finalizar registro' : 'Actualizar clave'}</Text>
+            )}
           </TouchableOpacity>
 
         </ScrollView>
@@ -106,48 +157,22 @@ export default function SecurityScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
   flex: { flex: 1, backgroundColor: colors.background },
-
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: 28,
-    paddingBottom: spacing['2xl'],
-  },
-
+  scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingTop: 28, paddingBottom: spacing['2xl'] },
   title:    { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 6 },
   subtitle: { fontSize: fontSize.base, color: colors.textMuted, marginBottom: 28 },
-
-  label: {
-    fontSize: fontSize.sm,
-    fontWeight: '600',
-    color: colors.textLabel,
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
+  label: { fontSize: fontSize.sm, fontWeight: '600', color: colors.textLabel, letterSpacing: 0.5, marginBottom: 6 },
   inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 14,
-    height: 48,
-    marginBottom: spacing.xs,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.white,
+    borderRadius: radius.md, borderWidth: 1, borderColor: colors.border,
+    paddingHorizontal: 14, height: 48, marginBottom: spacing.xs,
   },
   input:   { flex: 1, fontSize: fontSize.md, color: colors.text, padding: 0 },
   eyeBtn:  { padding: 4 },
   hint:    { fontSize: fontSize.sm, color: colors.textMuted, marginBottom: spacing.lg },
-
-  spacer: { flex: 1, minHeight: 20 },
-
+  spacer:  { flex: 1, minHeight: 20 },
   btn: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.base,
-    height: controlHeight.base,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.base,
+    backgroundColor: colors.primary, borderRadius: radius.base, height: controlHeight.base,
+    alignItems: 'center', justifyContent: 'center', marginTop: spacing.base,
   },
   btnText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600' },
 });

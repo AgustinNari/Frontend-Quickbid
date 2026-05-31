@@ -165,7 +165,7 @@ export default function PerfilScreen({ navigation }: Props) {
             icon={<IconLock />}
             label="Cambio de contraseña"
             sublabel="Actualizá tu contraseña"
-            onPress={() => navigation.navigate('Security')}
+            onPress={() => navigation.navigate('RecuperacionCuenta')}
           />
         </View>
 

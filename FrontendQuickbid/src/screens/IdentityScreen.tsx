@@ -7,12 +7,16 @@ import {
   SafeAreaView,
   ScrollView,
   Image,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import Svg, { Path, Rect, Line } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { authApi } from '../api/auth';
+import { ApiError } from '../api/client';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Identity'>;
 
@@ -71,9 +75,48 @@ function UploadBox({ label, description, icon, image, onPress }: UploadBoxProps)
   );
 }
 
-export default function IdentityScreen({ navigation }: Props) {
+export default function IdentityScreen({ route, navigation }: Props) {
+  const { email } = route.params;
+
   const [frontImage, setFrontImage] = useState<string | null>(null);
   const [backImage,  setBackImage]  = useState<string | null>(null);
+  const [loading,    setLoading]    = useState(false);
+
+  /**
+   * Simula la selección de imagen. En producción aquí iría react-native-image-picker.
+   * Por ahora asignamos un placeholder base64 mínimo para poder llamar al backend.
+   */
+  const PLACEHOLDER_DNI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+  function handleSelectFront() {
+    // TODO: reemplazar con react-native-image-picker
+    setFrontImage(PLACEHOLDER_DNI);
+  }
+
+  function handleSelectBack() {
+    // TODO: reemplazar con react-native-image-picker
+    setBackImage(PLACEHOLDER_DNI);
+  }
+
+  async function handleCompletar() {
+    if (!frontImage) {
+      Alert.alert('Foto requerida', 'Subí al menos el frente del DNI.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Enviamos solo el frente del DNI como fotoDni (concatenamos si hay dorso)
+      const fotoDni = backImage ? `${frontImage}|${backImage}` : frontImage;
+      await authApi.etapa2({ email, fotoDni });
+      navigation.navigate('Verifying');
+    } catch (e) {
+      const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';
+      Alert.alert('Error', msg);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -82,33 +125,33 @@ export default function IdentityScreen({ navigation }: Props) {
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
-        {/* Títulos */}
         <Text style={styles.title}>Identidad</Text>
         <Text style={styles.subtitle}>Paso 2 de 3: Verificación de DNI</Text>
 
-        {/* Frente del DNI */}
         <UploadBox
           label="Frente del DNI"
-          description="Asegúrate de que los datos sean legibles."
+          description="Asegurate de que los datos sean legibles."
           icon={<IdCardIcon />}
           image={frontImage}
-          onPress={() => {}}
+          onPress={handleSelectFront}
         />
 
-        {/* Dorso del DNI */}
         <UploadBox
           label="Dorso del DNI"
-          description="Verifica que el código de barras esté nítido."
+          description="Verificá que el código de barras esté nítido."
           icon={<BarcodeIcon />}
           image={backImage}
-          onPress={() => {}}
+          onPress={handleSelectBack}
         />
 
         <View style={styles.spacer} />
 
-        {/* Botón */}
-        <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={() => navigation.navigate('Verifying')}>
-          <Text style={styles.btnText}>Completar registro</Text>
+        <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={handleCompletar} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color={colors.textInverse} />
+          ) : (
+            <Text style={styles.btnText}>Completar registro</Text>
+          )}
         </TouchableOpacity>
 
       </ScrollView>
@@ -118,85 +161,24 @@ export default function IdentityScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
-
-  // Scroll
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: 28,
-    paddingBottom: spacing['2xl'],
-  },
-
-  // Títulos
-  title: {
-    fontSize: fontSize['4xl'],
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: fontSize.base,
-    color: colors.textMuted,
-    marginBottom: 28,
-  },
-
-  // Secciones
-  section: { marginBottom: spacing.xl },
-  sectionTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  sectionDesc: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    marginBottom: spacing.md,
-  },
-
-  // Upload box
+  scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingTop: 28, paddingBottom: spacing['2xl'] },
+  title:    { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 6 },
+  subtitle: { fontSize: fontSize.base, color: colors.textMuted, marginBottom: 28 },
+  section:      { marginBottom: spacing.xl },
+  sectionTitle: { fontSize: fontSize.lg, fontWeight: '600', color: colors.text, marginBottom: 4 },
+  sectionDesc:  { fontSize: fontSize.sm, color: colors.textMuted, marginBottom: spacing.md },
   uploadBox: {
-    borderWidth: 1.5,
-    borderColor: '#93C5FD',
-    borderStyle: 'dashed',
-    borderRadius: radius.base,
-    paddingVertical: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F8FAFF',
-    gap: spacing.xs,
+    borderWidth: 1.5, borderColor: '#93C5FD', borderStyle: 'dashed',
+    borderRadius: radius.base, paddingVertical: 28, alignItems: 'center',
+    justifyContent: 'center', backgroundColor: '#F8FAFF', gap: spacing.xs,
   },
-  uploadText: {
-    fontSize: fontSize.md,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  uploadFormats: {
-    fontSize: fontSize.sm,
-    color: colors.textSubtle,
-  },
-  preview: {
-    width: '100%',
-    height: 160,
-    borderRadius: radius.md,
-  },
-
+  uploadText:    { fontSize: fontSize.md, fontWeight: '600', color: colors.primary },
+  uploadFormats: { fontSize: fontSize.sm, color: colors.textSubtle },
+  preview:       { width: '100%', height: 160, borderRadius: radius.md },
   spacer: { minHeight: 16 },
-
-  // Botón
   btn: {
-    flexDirection: 'row',
-    backgroundColor: colors.primary,
-    borderRadius: radius.base,
-    height: controlHeight.base,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.xs,
+    backgroundColor: colors.primary, borderRadius: radius.base, height: controlHeight.base,
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.lg, marginTop: spacing.xs,
   },
-  btnText: {
-    color: colors.textInverse,
-    fontSize: fontSize.lg,
-    fontWeight: '600',
-  },
+  btnText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600' },
 });
