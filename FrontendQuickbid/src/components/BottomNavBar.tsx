@@ -105,6 +105,8 @@ export default function BottomNavBar({ activeTab = 'subastas', onTabPress, navig
       navigation?.navigate('Notificaciones' as never);
     } else if (tab === 'consignar') {
       navigation?.navigate('Consignaciones' as never);
+    } else if (tab === 'compras') {
+      navigation?.navigate('MisCompras' as never);
     }
   };
 

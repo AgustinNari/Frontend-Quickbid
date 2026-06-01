@@ -33,6 +33,10 @@ import HistorialScreen from './src/screens/HistorialScreen';
 import PerfilScreen from './src/screens/PerfilScreen';
 import EstadisticasScreen from './src/screens/EstadisticasScreen';
 import ConsignacionesScreen from './src/screens/ConsignacionesScreen';
+import MisComprasScreen from './src/screens/MisComprasScreen';
+import CompraDetailScreen from './src/screens/CompraDetailScreen';
+import ResumenPagoScreen from './src/screens/ResumenPagoScreen';
+import CompraExitoScreen from './src/screens/CompraExitoScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -65,6 +69,16 @@ export type RootStackParamList = {
   Perfil: undefined;
   Estadisticas: undefined;
   Consignaciones: undefined;
+  MisCompras: undefined;
+  CompraDetail: { compraId: string };
+  ResumenPago: { compraId: string; tipo: 'multa' | 'comisiones' };
+  CompraExito: {
+    compraId: string;
+    tipo: 'multa' | 'comisiones';
+    total: number;
+    moneda: 'ARS' | 'USD';
+    documento?: string;
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -108,6 +122,10 @@ export default function App() {
         <Stack.Screen name="Perfil" component={PerfilScreen} />
         <Stack.Screen name="Estadisticas" component={EstadisticasScreen} />
         <Stack.Screen name="Consignaciones" component={ConsignacionesScreen} />
+        <Stack.Screen name="MisCompras" component={MisComprasScreen} />
+        <Stack.Screen name="CompraDetail" component={CompraDetailScreen} />
+        <Stack.Screen name="ResumenPago" component={ResumenPagoScreen} />
+        <Stack.Screen name="CompraExito" component={CompraExitoScreen} />
         <Stack.Screen
           name="MenuLateral"
           component={MenuLateralScreen}
