@@ -27,6 +27,8 @@ import CatalogoSubastaScreen from './src/screens/CatalogoSubastaScreen';
 import ItemDetailScreen from './src/screens/ItemDetailScreen';
 import InscripcionSubastaScreen from './src/screens/InscripcionSubastaScreen';
 import InscripcionExitoScreen from './src/screens/InscripcionExitoScreen';
+import PujaEnVivoScreen from './src/screens/PujaEnVivoScreen';
+import PujaExitoScreen from './src/screens/PujaExitoScreen';
 import MenuLateralScreen from './src/screens/MenuLateralScreen';
 import NotificacionesScreen from './src/screens/NotificacionesScreen';
 import HistorialScreen from './src/screens/HistorialScreen';
@@ -59,6 +61,13 @@ export type RootStackParamList = {
   ItemDetail: { itemId: string; subastaId: string };
   InscripcionSubasta: { subastaId: string };
   InscripcionExito: { subastaId: string; idMedioPago: string };
+  PujaEnVivo: { subastaId: string };
+  PujaExito: {
+    subastaId: string;
+    itemId: string;
+    montoFinal: number;
+    numeroPostor: number;
+  };
   MenuLateral: undefined;
   Notificaciones: undefined;
   Historial: undefined;
@@ -103,6 +112,8 @@ export default function App() {
         <Stack.Screen name="ItemDetail" component={ItemDetailScreen} />
         <Stack.Screen name="InscripcionSubasta" component={InscripcionSubastaScreen} />
         <Stack.Screen name="InscripcionExito" component={InscripcionExitoScreen} />
+        <Stack.Screen name="PujaEnVivo" component={PujaEnVivoScreen} />
+        <Stack.Screen name="PujaExito" component={PujaExitoScreen} />
         <Stack.Screen name="Notificaciones" component={NotificacionesScreen} />
         <Stack.Screen name="Historial" component={HistorialScreen} />
         <Stack.Screen name="Perfil" component={PerfilScreen} />
