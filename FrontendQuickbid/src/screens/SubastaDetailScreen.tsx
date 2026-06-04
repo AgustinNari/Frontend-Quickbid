@@ -100,6 +100,11 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
     navigation.navigate('InscripcionSubasta', { subastaId: detalle.id });
   };
 
+  const handleEntrarPuja = () => {
+    if (!detalle) return;
+    navigation.navigate('PujaEnVivo', { subastaId: detalle.id });
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={handleBack} />
@@ -210,18 +215,41 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
           </ScrollView>
 
           <View style={styles.footer}>
-            <Button
-              onPress={handleVerCatalogo}
-              leftIcon={
-                <Icon name="bag" color={colors.textInverse} size={18} />
-              }
-            >
-              Entrar al catálogo
-            </Button>
-            <InscribirmeButton
-              detalle={detalle}
-              onInscribirme={handleInscribirme}
-            />
+            {detalle.estado === 'activa' ? (
+              <>
+                <Button
+                  onPress={handleEntrarPuja}
+                  leftIcon={
+                    <Icon name="plus-circle" color={colors.textInverse} size={18} />
+                  }
+                >
+                  Entrar a Puja en Vivo
+                </Button>
+                <Button
+                  variant="secondary"
+                  onPress={handleVerCatalogo}
+                  leftIcon={<Icon name="bag" color={colors.text} size={18} />}
+                  style={styles.secondaryButton}
+                >
+                  Entrar al catálogo
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onPress={handleVerCatalogo}
+                  leftIcon={
+                    <Icon name="bag" color={colors.textInverse} size={18} />
+                  }
+                >
+                  Entrar al catálogo
+                </Button>
+                <InscribirmeButton
+                  detalle={detalle}
+                  onInscribirme={handleInscribirme}
+                />
+              </>
+            )}
           </View>
         </>
       )}

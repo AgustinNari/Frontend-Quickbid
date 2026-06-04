@@ -72,7 +72,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ItemDetail'>;
 type ItemTab = 'detalles' | 'historia' | 'datos';
 
 export default function ItemDetailScreen({ navigation, route }: Props) {
-  const { itemId } = route.params;
+  const { itemId, subastaId } = route.params;
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
   const [itemTab, setItemTab] = useState<ItemTab>('detalles');
   const [loading, setLoading] = useState(true);
@@ -87,6 +87,8 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
   }, [itemId]);
 
   const handleBack = () => navigation.goBack();
+
+  const handlePujar = () => navigation.navigate('PujaEnVivo', { subastaId });
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -165,7 +167,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
             </View>
           </ScrollView>
 
-          <ItemFooter estado={item.estado} />
+          <ItemFooter estado={item.estado} onPujar={handlePujar} />
         </>
       )}
 
@@ -199,7 +201,13 @@ function Hero({ item }: { item: ItemDetalle }) {
   );
 }
 
-function ItemFooter({ estado }: { estado: ItemEstado }) {
+function ItemFooter({
+  estado,
+  onPujar,
+}: {
+  estado: ItemEstado;
+  onPujar: () => void;
+}) {
   if (estado === 'vendido') {
     return (
       <View style={styles.footer}>
@@ -228,12 +236,7 @@ function ItemFooter({ estado }: { estado: ItemEstado }) {
     return (
       <View style={styles.footer}>
         <Button
-          onPress={() =>
-            Alert.alert(
-              'Pujar',
-              'La puja en vivo se habilita en la tarea #14.',
-            )
-          }
+          onPress={onPujar}
           leftIcon={<Icon name="plus-circle" color={colors.textInverse} size={18} />}
         >
           Pujar ahora
