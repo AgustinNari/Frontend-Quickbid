@@ -411,6 +411,54 @@ export const MOCK_CATALOGO: Record<string, ItemCatalogo[]> = {
       segmento: 'vehiculos',
     },
   ],
+  // sub_009 (activa): catalogo de la "Subasta de Arte Moderno". Tiene un item
+  // `en_vivo` (lot_902) que es el que alimenta la sala de puja en vivo (#14).
+  sub_009: [
+    {
+      id: 'lot_901',
+      subastaId: 'sub_009',
+      lote: '#001',
+      titulo: 'Geometría del Silencio',
+      autor: 'Mauro Lombardi',
+      estado: 'vendido',
+      precioBase: 8000,
+      moneda: 'USD',
+      segmento: 'arte',
+    },
+    {
+      id: 'lot_902',
+      subastaId: 'sub_009',
+      lote: '#002',
+      titulo: 'Cromática N°7',
+      autor: 'Valentina Ríos',
+      estado: 'en_vivo',
+      precioBase: 12000,
+      moneda: 'USD',
+      segmento: 'arte',
+    },
+    {
+      id: 'lot_903',
+      subastaId: 'sub_009',
+      lote: '#003',
+      titulo: 'Sin título (Serie Aurora)',
+      autor: 'Mauro Lombardi',
+      estado: 'pendiente',
+      precioBase: 9500,
+      moneda: 'USD',
+      segmento: 'arte',
+    },
+    {
+      id: 'lot_904',
+      subastaId: 'sub_009',
+      lote: '#004',
+      titulo: 'Estudio en Ocre',
+      autor: 'Camila Ferrer',
+      estado: 'pendiente',
+      precioBase: 7200,
+      moneda: 'USD',
+      segmento: 'arte',
+    },
+  ],
 };
 
 /**
@@ -469,6 +517,16 @@ export const MOCK_ITEM_DETALLE: Record<string, ItemDetalle> = {
     condicion: 'Concours-ready',
     cantidadPujas: 3,
     fechaAproximada: '1972',
+  },
+  lot_902: {
+    ...MOCK_CATALOGO['sub_009'][1],
+    descripcion:
+      'Óleo y acrílico sobre lienzo de gran formato. Pieza central de la serie "Cromática", explora la vibración del color en capas superpuestas. Exhibida en la sala del rematador antes de la jornada.',
+    procedencia: 'Adquirida directamente del taller de la artista',
+    dimensiones: '150 x 120 cm',
+    condicion: 'Excelente',
+    cantidadPujas: 6,
+    fechaAproximada: '2023',
   },
 };
 

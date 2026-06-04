@@ -27,6 +27,8 @@ import CatalogoSubastaScreen from './src/screens/CatalogoSubastaScreen';
 import ItemDetailScreen from './src/screens/ItemDetailScreen';
 import InscripcionSubastaScreen from './src/screens/InscripcionSubastaScreen';
 import InscripcionExitoScreen from './src/screens/InscripcionExitoScreen';
+import PujaEnVivoScreen from './src/screens/PujaEnVivoScreen';
+import PujaExitoScreen from './src/screens/PujaExitoScreen';
 import MenuLateralScreen from './src/screens/MenuLateralScreen';
 import NotificacionesScreen from './src/screens/NotificacionesScreen';
 import HistorialScreen from './src/screens/HistorialScreen';
@@ -37,6 +39,9 @@ import MisComprasScreen from './src/screens/MisComprasScreen';
 import CompraDetailScreen from './src/screens/CompraDetailScreen';
 import ResumenPagoScreen from './src/screens/ResumenPagoScreen';
 import CompraExitoScreen from './src/screens/CompraExitoScreen';
+import AltaConsignacionScreen from './src/screens/AltaConsignacionScreen';
+import ConsignacionExitoScreen from './src/screens/ConsignacionExitoScreen';
+import ConsignacionDetailScreen from './src/screens/ConsignacionDetailScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -63,6 +68,13 @@ export type RootStackParamList = {
   ItemDetail: { itemId: string; subastaId: string };
   InscripcionSubasta: { subastaId: string };
   InscripcionExito: { subastaId: string; idMedioPago: string };
+  PujaEnVivo: { subastaId: string };
+  PujaExito: {
+    subastaId: string;
+    itemId: string;
+    montoFinal: number;
+    numeroPostor: number;
+  };
   MenuLateral: undefined;
   Notificaciones: undefined;
   Historial: undefined;
@@ -79,6 +91,9 @@ export type RootStackParamList = {
     moneda: 'ARS' | 'USD';
     documento?: string;
   };
+  AltaConsignacion: undefined;
+  ConsignacionExito: { id: string; codigo: string; titulo: string };
+  ConsignacionDetail: { id: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -117,6 +132,8 @@ export default function App() {
         <Stack.Screen name="ItemDetail" component={ItemDetailScreen} />
         <Stack.Screen name="InscripcionSubasta" component={InscripcionSubastaScreen} />
         <Stack.Screen name="InscripcionExito" component={InscripcionExitoScreen} />
+        <Stack.Screen name="PujaEnVivo" component={PujaEnVivoScreen} />
+        <Stack.Screen name="PujaExito" component={PujaExitoScreen} />
         <Stack.Screen name="Notificaciones" component={NotificacionesScreen} />
         <Stack.Screen name="Historial" component={HistorialScreen} />
         <Stack.Screen name="Perfil" component={PerfilScreen} />
@@ -126,6 +143,9 @@ export default function App() {
         <Stack.Screen name="CompraDetail" component={CompraDetailScreen} />
         <Stack.Screen name="ResumenPago" component={ResumenPagoScreen} />
         <Stack.Screen name="CompraExito" component={CompraExitoScreen} />
+        <Stack.Screen name="AltaConsignacion" component={AltaConsignacionScreen} />
+        <Stack.Screen name="ConsignacionExito" component={ConsignacionExitoScreen} />
+        <Stack.Screen name="ConsignacionDetail" component={ConsignacionDetailScreen} />
         <Stack.Screen
           name="MenuLateral"
           component={MenuLateralScreen}
