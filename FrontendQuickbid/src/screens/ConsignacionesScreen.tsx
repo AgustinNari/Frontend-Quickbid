@@ -71,7 +71,7 @@ function Badge({ count }: { count: number }) {
 
 // ── Fila de item ──────────────────────────────────────────────────────────────
 
-function ConsignacionItem({ item }: { item: Consignacion }) {
+function ConsignacionItem({ item, onVerDetalle }: { item: Consignacion; onVerDetalle: () => void }) {
   return (
     <View style={itemStyles.card}>
       <ThumbPlaceholder />
@@ -82,7 +82,7 @@ function ConsignacionItem({ item }: { item: Consignacion }) {
         </View>
         <Text style={itemStyles.precio}>{item.precio}</Text>
         <Text style={itemStyles.detalle}>{item.detalle}</Text>
-        <TouchableOpacity activeOpacity={0.7}>
+        <TouchableOpacity activeOpacity={0.7} onPress={onVerDetalle}>
           <Text style={itemStyles.verDetalle}>Ver detalle ›</Text>
         </TouchableOpacity>
       </View>
@@ -138,7 +138,7 @@ const STEPS = [
   { n: '3', titulo: 'Coordiná la venta',  sub: 'Ponlo desde el 25% de la cuenta' },
 ];
 
-function EmptyState() {
+function EmptyState({ onConsignar }: { onConsignar: () => void }) {
   return (
     <View style={emptyStyles.wrap}>
       <EmptyIcon />
@@ -161,7 +161,7 @@ function EmptyState() {
         ))}
       </View>
 
-      <TouchableOpacity style={emptyStyles.btn} activeOpacity={0.85}>
+      <TouchableOpacity style={emptyStyles.btn} activeOpacity={0.85} onPress={onConsignar}>
         <Text style={emptyStyles.btnText}>Consignar mi primer bien</Text>
       </TouchableOpacity>
     </View>
@@ -245,14 +245,20 @@ export default function ConsignacionesScreen({ navigation }: Props) {
 
         {/* Lista o empty */}
         {items.length === 0
-          ? <EmptyState />
-          : items.map(item => <ConsignacionItem key={item.id} item={item} />)
+          ? <EmptyState onConsignar={() => navigation.navigate('AltaConsignacion')} />
+          : items.map(item => (
+              <ConsignacionItem
+                key={item.id}
+                item={item}
+                onVerDetalle={() => navigation.navigate('ConsignacionDetail', { id: item.id })}
+              />
+            ))
         }
 
       </ScrollView>
 
       {/* FAB */}
-      <TouchableOpacity style={styles.fab} activeOpacity={0.85}>
+      <TouchableOpacity style={styles.fab} activeOpacity={0.85} onPress={() => navigation.navigate('AltaConsignacion')}>
         <Svg width="28" height="28" viewBox="0 0 24 24" fill="none">
           <Path d="M12 5v14M5 12h14" stroke={colors.white} strokeWidth="2.2" strokeLinecap="round" />
         </Svg>

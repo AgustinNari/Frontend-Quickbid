@@ -33,6 +33,9 @@ import HistorialScreen from './src/screens/HistorialScreen';
 import PerfilScreen from './src/screens/PerfilScreen';
 import EstadisticasScreen from './src/screens/EstadisticasScreen';
 import ConsignacionesScreen from './src/screens/ConsignacionesScreen';
+import AltaConsignacionScreen from './src/screens/AltaConsignacionScreen';
+import ConsignacionExitoScreen from './src/screens/ConsignacionExitoScreen';
+import ConsignacionDetailScreen from './src/screens/ConsignacionDetailScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -65,6 +68,9 @@ export type RootStackParamList = {
   Perfil: undefined;
   Estadisticas: undefined;
   Consignaciones: undefined;
+  AltaConsignacion: undefined;
+  ConsignacionExito: { id: string; codigo: string; titulo: string };
+  ConsignacionDetail: { id: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -108,6 +114,9 @@ export default function App() {
         <Stack.Screen name="Perfil" component={PerfilScreen} />
         <Stack.Screen name="Estadisticas" component={EstadisticasScreen} />
         <Stack.Screen name="Consignaciones" component={ConsignacionesScreen} />
+        <Stack.Screen name="AltaConsignacion" component={AltaConsignacionScreen} />
+        <Stack.Screen name="ConsignacionExito" component={ConsignacionExitoScreen} />
+        <Stack.Screen name="ConsignacionDetail" component={ConsignacionDetailScreen} />
         <Stack.Screen
           name="MenuLateral"
           component={MenuLateralScreen}
