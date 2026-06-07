@@ -1,141 +1,102 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, SafeAreaView, ScrollView, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import {
-  Heading,
-  Body,
-  Typography,
-  Button,
-  Card,
-  Badge,
-  Icon,
-} from '../ui';
-import {
-  colors,
-  spacing,
-  radius,
-  layout,
-  fontSize,
-  fontWeight,
-  letterSpacing,
-} from '../theme';
+import { Heading, Body, Typography, Button, Card, Badge, Icon } from '../ui';
+import { colors, spacing, radius, layout, fontSize, fontWeight, letterSpacing } from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { SEGMENTO_THEME } from '../components/SubastaCard';
 import { formatPrecio } from '../utils/format';
-import { getMockCompra } from '../mocks/compras';
+import { comprasApi } from '../api/compras';
+import { CompraDetalleUi, DocumentoCompraUi, mapCompraDetalle, mapDocumentoCompra } from '../mappers/compras';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CompraExito'>;
 
-/**
- * Pantalla "¡Compra completada con éxito!" (image4).
- *
- * Se llega via `navigation.replace` desde `ResumenPagoScreen`. El copy del
- * banner se adapta al tipo de pago: si fue una multa, se menciona el recibo y
- * que la cuenta sale del estado de multa; si fueron comisiones + envío, se
- * menciona la factura y la gestión de entrega.
- */
 export default function CompraExitoScreen({ navigation, route }: Props) {
   const { compraId, tipo, total, moneda, documento } = route.params;
-  const compra = getMockCompra(compraId);
+  const [compra, setCompra] = useState<CompraDetalleUi | null>(null);
+  const [documentos, setDocumentos] = useState<DocumentoCompraUi[]>([]);
+
+  useEffect(() => {
+    const id = Number(compraId);
+    comprasApi.detalle(id).then(dto => setCompra(mapCompraDetalle(dto))).catch(() => setCompra(null));
+    comprasApi.documentos(id).then(docs => setDocumentos(docs.map(mapDocumentoCompra))).catch(() => setDocumentos([]));
+  }, [compraId]);
 
   const irAMisCompras = () => navigation.navigate('MisCompras');
   const irASubastas = () => navigation.navigate('Subastas');
-
   const esMulta = tipo === 'multa';
-  const theme = compra ? SEGMENTO_THEME[compra.item.segmento] : null;
+  const docPrincipal = documento ?? documentos[0]?.filename;
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={irAMisCompras} />
 
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.body}>
           <View style={styles.celebracion}>
             <View style={styles.checkCircle}>
               <Icon name="check" size={34} color={colors.textInverse} />
             </View>
-            <Heading style={styles.titulo}>¡Compra completada con éxito!</Heading>
-            <Body muted style={styles.subcopy}>
-              Tu pago fue procesado de forma segura.
-            </Body>
+            <Heading style={styles.titulo}>Compra completada con exito</Heading>
+            <Body muted style={styles.subcopy}>El backend registro el pago de forma segura.</Body>
           </View>
 
-          {compra && theme ? (
-            <Card variant="flat" padding="none" style={styles.itemCard}>
-              <View style={styles.itemRow}>
-                <View style={[styles.thumb, { backgroundColor: theme.bg }]}>
-                  <Icon name={theme.icon} size={32} color={theme.fg} />
-                </View>
-                <View style={styles.itemInfo}>
-                  <Typography style={styles.itemLote}>LOTE {compra.item.lote}</Typography>
-                  <Typography style={styles.itemTitulo} numberOfLines={1}>
-                    {compra.item.titulo}
-                  </Typography>
-                  <Typography style={styles.itemSub} numberOfLines={1}>
-                    {compra.subastaTitulo}
-                  </Typography>
-                </View>
+          <Card variant="flat" padding="none" style={styles.itemCard}>
+            <View style={styles.itemRow}>
+              <View style={styles.thumb}>
+                <Icon name={esMulta ? 'alert' : 'bag'} size={32} color={colors.primary} />
               </View>
-            </Card>
-          ) : null}
+              <View style={styles.itemInfo}>
+                <Typography style={styles.itemLote}>{compra?.loteLabel.toUpperCase() ?? `COMPRA #${compraId}`}</Typography>
+                <Typography style={styles.itemTitulo} numberOfLines={1}>
+                  {compra?.title ?? `Compra #${compraId}`}
+                </Typography>
+                <Typography style={styles.itemSub} numberOfLines={1}>
+                  {compra?.subtitle ?? 'Detalle actualizado al volver a Mis Compras'}
+                </Typography>
+              </View>
+            </View>
+          </Card>
 
           <View style={styles.resumenRow}>
             <View style={styles.resumenCol}>
               <Typography style={styles.resumenLabel}>
-                {esMulta ? 'PAGADO (ARTÍCULO + MULTA)' : 'PAGADO (COMISIONES + ENVÍO)'}
+                {esMulta ? 'PAGADO (ARTICULO + MULTA)' : 'PAGADO (COMISIONES + ENVIO)'}
               </Typography>
-              <Typography style={styles.resumenMonto}>
-                {formatPrecio(total, moneda)}
-              </Typography>
+              <Typography style={styles.resumenMonto}>{formatPrecio(total, moneda)}</Typography>
             </View>
             <View style={styles.resumenDivider} />
             <View style={styles.resumenCol}>
               <Typography style={styles.resumenLabel}>ESTADO</Typography>
               <View style={styles.estadoBadge}>
-                <Badge tone="success" variant="soft">
-                  ● Pagada
-                </Badge>
+                <Badge tone="success" variant="soft">APROBADO</Badge>
               </View>
             </View>
           </View>
 
-          {documento ? (
+          {docPrincipal ? (
             <Typography style={styles.documentoNota}>
-              {esMulta ? 'Recibo de multa' : 'Factura'} N° {documento}
+              Metadata generada: {docPrincipal}
             </Typography>
-          ) : null}
+          ) : (
+            <Typography style={styles.documentoNota}>
+              Si el documento no aparece todavia, revisa Mis Compras para refrescar la metadata.
+            </Typography>
+          )}
 
           <View style={styles.infoBanner}>
             <Icon name="info" size={18} color={colors.info} />
             <Body style={styles.infoText}>
-              {esMulta ? (
-                <>
-                  Pagaste el artículo junto con la multa. Tu cuenta sale del estado
-                  de <Typography style={styles.infoStrong}>multa</Typography>. El
-                  recibo queda disponible en{' '}
-                  <Typography style={styles.infoStrong}>Mis Compras</Typography>.
-                </>
-              ) : (
-                <>
-                  La <Typography style={styles.infoStrong}>factura</Typography> y la
-                  gestión de entrega quedan disponibles en{' '}
-                  <Typography style={styles.infoStrong}>Mis Compras</Typography>.
-                </>
-              )}
+              {esMulta
+                ? 'Pagaste el articulo junto con la multa. Si no quedan otras multas, la sesion se refresca para reflejar la cuenta activa.'
+                : 'El pago de extras fue aprobado. La entrega o retiro queda disponible para seguimiento en Mis Compras.'}
             </Body>
           </View>
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button
-          onPress={irAMisCompras}
-          rightIcon={<Icon name="arrow-right" color={colors.textInverse} size={18} />}
-        >
+        <Button onPress={irAMisCompras} rightIcon={<Icon name="arrow-right" color={colors.textInverse} size={18} />}>
           Ver mis compras
         </Button>
         <Button variant="secondary" onPress={irASubastas} style={styles.secondaryButton}>
@@ -174,6 +135,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.infoSoft,
   },
   itemInfo: { flex: 1, gap: 2 },
   itemLote: {
@@ -212,7 +174,6 @@ const styles = StyleSheet.create({
     borderColor: colors.info,
   },
   infoText: { flex: 1, color: colors.text, fontSize: fontSize.sm, lineHeight: fontSize.sm * 1.5 },
-  infoStrong: { fontWeight: fontWeight.bold, color: colors.info },
   footer: {
     backgroundColor: colors.surface,
     paddingHorizontal: layout.screenPaddingHorizontal,

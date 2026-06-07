@@ -1,86 +1,118 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
+  RefreshControl,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import {
-  Heading,
-  Body,
-  Typography,
-  Button,
-  Card,
-  Badge,
-  Icon,
-  EmptyState,
-  Loader,
-} from '../ui';
-import {
-  colors,
-  spacing,
-  radius,
-  layout,
-  fontSize,
-  fontWeight,
-  letterSpacing,
-} from '../theme';
+import { Heading, Typography, Button, Card, Badge, Icon, EmptyState, Loader } from '../ui';
+import { colors, spacing, radius, layout, fontSize, fontWeight, letterSpacing } from '../theme';
 import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { SEGMENTO_THEME } from '../components/SubastaCard';
 import { formatPrecio } from '../utils/format';
-import { Compra, CompraEstado, CompraTab } from '../types/compra';
-import { getMockCompras } from '../mocks/compras';
+import { comprasApi } from '../api/compras';
+import { ApiError } from '../api/client';
+import { useAuth } from '../context/AuthContext';
+import {
+  CompraResumenUi,
+  mapCompraResumen,
+  tipoPagoForCompra,
+} from '../mappers/compras';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MisCompras'>;
+type CompraTab = 'todas' | 'pendientes' | 'pagadas';
 
-/**
- * Mis Compras (tab COMPRAS del BottomNavBar).
- *
- * Replica el frame "Mis Compras" de image4: header, tabs por estado y cards de
- * compra con badge de estado, monto y CTA. Consume `GET /api/compras` (mock).
- *
- * Las cards llevan al detalle; el CTA es la accion principal segun estado
- * (Pagar multa / Completar pago / Ver factura). Cuando exista backend, el
- * efecto se reemplaza por la query real.
- */
 export default function MisComprasScreen({ navigation }: Props) {
   const [activeTab, setActiveTab] = useState<NavTab>('compras');
   const [tab, setTab] = useState<CompraTab>('todas');
   const [loading, setLoading] = useState(true);
-  const [compras, setCompras] = useState<Compra[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [compras, setCompras] = useState<CompraResumenUi[]>([]);
+  const { isGuest, estadoCuenta } = useAuth();
+
+  const load = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
+    if (isGuest) {
+      setLoading(false);
+      return;
+    }
+    if (mode === 'initial') setLoading(true);
+    if (mode === 'refresh') setRefreshing(true);
+    setError(null);
+    try {
+      const page = await comprasApi.listar({ page: 0, size: 50 });
+      setCompras(page.content.map(mapCompraResumen));
+    } catch (err) {
+      setError(readableError(err));
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [isGuest]);
 
   useEffect(() => {
-    setLoading(true);
-    const t = setTimeout(() => {
-      setCompras(getMockCompras(tab));
-      setLoading(false);
-    }, 200);
-    return () => clearTimeout(t);
-  }, [tab]);
+    load();
+  }, [load]);
 
-  const irADetalle = (compraId: string) =>
-    navigation.navigate('CompraDetail', { compraId });
+  const visibles = useMemo(() => compras.filter(compra => {
+    if (tab === 'pendientes') {
+      return compra.action === 'pagar_multa' || compra.action === 'pagar_extras';
+    }
+    if (tab === 'pagadas') {
+      return ['pagada', 'entrega_pendiente', 'retiro_pendiente', 'completada'].includes(compra.estado);
+    }
+    return true;
+  }), [compras, tab]);
 
-  const irAPagar = (compra: Compra) => {
-    if (compra.estado === 'multa_pendiente') {
-      navigation.navigate('ResumenPago', { compraId: compra.id, tipo: 'multa' });
-    } else if (compra.estado === 'pago_pendiente') {
-      navigation.navigate('ResumenPago', {
-        compraId: compra.id,
-        tipo: 'comisiones',
-      });
+  const irADetalle = (compraId: string) => navigation.navigate('CompraDetail', { compraId });
+
+  const irAPagar = (compra: CompraResumenUi) => {
+    const tipo = tipoPagoForCompra(compra);
+    if (tipo) {
+      navigation.navigate('ResumenPago', { compraId: compra.id, tipo });
     } else {
-      Alert.alert(
-        'Factura',
-        'El visor de factura y recibo se habilita en la próxima iteración. La compra ya está registrada.',
-      );
+      irADetalle(compra.id);
     }
   };
+
+  if (isGuest) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader onBack={() => navigation.goBack()} />
+        <View style={styles.errorWrap}>
+          <EmptyState
+            icon={<Icon name="lock" size={48} color={colors.textSubtle} />}
+            title="Compras protegidas"
+            description="Inicia sesion para ver tus compras, pagos, multas y documentos."
+            actionLabel="Iniciar sesion"
+            onAction={() => navigation.navigate('LimitedAccess')}
+          />
+        </View>
+        <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      </SafeAreaView>
+    );
+  }
+
+  if (estadoCuenta === 'bloqueada_permanente') {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader onBack={() => navigation.goBack()} />
+        <View style={styles.errorWrap}>
+          <EmptyState
+            icon={<Icon name="alert" size={48} color={colors.danger} />}
+            title="Cuenta bloqueada"
+            description="Tu cuenta no puede acceder a compras ni pagos desde la navegacion normal."
+            actionLabel="Ver estado de cuenta"
+            onAction={() => navigation.navigate('LimitedAccess')}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -88,29 +120,39 @@ export default function MisComprasScreen({ navigation }: Props) {
 
       <View style={styles.headerBlock}>
         <Heading style={styles.titulo}>Mis Compras</Heading>
+        {estadoCuenta === 'restriccion_multa' ? (
+          <View style={styles.restrictedBanner}>
+            <Icon name="alert" size={18} color={colors.danger} />
+            <Typography style={styles.restrictedText}>
+              Tu cuenta tiene una multa activa. Podes regularizarla desde tus compras.
+            </Typography>
+          </View>
+        ) : null}
         <View style={styles.tabBar}>
           <TabButton label="Todas" active={tab === 'todas'} onPress={() => setTab('todas')} />
-          <TabButton
-            label="Pendientes"
-            active={tab === 'pendientes'}
-            onPress={() => setTab('pendientes')}
-          />
-          <TabButton
-            label="Pagadas"
-            active={tab === 'pagadas'}
-            onPress={() => setTab('pagadas')}
-          />
+          <TabButton label="Pendientes" active={tab === 'pendientes'} onPress={() => setTab('pendientes')} />
+          <TabButton label="Pagadas" active={tab === 'pagadas'} onPress={() => setTab('pagadas')} />
         </View>
       </View>
 
       {loading ? (
         <Loader fullScreen label="Cargando tus compras..." />
-      ) : compras.length === 0 ? (
+      ) : error ? (
+        <View style={styles.errorWrap}>
+          <EmptyState
+            icon={<Icon name="alert" size={48} color={colors.danger} />}
+            title="No pudimos cargar tus compras"
+            description={error}
+            actionLabel="Reintentar"
+            onAction={() => load()}
+          />
+        </View>
+      ) : visibles.length === 0 ? (
         <View style={styles.errorWrap}>
           <EmptyState
             icon={<Icon name="bag" size={48} color={colors.textSubtle} />}
-            title="No hay compras acá"
-            description="Cuando ganes una puja, tus compras van a aparecer en esta sección."
+            title="No hay compras aca"
+            description="Cuando ganes una puja, tus compras van a aparecer en esta seccion."
             actionLabel="Ir a subastas"
             onAction={() => navigation.navigate('Subastas')}
           />
@@ -119,136 +161,88 @@ export default function MisComprasScreen({ navigation }: Props) {
         <ScrollView
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load('refresh')} />}
         >
           <View style={styles.body}>
-            {compras.map((c) => (
+            {visibles.map((compra) => (
               <CompraCard
-                key={c.id}
-                compra={c}
-                onOpen={() => irADetalle(c.id)}
-                onAction={() => irAPagar(c)}
+                key={compra.id}
+                compra={compra}
+                onOpen={() => irADetalle(compra.id)}
+                onAction={() => irAPagar(compra)}
               />
             ))}
           </View>
         </ScrollView>
       )}
 
-      <BottomNavBar
-        activeTab={activeTab}
-        onTabPress={setActiveTab}
-        navigation={navigation}
-      />
+      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
     </SafeAreaView>
   );
 }
-
-// ── Card de compra ──────────────────────────────────────────────────────────
 
 function CompraCard({
   compra,
   onOpen,
   onAction,
 }: {
-  compra: Compra;
+  compra: CompraResumenUi;
   onOpen: () => void;
   onAction: () => void;
 }) {
-  const theme = SEGMENTO_THEME[compra.item.segmento];
-  const estadoTone = ESTADO_TONE[compra.estado];
-  const accion = ACCION_POR_ESTADO[compra.estado];
+  const actionVariant = compra.action === 'pagar_multa' ? 'danger' : compra.action === 'pagar_extras' ? 'primary' : 'secondary';
 
   return (
     <Card variant="flat" padding="none" onPress={onOpen} style={styles.card}>
       <View style={styles.cardRow}>
-        <View style={[styles.thumb, { backgroundColor: theme.bg }]}>
-          <Icon name={theme.icon} size={32} color={theme.fg} />
+        <View style={styles.thumb}>
+          <Icon name={compra.action === 'pagar_multa' ? 'alert' : 'bag'} size={32} color={colors.primary} />
         </View>
         <View style={styles.cardInfo}>
           <View style={styles.badgeRow}>
-            <Badge tone={estadoTone.tone} variant={estadoTone.variant}>
-              {ESTADO_BADGE_LABEL[compra.estado]}
+            <Badge tone={compra.badge.tone} variant={compra.badge.variant}>
+              {compra.estadoLabel.toUpperCase()}
             </Badge>
           </View>
           <Typography style={styles.cardTitulo} numberOfLines={1}>
-            {compra.item.titulo}
+            {compra.loteLabel}
           </Typography>
           <Typography style={styles.cardSub} numberOfLines={1}>
-            {compra.subastaTitulo}
+            {compra.subtitle}
           </Typography>
+          <Typography style={styles.cardFecha}>{compra.fechaLabel}</Typography>
           <Typography style={styles.cardMonto}>
-            {formatPrecio(compra.montoAdjudicado, compra.moneda)}
+            {formatPrecio(compra.montoAdjudicacion, compra.moneda)}
           </Typography>
         </View>
       </View>
 
-      <Button
-        variant={accion.variant}
-        size="sm"
-        onPress={onAction}
-        style={styles.cardCta}
-      >
-        {accion.label}
+      <Button variant={actionVariant} size="sm" onPress={onAction} style={styles.cardCta}>
+        {compra.actionLabel}
       </Button>
     </Card>
   );
 }
 
-function TabButton({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
+function TabButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
       style={[styles.tab, active ? styles.tabActive : null]}
     >
-      <Typography
-        style={[styles.tabLabel, active ? styles.tabLabelActive : null]}
-        numberOfLines={1}
-      >
+      <Typography style={[styles.tabLabel, active ? styles.tabLabelActive : null]} numberOfLines={1}>
         {label}
       </Typography>
     </TouchableOpacity>
   );
 }
 
-// ── Mapeos de presentacion ──────────────────────────────────────────────────
-
-type BadgeTone = {
-  tone: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral';
-  variant: 'solid' | 'soft';
-};
-
-const ESTADO_TONE: Record<CompraEstado, BadgeTone> = {
-  multa_pendiente: { tone: 'danger', variant: 'solid' },
-  pago_pendiente: { tone: 'warning', variant: 'solid' },
-  pagada: { tone: 'success', variant: 'soft' },
-  completada: { tone: 'success', variant: 'soft' },
-};
-
-const ESTADO_BADGE_LABEL: Record<CompraEstado, string> = {
-  multa_pendiente: 'CON MULTA',
-  pago_pendiente: 'PAGO PENDIENTE',
-  pagada: 'PAGADA',
-  completada: 'COMPLETADA',
-};
-
-type Accion = { label: string; variant: 'primary' | 'secondary' | 'danger' };
-
-const ACCION_POR_ESTADO: Record<CompraEstado, Accion> = {
-  multa_pendiente: { label: 'Pagar multa', variant: 'danger' },
-  pago_pendiente: { label: 'Completar pago', variant: 'primary' },
-  pagada: { label: 'Ver factura', variant: 'secondary' },
-  completada: { label: 'Ver factura', variant: 'secondary' },
-};
-
-// ── Estilos ─────────────────────────────────────────────────────────────────
+function readableError(err: unknown) {
+  if (err instanceof ApiError) return err.message;
+  if (err instanceof Error) return err.message;
+  return 'El backend no esta disponible. Probalo de nuevo en unos minutos.';
+}
 
 const styles = StyleSheet.create({
   safe: {
@@ -263,6 +257,21 @@ const styles = StyleSheet.create({
   },
   titulo: {
     fontSize: fontSize['3xl'],
+  },
+  restrictedBanner: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.dangerSoft,
+    borderWidth: 1,
+    borderColor: colors.danger,
+  },
+  restrictedText: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: colors.text,
+    lineHeight: fontSize.sm * 1.45,
   },
   tabBar: {
     flexDirection: 'row',
@@ -316,6 +325,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.infoSoft,
   },
   cardInfo: {
     flex: 1,
@@ -333,6 +343,10 @@ const styles = StyleSheet.create({
   cardSub: {
     fontSize: fontSize.sm,
     color: colors.textMuted,
+  },
+  cardFecha: {
+    fontSize: fontSize.xs,
+    color: colors.textSubtle,
   },
   cardMonto: {
     fontSize: fontSize.xl,
