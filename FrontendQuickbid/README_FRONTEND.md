@@ -304,8 +304,12 @@ Content-Type: application/json
 
 Registro:
 
-- etapa 1 usa Argentina fija con `idPaisOrigen=32`, porque no existe una lista
-  publica de paises documentada;
+- etapa 1 carga un selector desplegable, buscable y scrolleable desde el catalogo publico
+  `GET /api/catalogos/paises?q=&page=&size=` y envia el `id` del pais
+  seleccionado como `idPaisOrigen`;
+- ya no usa Argentina fija ni aplica un pais de fallback silencioso; si el
+  backend no esta disponible, muestra el error, permite reintentar e impide
+  continuar hasta seleccionar un pais valido;
 - telefono no se envia porque la etapa 1 del backend no lo acepta;
 - DNI acepta JPG/JPEG, PNG y WebP;
 - DNI no acepta PDF;
