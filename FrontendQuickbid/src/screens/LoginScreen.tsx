@@ -46,7 +46,7 @@ function LockIcon() {
 }
 
 export default function LoginScreen({ navigation }: Props) {
-  const { login } = useAuth();
+  const { login, entrarComoInvitado } = useAuth();
 
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -128,7 +128,10 @@ export default function LoginScreen({ navigation }: Props) {
           <TouchableOpacity
             style={[styles.btn, styles.btnSecondary]}
             activeOpacity={0.85}
-            onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Subastas' }] })}>
+            onPress={() => {
+              entrarComoInvitado();
+              navigation.reset({ index: 0, routes: [{ name: 'Subastas' }] });
+            }}>
             <Text style={styles.btnText}>Continuar como Invitado</Text>
           </TouchableOpacity>
 

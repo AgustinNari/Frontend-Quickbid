@@ -31,6 +31,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { ItemCatalogoCard } from '../components/ItemCatalogoCard';
 import { getMockCatalogo, getMockDetalle } from '../mocks/subastas';
 import { ItemCatalogo } from '../types/subasta';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CatalogoSubasta'>;
 
@@ -52,6 +53,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CatalogoSubasta'>;
  */
 export default function CatalogoSubastaScreen({ navigation, route }: Props) {
   const { subastaId, titulo: tituloParam } = route.params;
+  const { esInvitado } = useAuth();
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<ItemCatalogo[]>([]);
@@ -135,6 +137,8 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
                 <ItemCatalogoCard
                   item={item}
                   onPress={() => handleOpenItem(item)}
+                  showPrice={!esInvitado}
+                  showEstado={!esInvitado}
                 />
               )}
               ItemSeparatorComponent={() => (

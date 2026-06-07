@@ -32,6 +32,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { SubastaInfoRow } from '../components/SubastaInfoRow';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
 import { getMockDetalle } from '../mocks/subastas';
+import { useAuth } from '../context/AuthContext';
 import {
   estaInscripto,
   getMotivoBloqueoInscripcion,
@@ -68,6 +69,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SubastaDetail'>;
  */
 export default function SubastaDetailScreen({ navigation, route }: Props) {
   const { id } = route.params;
+  const { esInvitado } = useAuth();
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
   const [loading, setLoading] = useState(true);
   const [detalle, setDetalle] = useState<SubastaDetalle | null>(null);
@@ -104,6 +106,8 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
     if (!detalle) return;
     navigation.navigate('PujaEnVivo', { subastaId: detalle.id });
   };
+
+  const irALogin = () => navigation.navigate('Login');
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -215,7 +219,24 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
           </ScrollView>
 
           <View style={styles.footer}>
-            {detalle.estado === 'activa' ? (
+            {esInvitado ? (
+              <>
+                <Button
+                  onPress={irALogin}
+                  leftIcon={<Icon name="lock" color={colors.textInverse} size={18} />}
+                >
+                  Iniciá sesión para participar
+                </Button>
+                <Button
+                  variant="secondary"
+                  onPress={handleVerCatalogo}
+                  leftIcon={<Icon name="bag" color={colors.text} size={18} />}
+                  style={styles.secondaryButton}
+                >
+                  Entrar al catálogo
+                </Button>
+              </>
+            ) : detalle.estado === 'activa' ? (
               <>
                 <Button
                   onPress={handleEntrarPuja}

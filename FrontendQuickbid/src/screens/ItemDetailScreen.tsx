@@ -35,6 +35,7 @@ import { SubastaInfoRow } from '../components/SubastaInfoRow';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
 import { getMockItemDetalle } from '../mocks/subastas';
 import { formatPrecio } from '../utils/format';
+import { useAuth } from '../context/AuthContext';
 import {
   ItemDetalle,
   ItemEstado,
@@ -73,6 +74,7 @@ type ItemTab = 'detalles' | 'historia' | 'datos';
 
 export default function ItemDetailScreen({ navigation, route }: Props) {
   const { itemId, subastaId } = route.params;
+  const { esInvitado } = useAuth();
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
   const [itemTab, setItemTab] = useState<ItemTab>('detalles');
   const [loading, setLoading] = useState(true);
@@ -89,6 +91,8 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
   const handleBack = () => navigation.goBack();
 
   const handlePujar = () => navigation.navigate('PujaEnVivo', { subastaId });
+
+  const irALogin = () => navigation.navigate('Login');
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -112,7 +116,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
             contentContainerStyle={styles.scroll}
             showsVerticalScrollIndicator={false}
           >
-            <Hero item={item} />
+            <Hero item={item} esInvitado={esInvitado} />
 
             <View style={styles.body}>
               <Typography style={styles.overline}>LOTE {item.lote}</Typography>
@@ -125,7 +129,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
                 </Body>
               ) : null}
 
-              {item.precioBase !== undefined ? (
+              {!esInvitado && item.precioBase !== undefined ? (
                 <Card variant="flat" padding="none" style={styles.priceCard}>
                   <View style={styles.priceCardInner}>
                     <Typography style={styles.priceLabel}>
@@ -167,7 +171,12 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
             </View>
           </ScrollView>
 
-          <ItemFooter estado={item.estado} onPujar={handlePujar} />
+          <ItemFooter
+            estado={item.estado}
+            esInvitado={esInvitado}
+            onPujar={handlePujar}
+            onLogin={irALogin}
+          />
         </>
       )}
 
@@ -178,19 +187,21 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
 
 // ── Sub-componentes ────────────────────────────────────────────────────────
 
-function Hero({ item }: { item: ItemDetalle }) {
+function Hero({ item, esInvitado }: { item: ItemDetalle; esInvitado: boolean }) {
   const theme = SEGMENTO_THEME[item.segmento];
   const estadoTone = HERO_ESTADO_TONE[item.estado];
   return (
     <View style={[styles.hero, { backgroundColor: theme.bg }]}>
       <Icon name={theme.icon} size={96} color={theme.fg} />
 
-      <View style={styles.heroTopLeft}>
-        <Badge tone={estadoTone.tone} variant={estadoTone.variant}>
-          {item.estado === 'en_vivo' ? '● ' : ''}
-          {ITEM_ESTADO_LABEL[item.estado]}
-        </Badge>
-      </View>
+      {!esInvitado ? (
+        <View style={styles.heroTopLeft}>
+          <Badge tone={estadoTone.tone} variant={estadoTone.variant}>
+            {item.estado === 'en_vivo' ? '● ' : ''}
+            {ITEM_ESTADO_LABEL[item.estado]}
+          </Badge>
+        </View>
+      ) : null}
 
       <View style={styles.heroBottomRight}>
         <View style={styles.currencyBadge}>
@@ -203,11 +214,28 @@ function Hero({ item }: { item: ItemDetalle }) {
 
 function ItemFooter({
   estado,
+  esInvitado,
   onPujar,
+  onLogin,
 }: {
   estado: ItemEstado;
+  esInvitado: boolean;
   onPujar: () => void;
+  onLogin: () => void;
 }) {
+  if (esInvitado) {
+    return (
+      <View style={styles.footer}>
+        <Button
+          onPress={onLogin}
+          leftIcon={<Icon name="lock" color={colors.textInverse} size={18} />}
+        >
+          Iniciá sesión para pujar
+        </Button>
+      </View>
+    );
+  }
+
   if (estado === 'vendido') {
     return (
       <View style={styles.footer}>

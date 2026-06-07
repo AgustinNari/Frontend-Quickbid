@@ -32,11 +32,12 @@ type Props = {
   item: ItemCatalogo;
   onPress?: () => void;
   /**
-   * Si false, oculta el precio base — refleja el modo invitado del backend
-   * (`GET /api/subastas/{id}/catalogo` omite precios para usuarios anónimos).
-   * Default true (modo autenticado, asumido por la tarea #11).
+   * Si false, oculta el precio base — modo invitado (tarea #9). El backend
+   * omite precios para usuarios anonimos.
    */
   showPrice?: boolean;
+  /** Si false, oculta el badge de estado del item — modo invitado (tarea #9). */
+  showEstado?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -44,6 +45,7 @@ export function ItemCatalogoCard({
   item,
   onPress,
   showPrice = true,
+  showEstado = true,
   style,
 }: Props) {
   const theme = SEGMENTO_THEME[item.segmento];
@@ -63,10 +65,12 @@ export function ItemCatalogoCard({
       <View style={styles.body}>
         <View style={styles.headerRow}>
           <Typography style={styles.lote}>LOTE {item.lote}</Typography>
-          <Badge tone={estadoTone.tone} variant={estadoTone.variant}>
-            {item.estado === 'en_vivo' ? '● ' : ''}
-            {ITEM_ESTADO_LABEL[item.estado]}
-          </Badge>
+          {showEstado ? (
+            <Badge tone={estadoTone.tone} variant={estadoTone.variant}>
+              {item.estado === 'en_vivo' ? '● ' : ''}
+              {ITEM_ESTADO_LABEL[item.estado]}
+            </Badge>
+          ) : null}
         </View>
 
         <Typography variant="h3" numberOfLines={2} style={styles.titulo}>

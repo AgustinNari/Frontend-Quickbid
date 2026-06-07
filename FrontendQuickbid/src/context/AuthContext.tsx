@@ -23,9 +23,13 @@ interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
   isAuthenticated: boolean;
+  /** True si el usuario eligio navegar como invitado (sin sesion). Tarea #9. */
+  esInvitado: boolean;
   isRestoring: boolean;
   login: (response: LoginResponse) => void;
   logout: () => void;
+  /** Entra en modo invitado: navega sin sesion, con acceso limitado. */
+  entrarComoInvitado: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -33,6 +37,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user,        setUser]        = useState<AuthUser | null>(null);
   const [token,       setToken]       = useState<string | null>(null);
+  const [esInvitado,  setEsInvitado]  = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
 
   // Restaurar sesión al iniciar
@@ -61,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(u);
     setToken(response.token);
     setAuthToken(response.token);
+    setEsInvitado(false);
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ token: response.token, user: u })).catch(() => {});
   }, []);
 
@@ -68,11 +74,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setToken(null);
     setAuthToken(null);
+    setEsInvitado(false);
     AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
   }, []);
 
+  // Modo invitado (tarea #9): navegar sin sesion. No hay token; el flag
+  // controla que se oculten precios/estados y se bloqueen las tabs protegidas.
+  const entrarComoInvitado = useCallback(() => {
+    setUser(null);
+    setToken(null);
+    setAuthToken(null);
+    setEsInvitado(true);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, isRestoring, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, esInvitado, isRestoring, login, logout, entrarComoInvitado }}>
       {children}
     </AuthContext.Provider>
   );

@@ -11,6 +11,7 @@ import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LimitedAccess'>;
 
@@ -65,6 +66,7 @@ function FeatureItem({ icon, title, description }: { icon: React.ReactNode; titl
 }
 
 export default function LimitedAccessScreen({ navigation }: Props) {
+  const { esInvitado } = useAuth();
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
@@ -80,7 +82,9 @@ export default function LimitedAccessScreen({ navigation }: Props) {
         <Text style={styles.title}>Acceso Limitado</Text>
 
         <Text style={styles.body}>
-          Para participar en subastas en vivo, realizar pujas en tiempo real y consignar bienes, es necesario vincular un medio de pago verificado a tu{' '}
+          {esInvitado
+            ? 'Esta función es exclusiva para usuarios registrados. Iniciá sesión o creá tu '
+            : 'Para participar en subastas en vivo, realizar pujas en tiempo real y consignar bienes, es necesario vincular un medio de pago verificado a tu '}
           <Text style={styles.boldBlue}>cuenta QuickBid.</Text>
         </Text>
 
@@ -97,8 +101,8 @@ export default function LimitedAccessScreen({ navigation }: Props) {
           />
         </View>
 
-        <TouchableOpacity style={styles.btnPrimary} activeOpacity={0.85} onPress={() => navigation.navigate('MetodosPago')}>
-          <Text style={styles.btnPrimaryText}>Agregar Medio de Pago</Text>
+        <TouchableOpacity style={styles.btnPrimary} activeOpacity={0.85} onPress={() => navigation.navigate(esInvitado ? 'Login' : 'MetodosPago')}>
+          <Text style={styles.btnPrimaryText}>{esInvitado ? 'Iniciar Sesión' : 'Agregar Medio de Pago'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.btnSecondary} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>

@@ -9,6 +9,7 @@ import {
 import { NavigationProp } from '@react-navigation/native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { colors, shadow } from '../theme';
+import { useAuth } from '../context/AuthContext';
 
 const BLUE  = colors.primary;
 const GRAY  = colors.textMuted;
@@ -95,8 +96,15 @@ type Props = {
 };
 
 export default function BottomNavBar({ activeTab = 'subastas', onTabPress, navigation }: Props) {
+  const { esInvitado } = useAuth();
   const press = (tab: NavTab) => {
     onTabPress?.(tab);
+    // Modo invitado (tarea #9): subastas es la unica tab habilitada; el resto
+    // lleva a Acceso Limitado con CTA de login.
+    if (esInvitado && tab !== 'subastas') {
+      navigation?.navigate('LimitedAccess' as never);
+      return;
+    }
     if (tab === 'subastas') {
       navigation?.navigate('Subastas' as never);
     } else if (tab === 'menu') {
