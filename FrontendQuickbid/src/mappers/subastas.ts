@@ -64,7 +64,7 @@ export function mapSubastaDetalle(dto: SubastaApiDetalle): SubastaDetalle {
   return {
     ...mapSubastaResumen(dto),
     descripcion: dto.descripcion ?? undefined,
-    inscripto: dto.autenticado,
+    permiteInscripcionOnline: dto.permiteInscripcionOnline,
   };
 }
 

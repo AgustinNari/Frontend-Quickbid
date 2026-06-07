@@ -41,6 +41,7 @@ import {
   ESTADO_LABEL,
 } from '../types/subasta';
 import { useAuth } from '../context/AuthContext';
+import { VerificacionSubastaApi } from '../types/subastaApi';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SubastaDetail'>;
 
@@ -63,12 +64,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SubastaDetail'>;
  * placeholders hasta que sus flujos sean implementados.
  */
 export default function SubastaDetailScreen({ navigation, route }: Props) {
-  const { canPerformEconomicActions } = useAuth();
+  const { canPerformEconomicActions, isAuthenticated, isGuest, estadoCuenta } = useAuth();
   const { id } = route.params;
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
   const [loading, setLoading] = useState(true);
   const [detalle, setDetalle] = useState<SubastaDetalle | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [verificacion, setVerificacion] = useState<VerificacionSubastaApi | null>(null);
+  const [accessError, setAccessError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDetalle();
@@ -78,8 +81,19 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
   const loadDetalle = async () => {
     setLoading(true);
     setError(null);
+    setAccessError(null);
     try {
       setDetalle(mapSubastaDetalle(await subastasApi.detalle(Number(id))));
+      if (isAuthenticated) {
+        try {
+          setVerificacion(await subastasApi.verificarAcceso(Number(id)));
+        } catch (accessLoadError) {
+          setVerificacion(null);
+          setAccessError(accessLoadError instanceof Error ? accessLoadError.message : 'No pudimos verificar tu acceso.');
+        }
+      } else {
+        setVerificacion(null);
+      }
     } catch (loadError) {
       setDetalle(null);
       setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar la subasta.');
@@ -105,11 +119,15 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
 
   const handleInscribirme = () => {
     if (!detalle) return;
-    if (!canPerformEconomicActions) {
+    if (isGuest || !canPerformEconomicActions || verificacion?.cuentaBloqueada || verificacion?.cuentaRestringida) {
       navigation.navigate('LimitedAccess');
       return;
     }
-    Alert.alert('Proximamente', 'La inscripcion online se habilitara en un proximo bloque.');
+    if (verificacion?.yaInscripto) {
+      Alert.alert('Ya estas inscripto', 'Tu inscripcion para esta subasta ya esta activa.');
+      return;
+    }
+    navigation.navigate('InscripcionSubasta', { subastaId: detalle.id });
   };
 
   const handleEntrarPuja = () => {
@@ -221,6 +239,23 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
                   <Body style={styles.descripcion}>{detalle.descripcion}</Body>
                 </View>
               ) : null}
+
+              {isAuthenticated && verificacion && !verificacion.puedeInscribirse ? (
+                <View style={styles.accessBanner}>
+                  <Icon name="info" size={18} color={verificacion.yaInscripto ? colors.success : colors.danger} />
+                  <Body style={styles.accessText}>{motivoInscripcion(verificacion)}</Body>
+                </View>
+              ) : estadoCuenta === 'restriccion_multa' ? (
+                <View style={styles.accessBanner}>
+                  <Icon name="alert" size={18} color={colors.danger} />
+                  <Body style={styles.accessText}>Puedes ver la subasta, pero la restriccion por multa impide inscribirte.</Body>
+                </View>
+              ) : accessError ? (
+                <View style={styles.accessBanner}>
+                  <Icon name="alert" size={18} color={colors.danger} />
+                  <Body style={styles.accessText}>No pudimos verificar la inscripcion: {accessError}</Body>
+                </View>
+              ) : null}
             </View>
           </ScrollView>
 
@@ -256,6 +291,8 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
                 </Button>
                 <InscribirmeButton
                   canPerformEconomicActions={canPerformEconomicActions}
+                  isGuest={isGuest}
+                  verificacion={verificacion}
                   onInscribirme={handleInscribirme}
                 />
               </>
@@ -285,18 +322,33 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
  */
 function InscribirmeButton({
   canPerformEconomicActions,
+  isGuest,
+  verificacion,
   onInscribirme,
 }: {
   canPerformEconomicActions: boolean;
+  isGuest: boolean;
+  verificacion: VerificacionSubastaApi | null;
   onInscribirme: () => void;
 }) {
+  const label = isGuest
+    ? 'Inicia sesion para inscribirte'
+    : verificacion?.yaInscripto
+      ? 'Ya estas inscripto'
+      : verificacion?.cuentaRestringida
+        ? 'Inscripcion bloqueada por multa'
+        : verificacion?.cuentaBloqueada
+          ? 'Cuenta bloqueada'
+          : verificacion && !verificacion.puedeInscribirse
+            ? 'Ver motivo de bloqueo'
+            : 'Inscribirme con metodo de pago';
   return (
     <Button
       variant="secondary"
       onPress={onInscribirme}
       style={styles.secondaryButton}
     >
-      {canPerformEconomicActions ? 'Inscripcion proximamente' : 'Acceso limitado'}
+      {canPerformEconomicActions || isGuest ? label : 'Acceso limitado'}
     </Button>
   );
 }
@@ -348,6 +400,17 @@ function FechaHoraCol({
 
 function Divider() {
   return <View style={styles.divider} />;
+}
+
+function motivoInscripcion(value: VerificacionSubastaApi) {
+  if (value.yaInscripto) return 'Ya tienes una inscripcion activa para esta subasta.';
+  if (value.cuentaRestringida) return 'La restriccion por multa impide nuevas inscripciones.';
+  if (value.cuentaBloqueada) return 'Tu cuenta esta bloqueada.';
+  if (value.categoriaInsuficienteParaInscripcion) return 'Tu categoria es insuficiente para esta subasta.';
+  if (value.inscripcionCerradaPorTiempo) return 'La inscripcion ya cerro por cercania al inicio.';
+  if (value.subastaYaIniciada) return 'La subasta ya comenzo.';
+  if (value.requiereMedioPagoParaInscripcion || value.monedaIncompatibleParaInscripcion) return 'Necesitas un medio de pago compatible para inscribirte.';
+  return 'La inscripcion no esta disponible actualmente.';
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -498,5 +561,18 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     marginBottom: spacing.xs,
+  },
+  accessBanner: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    padding: spacing.base,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    backgroundColor: colors.surface,
+  },
+  accessText: {
+    flex: 1,
+    fontSize: fontSize.sm,
   },
 });

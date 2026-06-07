@@ -16,6 +16,53 @@ export type SubastaApiDetalle = SubastaApiResumen & {
   autenticado?: boolean;
 };
 
+export type MedioPagoInscripcionApi = {
+  id: number;
+  tipo: string;
+  moneda: 'ARS' | 'USD';
+  estado: string;
+  principal: boolean;
+  aliasVisible: string;
+  ultimos4: string | null;
+  verificacionVigente: boolean;
+  requiereRevalidacion: boolean;
+};
+
+export type VerificacionSubastaApi = {
+  puedeVerDetalleCompleto: boolean;
+  puedeInscribirse: boolean;
+  puedePujar: boolean;
+  requiereLogin: boolean;
+  requiereMedioPagoParaInscripcion: boolean;
+  requiereMedioPagoVerificadoParaPujar: boolean;
+  requiereRevalidacionMedioPagoParaPujar: boolean;
+  categoriaInsuficienteParaInscripcion: boolean;
+  categoriaInsuficienteParaPujar: boolean;
+  monedaIncompatibleParaInscripcion: boolean;
+  monedaIncompatibleParaPujar: boolean;
+  cuentaRestringida: boolean;
+  cuentaBloqueada: boolean;
+  yaInscripto: boolean;
+  inscripcionCerradaPorTiempo: boolean;
+  subastaYaIniciada: boolean;
+  subastaNoIniciadaParaPuja: boolean;
+  sinLoteActivo: boolean;
+  conectadoOParticipandoEnOtraSubasta: boolean;
+  mediosPagoCompatiblesParaInscripcion: MedioPagoInscripcionApi[];
+  mediosPagoVerificadosVigentesCompatiblesParaPuja: MedioPagoInscripcionApi[];
+  mediosPagoRevalidablesParaInscripcion: MedioPagoInscripcionApi[];
+};
+
+export type InscripcionSubastaApi = {
+  id: number;
+  subastaId: number;
+  medioPagoId: number;
+  estado: 'pendiente_validacion' | 'aprobada' | 'rechazada' | string;
+  existente: boolean;
+  requiereRevisionMedioPago: boolean;
+  createdAt: string;
+};
+
 export type ItemApi = {
   id: number;
   productoId: number;

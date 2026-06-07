@@ -1,11 +1,13 @@
 import { apiFetch } from './client';
 import {
   CatalogoApi,
+  InscripcionSubastaApi,
   ItemApi,
   PageApi,
   SubastaApiDetalle,
   SubastaApiResumen,
   SubastaListParams,
+  VerificacionSubastaApi,
 } from '../types/subastaApi';
 
 function requiredData<T>(data: T | null, message: string): T {
@@ -42,5 +44,20 @@ export const subastasApi = {
   async item(id: number) {
     const response = await apiFetch<ItemApi>(`/api/items/${id}`);
     return requiredData(response.data, 'El servidor no devolvio el detalle del lote');
+  },
+
+  async verificarAcceso(id: number) {
+    const response = await apiFetch<VerificacionSubastaApi>(`/api/subastas/${id}/verificacion`, {
+      method: 'POST',
+    });
+    return requiredData(response.data, 'El servidor no devolvio la verificacion de acceso');
+  },
+
+  async inscribirse(id: number, medioPagoId: number) {
+    const response = await apiFetch<InscripcionSubastaApi>(`/api/subastas/${id}/inscribirse`, {
+      method: 'POST',
+      body: JSON.stringify({ medioPagoId }),
+    });
+    return requiredData(response.data, 'El servidor no devolvio la inscripcion');
   },
 };

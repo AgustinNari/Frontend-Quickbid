@@ -91,6 +91,7 @@ export type SubastaDetalle = SubastaResumen & {
   zonaHoraria?: string;
   /** Si true, el usuario actual ya se inscribió y puede entrar a pujar. */
   inscripto?: boolean;
+  permiteInscripcionOnline?: boolean;
 };
 
 /**

@@ -69,7 +69,15 @@ export type RootStackParamList = {
   CatalogoSubasta: { subastaId: string; titulo?: string };
   ItemDetail: { itemId: string; subastaId: string };
   InscripcionSubasta: { subastaId: string };
-  InscripcionExito: { subastaId: string; idMedioPago: string };
+  InscripcionExito: {
+    subastaId: string;
+    subastaTitulo: string;
+    medioPagoLabel: string;
+    moneda: 'ARS' | 'USD';
+    estado: string;
+    existente: boolean;
+    requiereRevisionMedioPago: boolean;
+  };
   PujaEnVivo: { subastaId: string };
   PujaExito: {
     subastaId: string;
