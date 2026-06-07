@@ -7,7 +7,6 @@ import {
   SafeAreaView,
   ScrollView,
   Pressable,
-  Alert,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -248,7 +247,7 @@ export default function MenuLateralScreen({ navigation }: Props) {
           <MenuItem
             icon={<UserIcon color={colors.textMuted} />}
             label="Seguridad"
-            onPress={() => Alert.alert('Proximamente', 'El cambio de contrasena desde sesion se conectara en un bloque futuro.')}
+            onPress={() => { close(); navigation.navigate('CambiarClave'); }}
           />
           <MenuItem
             icon={<BellIcon color={currentRoute === 'Ayuda' ? colors.primary : colors.textMuted} />}

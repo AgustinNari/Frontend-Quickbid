@@ -9,6 +9,7 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import IdentityScreen from './src/screens/IdentityScreen';
 import VerifyingScreen from './src/screens/VerifyingScreen';
 import SecurityScreen from './src/screens/SecurityScreen';
+import CambiarClaveScreen from './src/screens/CambiarClaveScreen';
 import LimitedAccessScreen from './src/screens/LimitedAccessScreen';
 import EnlaceRegistroScreen from './src/screens/EnlaceRegistroScreen';
 import RecuperacionCuentaScreen from './src/screens/RecuperacionCuentaScreen';
@@ -46,8 +47,9 @@ export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
   Register: undefined;
-  Identity: { email: string; nombre: string; apellido: string; telefono: string; domicilio: string };
+  Identity: { email: string };
   Security: { mode: 'registro'; setupToken: string } | { mode: 'recuperacion'; token: string };
+  CambiarClave: undefined;
   Verifying: undefined;
   LimitedAccess: undefined;
   EnlaceRegistro: undefined;
@@ -154,6 +156,7 @@ function AppNavigator() {
             <Stack.Screen name="Notificaciones" component={NotificacionesScreen} />
             <Stack.Screen name="Historial" component={HistorialScreen} />
             <Stack.Screen name="Perfil" component={PerfilScreen} />
+            <Stack.Screen name="CambiarClave" component={CambiarClaveScreen} />
             <Stack.Screen name="Estadisticas" component={EstadisticasScreen} />
             <Stack.Screen name="Ayuda" component={AyudaScreen} />
             <Stack.Screen name="DireccionesEnvio" component={DireccionesEnvioScreen} />

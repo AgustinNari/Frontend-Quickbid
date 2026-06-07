@@ -26,32 +26,25 @@ export default function RegisterScreen({ navigation }: Props) {
   const [nombre,    setNombre]    = useState('');
   const [apellido,  setApellido]  = useState('');
   const [domicilio, setDomicilio] = useState('');
-  const [telefono,  setTelefono]  = useState('');
   const [loading,   setLoading]   = useState(false);
 
   async function handleContinuar() {
-    if (!email.trim() || !nombre.trim() || !apellido.trim() || !domicilio.trim() || !telefono.trim()) {
+    if (!email.trim() || !nombre.trim() || !apellido.trim() || !domicilio.trim()) {
       Alert.alert('Campos requeridos', 'Completá todos los campos para continuar.');
       return;
     }
 
     setLoading(true);
     try {
-      // TODO(auth-registration): reemplazar el país fijo por el selector real.
+      // El contrato actual no expone un listado publico de paises.
       await authApi.etapa1({
-        nombre,
-        apellido,
+        nombre: nombre.trim(),
+        apellido: apellido.trim(),
         email: email.trim(),
-        domicilioLegal: domicilio,
+        domicilioLegal: domicilio.trim(),
         idPaisOrigen: 32,
       });
-      navigation.navigate('Identity', {
-        email: email.trim(),
-        nombre,
-        apellido,
-        telefono,
-        domicilio,
-      });
+      navigation.navigate('Identity', { email: email.trim() });
     } catch (e) {
       const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';
       Alert.alert('Error', msg);
@@ -113,14 +106,11 @@ export default function RegisterScreen({ navigation }: Props) {
             placeholderTextColor={colors.textSubtle}
           />
 
-          <Text style={styles.label}>TELÉFONO</Text>
+          <Text style={styles.label}>PAÍS DE ORIGEN</Text>
           <TextInput
-            style={styles.input}
-            value={telefono}
-            onChangeText={setTelefono}
-            placeholder="Ej: 1123456789"
-            keyboardType="phone-pad"
-            placeholderTextColor={colors.textSubtle}
+            style={[styles.input, styles.inputDisabled]}
+            value="Argentina"
+            editable={false}
           />
 
           <View style={styles.spacer} />
@@ -150,6 +140,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white, borderRadius: radius.md, borderWidth: 1,
     borderColor: colors.border, paddingHorizontal: 14, height: 48,
     fontSize: fontSize.md, color: colors.text, marginBottom: 18,
+  },
+  inputDisabled: {
+    backgroundColor: colors.surfaceMuted,
+    color: colors.textMuted,
   },
   spacer: { flex: 1, minHeight: 20 },
   btn: {

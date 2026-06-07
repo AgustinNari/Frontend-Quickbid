@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { Asset, launchImageLibrary } from 'react-native-image-picker';
 import Svg, { Rect, Line } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -52,7 +52,7 @@ type UploadBoxProps = {
   label: string;
   description: string;
   icon: React.ReactNode;
-  image: string | null;
+  image: Asset | null;
   onPress: () => void;
 };
 
@@ -63,12 +63,12 @@ function UploadBox({ label, description, icon, image, onPress }: UploadBoxProps)
       <Text style={styles.sectionDesc}>{description}</Text>
       <TouchableOpacity style={styles.uploadBox} onPress={onPress} activeOpacity={0.7}>
         {image ? (
-          <Image source={{ uri: image }} style={styles.preview} resizeMode="cover" />
+          <Image source={{ uri: image.uri }} style={styles.preview} resizeMode="cover" />
         ) : (
           <>
             {icon}
             <Text style={styles.uploadText}>Presiona para subir</Text>
-            <Text style={styles.uploadFormats}>Formatos: JPG, PNG</Text>
+            <Text style={styles.uploadFormats}>Formatos: JPG, JPEG, PNG, WebP</Text>
           </>
         )}
       </TouchableOpacity>
@@ -79,17 +79,22 @@ function UploadBox({ label, description, icon, image, onPress }: UploadBoxProps)
 export default function IdentityScreen({ route, navigation }: Props) {
   const { email } = route.params;
 
-  const [frontImage, setFrontImage] = useState<string | null>(null);
-  const [backImage,  setBackImage]  = useState<string | null>(null);
+  const [frontImage, setFrontImage] = useState<Asset | null>(null);
+  const [backImage,  setBackImage]  = useState<Asset | null>(null);
   const [loading,    setLoading]    = useState(false);
 
-  function seleccionarImagen(setter: (uri: string) => void) {
+  function seleccionarImagen(setter: (asset: Asset) => void) {
     launchImageLibrary(
       { mediaType: 'photo', quality: 0.8, includeBase64: false },
       response => {
         if (response.didCancel || response.errorCode) return;
         const asset = response.assets?.[0];
-        if (asset?.uri) setter(asset.uri);
+        if (!asset?.uri) return;
+        if (asset.type && !SUPPORTED_IMAGE_TYPES.has(asset.type)) {
+          Alert.alert('Formato no compatible', 'Selecciona una imagen JPG, JPEG, PNG o WebP.');
+          return;
+        }
+        setter(asset);
       },
     );
   }
@@ -105,8 +110,8 @@ export default function IdentityScreen({ route, navigation }: Props) {
 
     setLoading(true);
     try {
-      const frente = { uri: frontImage, name: 'frente.jpg', type: 'image/jpeg' };
-      const dorso = { uri: backImage, name: 'dorso.jpg', type: 'image/jpeg' };
+      const frente = imageFile(frontImage, 'dni-frente');
+      const dorso = imageFile(backImage, 'dni-dorso');
       await authApi.etapa2(email, frente, dorso);
       navigation.navigate('Verifying');
     } catch (e) {
@@ -157,6 +162,18 @@ export default function IdentityScreen({ route, navigation }: Props) {
     </SafeAreaView>
   );
 }
+
+function imageFile(asset: Asset, fallbackBaseName: string) {
+  const type = asset.type ?? 'image/jpeg';
+  const extension = type === 'image/png' ? 'png' : type === 'image/webp' ? 'webp' : 'jpg';
+  return {
+    uri: asset.uri as string,
+    name: asset.fileName ?? `${fallbackBaseName}.${extension}`,
+    type,
+  };
+}
+
+const SUPPORTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },

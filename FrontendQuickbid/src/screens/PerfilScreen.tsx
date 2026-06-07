@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import BottomNavBar, { BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
@@ -38,8 +38,6 @@ export default function PerfilScreen({ navigation }: Props) {
   }, []);
 
   useEffect(() => { cargar(); }, [cargar]);
-
-  const placeholder = (message: string) => Alert.alert('Proximamente', message);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -102,7 +100,7 @@ export default function PerfilScreen({ navigation }: Props) {
             <Divider />
             <MenuRow icon="check-doc" title="Direccion de envio" subtitle="Gestiona tus direcciones" onPress={() => navigation.navigate('DireccionesEnvio')} />
             <Divider />
-            <MenuRow icon="lock" title="Seguridad" subtitle="Cambio de contrasena pendiente" onPress={() => placeholder('El cambio de contrasena desde sesion se conectara en un bloque futuro.')} />
+            <MenuRow icon="lock" title="Seguridad" subtitle="Cambia tu contrasena" onPress={() => navigation.navigate('CambiarClave')} />
           </View>
         </ScrollView>
       )}

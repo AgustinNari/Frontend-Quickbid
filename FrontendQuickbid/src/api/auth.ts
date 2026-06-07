@@ -130,4 +130,10 @@ export const authApi = {
       body: JSON.stringify({ token, claveNueva: nuevaClave, claveConfirmacion }),
       public: true,
     }),
+
+  cambiarClaveAutenticado: (claveActual: string, claveNueva: string, claveConfirmacion: string) =>
+    apiFetch('/api/auth/cambiar-clave', {
+      method: 'PUT',
+      body: JSON.stringify({ claveActual, claveNueva, claveConfirmacion }),
+    }),
 };
