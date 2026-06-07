@@ -46,7 +46,7 @@ function LockIcon() {
 }
 
 export default function LoginScreen({ navigation }: Props) {
-  const { login } = useAuth();
+  const { login, continueAsGuest } = useAuth();
 
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -60,10 +60,13 @@ export default function LoginScreen({ navigation }: Props) {
 
     setLoading(true);
     try {
-      const res = await authApi.login(email.trim(), password);
+      const res = await authApi.login({ email: email.trim(), clave: password });
       if (!res.data) throw new Error('Respuesta inválida del servidor.');
-      login(res.data);
-      navigation.reset({ index: 0, routes: [{ name: 'Subastas' }] });
+      await login(res.data);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: res.data.estadoCuenta === 'bloqueada_permanente' ? 'LimitedAccess' : 'Subastas' }],
+      });
     } catch (e) {
       const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';
       Alert.alert('Error', msg);
@@ -128,7 +131,10 @@ export default function LoginScreen({ navigation }: Props) {
           <TouchableOpacity
             style={[styles.btn, styles.btnSecondary]}
             activeOpacity={0.85}
-            onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Subastas' }] })}>
+            onPress={async () => {
+              await continueAsGuest();
+              navigation.reset({ index: 0, routes: [{ name: 'Subastas' }] });
+            }}>
             <Text style={styles.btnText}>Continuar como Invitado</Text>
           </TouchableOpacity>
 

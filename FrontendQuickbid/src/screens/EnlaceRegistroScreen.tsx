@@ -74,7 +74,7 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
     setLoadingVerificar(true);
     try {
       await authApi.verificarToken(tokenInput.trim());
-      navigation.navigate('Security', { mode: 'registro', email: email.trim() });
+      navigation.navigate('Security', { mode: 'registro', setupToken: tokenInput.trim() });
     } catch (e) {
       const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';
       Alert.alert('Error', msg);

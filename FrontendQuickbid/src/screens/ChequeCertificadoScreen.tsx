@@ -48,6 +48,10 @@ function fechaParaApi(display: string): string {
 }
 
 export default function ChequeCertificadoScreen({ navigation }: Props) {
+  const [titular,   setTitular]   = useState('');
+  const [banco,     setBanco]     = useState('');
+  const [moneda, setMoneda] = useState<'ARS' | 'USD'>('ARS');
+  const [nacional, setNacional] = useState(true);
   const [numero,    setNumero]    = useState('');
   const [monto,     setMonto]     = useState('');
   const [fecha,     setFecha]     = useState('');
@@ -70,8 +74,8 @@ export default function ChequeCertificadoScreen({ navigation }: Props) {
   }
 
   async function handleEnviar() {
-    if (!numero.trim() || !monto.trim() || !fecha.trim()) {
-      Alert.alert('Campos requeridos', 'Completá número, monto y fecha.');
+    if (!titular.trim() || !banco.trim() || !numero.trim() || !monto.trim() || !fecha.trim()) {
+      Alert.alert('Campos requeridos', 'Completa titular, banco, numero, monto y fecha.');
       return;
     }
     if (!anverso || !reverso) {
@@ -92,9 +96,13 @@ export default function ChequeCertificadoScreen({ navigation }: Props) {
     setLoading(true);
     try {
       await mediosPagoApi.crearCheque({
+        moneda,
+        nacional,
+        titular: titular.trim(),
         numeroCheque:    numero.trim(),
         monto:           montoNum,
         fechaVencimiento: fechaParaApi(fecha),
+        bancoEmisor:      banco.trim(),
         fotoAnverso:     anverso,
         fotoReverso:     reverso,
       });
@@ -111,11 +119,17 @@ export default function ChequeCertificadoScreen({ navigation }: Props) {
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={() => navigation.goBack()} />
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.scroll}>
 
           <Text style={styles.title}>Cheque Certificado</Text>
           <Text style={styles.subtitle}>Pre-aprobación para depósitos físicos.</Text>
+
+          <Text style={styles.label}>TITULAR</Text>
+          <TextInput style={styles.input} value={titular} onChangeText={setTitular} placeholder="Titular" placeholderTextColor={colors.textSubtle} />
+
+          <Text style={styles.label}>BANCO EMISOR</Text>
+          <TextInput style={styles.input} value={banco} onChangeText={setBanco} placeholder="Banco emisor" placeholderTextColor={colors.textSubtle} />
 
           <Text style={styles.label}>NÚMERO DE CHEQUE</Text>
           <TextInput
@@ -151,6 +165,9 @@ export default function ChequeCertificadoScreen({ navigation }: Props) {
             autoCorrect={false}
           />
 
+          <Choice label="MONEDA" values={['ARS', 'USD']} selected={moneda} onSelect={value => setMoneda(value as 'ARS' | 'USD')} />
+          <Choice label="ORIGEN" values={['Nacional', 'Extranjero']} selected={nacional ? 'Nacional' : 'Extranjero'} onSelect={value => setNacional(value === 'Nacional')} />
+
           <Text style={styles.label}>FOTO FRENTE</Text>
           <TouchableOpacity
             style={[styles.uploadBox, anverso && styles.uploadBoxDone]}
@@ -185,7 +202,7 @@ export default function ChequeCertificadoScreen({ navigation }: Props) {
             )}
           </TouchableOpacity>
 
-          <View style={{ minHeight: 16 }} />
+          <View style={styles.spacer} />
 
           <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={handleEnviar} disabled={loading}>
             {loading
@@ -202,8 +219,14 @@ export default function ChequeCertificadoScreen({ navigation }: Props) {
   );
 }
 
+function Choice({ label, values, selected, onSelect }: { label: string; values: string[]; selected: string; onSelect: (value: string) => void }) {
+  return <><Text style={styles.label}>{label}</Text><View style={styles.choiceRow}>{values.map(value => <TouchableOpacity key={value} style={[styles.choice, selected === value && styles.choiceActive]} onPress={() => onSelect(value)}><Text style={[styles.choiceText, selected === value && styles.choiceTextActive]}>{value}</Text></TouchableOpacity>)}</View></>;
+}
+
 const styles = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: colors.white },
+  flex: { flex: 1 },
+  spacer: { minHeight: 16 },
   scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingTop: 28, paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg },
 
   title:    { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 6 },
@@ -218,6 +241,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border, paddingHorizontal: 14, height: 48,
     fontSize: fontSize.md, color: colors.text, marginBottom: 18,
   },
+  choiceRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: 18 },
+  choice: { flex: 1, height: 40, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  choiceActive: { borderColor: colors.primary, backgroundColor: colors.infoSoft },
+  choiceText: { color: colors.textMuted, fontWeight: '600' },
+  choiceTextActive: { color: colors.primary },
 
   uploadBox: {
     borderWidth: 1.5, borderColor: '#93C5FD', borderStyle: 'dashed',

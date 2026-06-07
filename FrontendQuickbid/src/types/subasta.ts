@@ -11,7 +11,7 @@
 // ── Enums / literales ────────────────────────────────────────────────────────
 
 /** Estado de la subasta en su ciclo de vida. */
-export type SubastaEstado = 'activa' | 'proxima' | 'finalizada';
+export type SubastaEstado = 'activa' | 'abierta' | 'proxima' | 'finalizada';
 
 /** Categoría requerida para participar (controla quién puede pujar). */
 export type SubastaCategoria = 'comun' | 'especial' | 'plata' | 'oro' | 'platino';
@@ -24,7 +24,8 @@ export type SubastaSegmento =
   | 'relojeria'
   | 'antiguedades'
   | 'diseno'
-  | 'coleccion';
+  | 'coleccion'
+  | 'otro';
 
 /** Moneda en la que se pujan los ítems. */
 export type SubastaMoneda = 'ARS' | 'USD';
@@ -43,7 +44,7 @@ export type SubastaModalidad = 'virtual' | 'presencial' | 'mixta';
  *
  * Refleja el ciclo de vida dentro de la jornada de remate.
  */
-export type ItemEstado = 'pendiente' | 'en_vivo' | 'vendido' | 'no_vendido';
+export type ItemEstado = 'pendiente' | 'en_vivo' | 'vendido' | 'no_vendido' | 'sin_estado';
 
 // ── Estructuras ──────────────────────────────────────────────────────────────
 
@@ -65,7 +66,7 @@ export type SubastaResumen = {
   /** ISO 8601 — fecha de inicio (importante para subastas próximas). */
   fechaInicio: string;
   ubicacion: string;
-  rematador: string;
+  rematador?: string;
   /** Cantidad de lotes/ítems en el catálogo. */
   cantidadItems?: number;
 };
@@ -85,7 +86,7 @@ export type SubastaResumen = {
 export type SubastaDetalle = SubastaResumen & {
   subtitulo?: string;
   descripcion?: string;
-  modalidad: SubastaModalidad;
+  modalidad?: SubastaModalidad;
   /** Zona horaria mostrada al usuario (ej. "GMT-3"). Solo para presentación. */
   zonaHoraria?: string;
   /** Si true, el usuario actual ya se inscribió y puede entrar a pujar. */
@@ -113,6 +114,7 @@ export type ItemCatalogo = {
   imagen?: string;
   /** Hereda el segmento de la subasta — usado para el placeholder visual. */
   segmento: SubastaSegmento;
+  fotoIds?: number[];
 };
 
 /**
@@ -164,6 +166,7 @@ export const SEGMENTO_LABEL: Record<SubastaSegmento, string> = {
   antiguedades: 'Antigüedades',
   diseno: 'Diseño',
   coleccion: 'Colección',
+  otro: 'Otro',
 };
 
 export const CATEGORIA_LABEL: Record<SubastaCategoria, string> = {
@@ -176,6 +179,7 @@ export const CATEGORIA_LABEL: Record<SubastaCategoria, string> = {
 
 export const ESTADO_LABEL: Record<SubastaEstado, string> = {
   activa: 'EN VIVO',
+  abierta: 'ABIERTA',
   proxima: 'PRÓXIMA',
   finalizada: 'FINALIZADA',
 };
@@ -191,4 +195,5 @@ export const ITEM_ESTADO_LABEL: Record<ItemEstado, string> = {
   en_vivo: 'EN VIVO',
   vendido: 'VENDIDO',
   no_vendido: 'NO VENDIDO',
+  sin_estado: 'LOTE',
 };

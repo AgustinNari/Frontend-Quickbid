@@ -9,6 +9,7 @@ import {
 import { NavigationProp } from '@react-navigation/native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { colors, shadow } from '../theme';
+import { useAuth } from '../context/AuthContext';
 
 const BLUE  = colors.primary;
 const GRAY  = colors.textMuted;
@@ -90,15 +91,18 @@ function NavItem({ icon, label, active, onPress }: NavItemProps) {
 type Props = {
   activeTab?: NavTab;
   onTabPress?: (tab: NavTab) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation?: NavigationProp<any>;
 };
 
 export default function BottomNavBar({ activeTab = 'subastas', onTabPress, navigation }: Props) {
+  const { canNavigate } = useAuth();
+
   const press = (tab: NavTab) => {
     onTabPress?.(tab);
     if (tab === 'subastas') {
       navigation?.navigate('Subastas' as never);
+    } else if (!canNavigate) {
+      navigation?.navigate('LimitedAccess' as never);
     } else if (tab === 'menu') {
       navigation?.navigate('MenuLateral' as never);
     } else if (tab === 'notif') {

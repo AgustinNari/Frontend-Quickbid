@@ -33,7 +33,8 @@ import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNav
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SubastaInfoRow } from '../components/SubastaInfoRow';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
-import { getMockItemDetalle } from '../mocks/subastas';
+import { subastasApi } from '../api/subastas';
+import { mapItemDetalle, mapSubastaDetalle } from '../mappers/subastas';
 import { formatPrecio } from '../utils/format';
 import {
   ItemDetalle,
@@ -41,6 +42,7 @@ import {
   ITEM_ESTADO_LABEL,
   SEGMENTO_LABEL,
 } from '../types/subasta';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ItemDetail'>;
 
@@ -62,33 +64,50 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ItemDetail'>;
  *      • `vendido`     → Badge "Adjudicado" (sin CTA).
  *      • `no_vendido`  → Badge "No vendido" (sin CTA).
  *
- * El precio base se muestra para todos los usuarios — la tarea #12 asume
- * autenticado (modo invitado es tarea #9). La prop `showPrice` queda lista
- * para cuando se integre el modo invitado.
- *
- * Cuando el backend exponga `GET /api/subastas/{subastaId}/catalogo/{itemId}`,
- * `subastaId` (recibido en params) se va a usar para construir la URL.
+ * Consume `GET /api/items/{id}` y oculta datos economicos en modo invitado.
  */
 type ItemTab = 'detalles' | 'historia' | 'datos';
 
 export default function ItemDetailScreen({ navigation, route }: Props) {
+  const { canPerformEconomicActions, isAuthenticated } = useAuth();
   const { itemId, subastaId } = route.params;
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
   const [itemTab, setItemTab] = useState<ItemTab>('detalles');
   const [loading, setLoading] = useState(true);
   const [item, setItem] = useState<ItemDetalle | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      setItem(getMockItemDetalle(itemId));
+    loadItem();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemId, subastaId]);
+
+  const loadItem = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [itemDto, subastaDto] = await Promise.all([
+        subastasApi.item(Number(itemId)),
+        subastasApi.detalle(Number(subastaId)),
+      ]);
+      setItem(mapItemDetalle(itemDto, mapSubastaDetalle(subastaDto)));
+    } catch (loadError) {
+      setItem(null);
+      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar el lote.');
+    } finally {
       setLoading(false);
-    }, 250);
-    return () => clearTimeout(t);
-  }, [itemId]);
+    }
+  };
 
   const handleBack = () => navigation.goBack();
 
-  const handlePujar = () => navigation.navigate('PujaEnVivo', { subastaId });
+  const handlePujar = () => {
+    if (!canPerformEconomicActions) {
+      navigation.navigate('LimitedAccess');
+      return;
+    }
+    Alert.alert('Proximamente', 'La puja en vivo se habilitara en un proximo bloque.');
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -100,10 +119,10 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
         <View style={styles.errorWrap}>
           <EmptyState
             icon={<Icon name="alert" size={48} color={colors.textSubtle} />}
-            title="No encontramos el ítem"
-            description="El lote que intentás abrir no existe o fue removido del catálogo."
-            actionLabel="Volver"
-            onAction={handleBack}
+            title="No pudimos cargar el lote"
+            description={error ?? 'El lote no existe o no esta disponible.'}
+            actionLabel="Reintentar"
+            onAction={() => loadItem()}
           />
         </View>
       ) : (
@@ -125,7 +144,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
                 </Body>
               ) : null}
 
-              {item.precioBase !== undefined ? (
+              {isAuthenticated && item.precioBase !== undefined ? (
                 <Card variant="flat" padding="none" style={styles.priceCard}>
                   <View style={styles.priceCardInner}>
                     <Typography style={styles.priceLabel}>
@@ -208,6 +227,17 @@ function ItemFooter({
   estado: ItemEstado;
   onPujar: () => void;
 }) {
+  if (estado === 'sin_estado') {
+    return (
+      <View style={styles.footer}>
+        <View style={styles.footerBadgeWrap}>
+          <Badge tone="neutral" variant="soft">
+            Acciones disponibles proximamente
+          </Badge>
+        </View>
+      </View>
+    );
+  }
   if (estado === 'vendido') {
     return (
       <View style={styles.footer}>
@@ -434,6 +464,7 @@ const HERO_ESTADO_TONE: Record<ItemEstado, HeroBadgeTone> = {
   pendiente: { tone: 'info', variant: 'soft' },
   vendido: { tone: 'success', variant: 'soft' },
   no_vendido: { tone: 'neutral', variant: 'soft' },
+  sin_estado: { tone: 'neutral', variant: 'soft' },
 };
 
 // ── Estilos ────────────────────────────────────────────────────────────────

@@ -1,273 +1,143 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
-import Svg, { Path, Polyline } from 'react-native-svg';
+import React, { useCallback, useEffect, useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { colors, spacing, radius, fontSize, fontWeight, layout } from '../theme';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import BottomNavBar, { BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { FadeIn } from '../components/FadeIn';
-import { perfilApi, EstadisticasData } from '../api/perfil';
+import { EmptyState, Icon, Loader } from '../ui';
+import { colors, fontSize, fontWeight, layout, radius, spacing } from '../theme';
+import { usuarioApi } from '../api/usuario';
+import { EstadisticasUsuario, PeriodoEstadisticas } from '../types/usuario';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Estadisticas'>;
 
-// Mapa de período frontend → backend
-type PeriodoFE = 'mes' | 'trimestre' | 'año' | 'total';
-const PERIODO_API: Record<PeriodoFE, 'mes' | 'trimestre' | 'anual'> = {
-  mes:       'mes',
-  trimestre: 'trimestre',
-  año:       'anual',
-  total:     'anual', // backend no tiene 'total' — usamos anual como fallback
-};
-
-const PERIODOS: { id: PeriodoFE; label: string }[] = [
-  { id: 'mes',       label: 'Mes'       },
+const PERIODOS: { id: PeriodoEstadisticas; label: string }[] = [
+  { id: 'mes', label: 'Mes' },
   { id: 'trimestre', label: 'Trimestre' },
-  { id: 'año',       label: 'Año'       },
-  { id: 'total',     label: 'Total'     },
+  { id: 'anual', label: 'Anual' },
+  { id: 'total', label: 'Total' },
 ];
 
-function formatMonto(valor: number): string {
-  return '$' + valor.toLocaleString('es-AR');
-}
-
-// ── Gráfico de barras ─────────────────────────────────────────────────────────
-
-const BAR_MAX_H = 90;
-const BAR_WIDTH = 14;
-
-function BarChart({ puntos }: { puntos: { etiqueta: string; valor: number }[] }) {
-  if (puntos.length === 0) {
-    return (
-      <View style={chartStyles.empty}>
-        <Text style={chartStyles.emptyText}>Sin datos para el período</Text>
-      </View>
-    );
-  }
-  const maxValor = Math.max(...puntos.map(p => p.valor), 1);
-  return (
-    <View style={chartStyles.wrap}>
-      {puntos.map((p, i) => {
-        const isLast = i === puntos.length - 1;
-        const h = Math.max(4, Math.round((p.valor / maxValor) * BAR_MAX_H));
-        return (
-          <View key={i} style={chartStyles.col}>
-            <View style={chartStyles.barTrack}>
-              <View style={[
-                chartStyles.bar,
-                { height: h, backgroundColor: isLast ? colors.primary : '#93C5FD' },
-              ]} />
-            </View>
-            <Text style={chartStyles.label} numberOfLines={1}>{p.etiqueta}</Text>
-          </View>
-        );
-      })}
-    </View>
-  );
-}
-
-const chartStyles = StyleSheet.create({
-  wrap: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: BAR_MAX_H + 20,
-    paddingTop: 4,
-  },
-  col: { alignItems: 'center', flex: 1 },
-  barTrack: { height: BAR_MAX_H, justifyContent: 'flex-end' },
-  bar:   { width: BAR_WIDTH, borderRadius: 3 },
-  label: { fontSize: 9, color: colors.textSubtle, marginTop: 4, fontWeight: '500' },
-  empty: { height: BAR_MAX_H + 20, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { fontSize: fontSize.sm, color: colors.textSubtle },
-});
-
-// ── Ícono de tendencia ────────────────────────────────────────────────────────
-
-function TrendIcon({ pos }: { pos: boolean }) {
-  const color = pos ? '#16A34A' : '#DC2626';
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      {pos
-        ? <Polyline points="23 6 13.5 15.5 8.5 10.5 1 18" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        : <Polyline points="23 18 13.5 8.5 8.5 13.5 1 6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      }
-    </Svg>
-  );
-}
-
-// ── Pantalla ──────────────────────────────────────────────────────────────────
-
 export default function EstadisticasScreen({ navigation }: Props) {
-  const [activeTab, setActiveTab] = useState<NavTab>('subastas');
-  const [periodo,   setPeriodo]   = useState<PeriodoFE>('mes');
-  const [data,      setData]      = useState<EstadisticasData | null>(null);
-  const [loading,   setLoading]   = useState(true);
+  const [periodo, setPeriodo] = useState<PeriodoEstadisticas>('mes');
+  const [data, setData] = useState<EstadisticasUsuario | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const cargar = useCallback(async (p: PeriodoFE) => {
+  const cargar = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await perfilApi.getEstadisticas(PERIODO_API[p]);
-      if (res.data) setData(res.data);
-    } catch {
-      // sin conexión — mantiene datos anteriores
+      setData(await usuarioApi.estadisticas(periodo));
+    } catch (loadError) {
+      setData(null);
+      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar las estadisticas.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [periodo]);
 
-  useEffect(() => { cargar(periodo); }, [periodo, cargar]);
-
-  const totalPujado  = data?.totalPujado  ?? 0;
-  const totalPagado  = data?.totalPagado  ?? 0;
-  const pctExito     = data?.porcentajeExito ?? 0;
-  const serie        = data?.serieHistorica ?? [];
+  useEffect(() => { cargar(); }, [cargar]);
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={() => navigation.goBack()} />
-
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-
-        <Text style={styles.titulo}>Estadísticas</Text>
-        <Text style={styles.subtitulo}>Resumen de tu actividad en QuickBid.</Text>
-
-        {/* Tabs de período */}
-        <View style={styles.tabsRow}>
-          {PERIODOS.map(p => (
-            <TouchableOpacity
-              key={p.id}
-              style={[styles.tab, periodo === p.id && styles.tabActive]}
-              onPress={() => setPeriodo(p.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.tabLabel, periodo === p.id && styles.tabLabelActive]}>
-                {p.label}
-              </Text>
+        <Text style={styles.title}>Estadisticas</Text>
+        <Text style={styles.subtitle}>Resumen real de tu actividad en QuickBid.</Text>
+        <View style={styles.tabs}>
+          {PERIODOS.map(item => (
+            <TouchableOpacity key={item.id} style={[styles.tab, periodo === item.id && styles.tabActive]} onPress={() => setPeriodo(item.id)}>
+              <Text style={[styles.tabText, periodo === item.id && styles.tabTextActive]}>{item.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+          <Loader label="Cargando estadisticas..." />
+        ) : error || !data ? (
+          <EmptyState
+            icon={<Icon name="alert" size={48} color={colors.textSubtle} />}
+            title="No pudimos cargar tus estadisticas"
+            description={error ?? 'No hay datos disponibles.'}
+            actionLabel="Reintentar"
+            onAction={cargar}
+          />
         ) : (
-          <FadeIn>
-            {/* Total pujado */}
-            <View style={styles.totalCard}>
-              <View style={styles.totalHeader}>
-                <Text style={styles.totalLabel}>TOTAL PUJADO</Text>
-                <TrendIcon pos={totalPujado >= 0} />
-              </View>
-              <Text style={styles.totalMonto}>{formatMonto(totalPujado)}</Text>
-              <Text style={styles.totalVariacion}>ARS · Período: {periodo}</Text>
+          <>
+            <View style={styles.heroCard}>
+              <Text style={styles.heroLabel}>TOTAL PUJADO</Text>
+              <Text style={styles.heroValue}>{money(data.totalPujado)}</Text>
+              <Text style={styles.heroMeta}>{data.cantidadPujas} pujas en {data.subastasParticipadas} subastas</Text>
             </View>
-
-            {/* Métricas */}
-            <View style={styles.metricsRow}>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>TASA DE ÉXITO</Text>
-                <Text style={styles.metricValor}>{pctExito}%</Text>
-                <Text style={[styles.metricVar, { color: pctExito >= 50 ? '#16A34A' : '#DC2626' }]}>
-                  {pctExito >= 50 ? 'Por encima promedio' : 'Por debajo promedio'}
-                </Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>TOTAL PAGADO</Text>
-                <Text style={styles.metricValor}>{formatMonto(totalPagado)}</Text>
-                <Text style={[styles.metricVar, { color: colors.textMuted }]}>
-                  en compras ganadas
-                </Text>
-              </View>
+            <View style={styles.metrics}>
+              <Metric label="Tasa de exito" value={`${data.tasaExito}%`} />
+              <Metric label="Total pagado" value={money(data.totalPagado)} />
+              <Metric label="Compras" value={String(data.cantidadCompras)} />
+              <Metric label="Consignaciones" value={String(data.vendedorConsignador.consignaciones)} />
+              <Metric label="Consignaciones vendidas" value={String(data.vendedorConsignador.vendidas)} />
+              <Metric label="Total liquidado" value={money(data.vendedorConsignador.totalLiquidado)} />
             </View>
-
-            {/* Gráfico */}
             <View style={styles.chartCard}>
-              <Text style={styles.chartTitulo}>ACTIVIDAD POR PERÍODO</Text>
-              <BarChart puntos={serie} />
+              <Text style={styles.sectionLabel}>ACTIVIDAD MENSUAL</Text>
+              {data.actividadMensual.length === 0 ? (
+                <Text style={styles.emptyText}>Sin actividad para este periodo.</Text>
+              ) : (
+                <View style={styles.chart}>
+                  {data.actividadMensual.map(activity => (
+                    <ActivityBar key={activity.mes} label={activity.mes} value={activity.pujas + activity.compras} />
+                  ))}
+                </View>
+              )}
             </View>
-          </FadeIn>
+          </>
         )}
-
       </ScrollView>
-
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar activeTab="menu" navigation={navigation} />
     </SafeAreaView>
   );
 }
 
-// ── Estilos ───────────────────────────────────────────────────────────────────
+function Metric({ label, value }: { label: string; value: string }) {
+  return <View style={styles.metric}><Text style={styles.metricLabel}>{label}</Text><Text style={styles.metricValue}>{value}</Text></View>;
+}
+
+function ActivityBar({ label, value }: { label: string; value: number }) {
+  return (
+    <View style={styles.barColumn}>
+      <View style={[styles.bar, { height: Math.max(8, Math.min(90, value * 16)) }]} />
+      <Text style={styles.barLabel}>{label.slice(5)}</Text>
+    </View>
+  );
+}
+
+function money(value: number) {
+  return `$ ${value.toLocaleString('es-AR')}`;
+}
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  scroll: {
-    paddingHorizontal: layout.screenPaddingHorizontal,
-    paddingTop: spacing.xl,
-    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
-  },
-
-  titulo:    { fontSize: fontSize['4xl'], fontWeight: fontWeight.bold, color: colors.text, marginBottom: spacing.xs },
-  subtitulo: { fontSize: fontSize.base, color: colors.textMuted, marginBottom: spacing.base },
-
-  tabsRow: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: 4,
-    marginBottom: spacing.xl,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-  },
-  tab:            { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderRadius: radius.md },
-  tabActive:      { backgroundColor: colors.primary },
-  tabLabel:       { fontSize: fontSize.sm, fontWeight: fontWeight.medium, color: colors.textMuted },
-  tabLabelActive: { color: colors.white, fontWeight: fontWeight.semibold },
-
-  totalCard: {
-    backgroundColor: '#0F172A',
-    borderRadius: radius.xl,
-    padding: spacing.xl,
-    marginBottom: spacing.base,
-  },
-  totalHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
-  totalLabel:     { fontSize: fontSize.xs, fontWeight: fontWeight.bold, color: '#94A3B8', letterSpacing: 0.8 },
-  totalMonto:     { fontSize: 32, fontWeight: fontWeight.bold, color: colors.white, marginBottom: spacing.xs },
-  totalVariacion: { fontSize: fontSize.sm, color: '#94A3B8' },
-
-  metricsRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.base },
-  metricCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    padding: spacing.base,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-    gap: spacing.xs,
-  },
-  metricLabel: { fontSize: fontSize.xs, fontWeight: fontWeight.bold, color: colors.textSubtle, letterSpacing: 0.5 },
-  metricValor: { fontSize: fontSize['4xl'], fontWeight: fontWeight.bold, color: colors.text },
-  metricVar:   { fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
-
-  chartCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    padding: spacing.base,
-    marginBottom: spacing.xl,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-  },
-  chartTitulo: {
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.bold,
-    color: colors.textSubtle,
-    letterSpacing: 0.8,
-    marginBottom: spacing.base,
-  },
+  scroll: { padding: layout.screenPaddingHorizontal, paddingBottom: BOTTOM_NAV_HEIGHT + spacing.xl },
+  title: { fontSize: fontSize['4xl'], fontWeight: fontWeight.bold, color: colors.text },
+  subtitle: { fontSize: fontSize.base, color: colors.textMuted, marginTop: spacing.xs, marginBottom: spacing.base },
+  tabs: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.borderMuted, padding: 4, marginBottom: spacing.xl },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderRadius: radius.md },
+  tabActive: { backgroundColor: colors.primary },
+  tabText: { fontSize: fontSize.sm, color: colors.textMuted },
+  tabTextActive: { color: colors.white, fontWeight: fontWeight.semibold },
+  heroCard: { backgroundColor: colors.primary, borderRadius: radius.xl, padding: spacing.xl, marginBottom: spacing.base },
+  heroLabel: { color: colors.infoSoft, fontSize: fontSize.xs, fontWeight: fontWeight.bold },
+  heroValue: { color: colors.white, fontSize: 32, fontWeight: fontWeight.bold, marginVertical: spacing.xs },
+  heroMeta: { color: colors.infoSoft, fontSize: fontSize.sm },
+  metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  metric: { width: '47%', backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.borderMuted, padding: spacing.base },
+  metricLabel: { fontSize: fontSize.xs, color: colors.textMuted },
+  metricValue: { fontSize: fontSize.xl, color: colors.text, fontWeight: fontWeight.bold, marginTop: spacing.xs },
+  chartCard: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.borderMuted, padding: spacing.base, marginTop: spacing.xl },
+  sectionLabel: { fontSize: fontSize.xs, color: colors.textMuted, fontWeight: fontWeight.bold, letterSpacing: 0.8 },
+  chart: { flexDirection: 'row', alignItems: 'flex-end', minHeight: 120, gap: spacing.sm, marginTop: spacing.base },
+  barColumn: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
+  bar: { width: 14, backgroundColor: colors.primary, borderRadius: radius.sm },
+  barLabel: { fontSize: 9, color: colors.textSubtle, marginTop: spacing.xs },
+  emptyText: { color: colors.textMuted, textAlign: 'center', paddingVertical: spacing.xl },
 });

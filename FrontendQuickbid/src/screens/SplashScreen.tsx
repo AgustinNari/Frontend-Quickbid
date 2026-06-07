@@ -8,19 +8,21 @@ import { useAuth } from '../context/AuthContext';
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
 export default function SplashScreen({ navigation }: Props) {
-  const { isAuthenticated, isRestoring } = useAuth();
+  const { isAuthenticated, isGuest, isRestoring, estadoCuenta } = useAuth();
 
   useEffect(() => {
     if (isRestoring) return; // Esperar a que AsyncStorage termine de restaurar
     const timer = setTimeout(() => {
-      if (isAuthenticated) {
+      if (isAuthenticated && estadoCuenta === 'bloqueada_permanente') {
+        navigation.replace('LimitedAccess');
+      } else if (isAuthenticated || isGuest) {
         navigation.replace('Subastas');
       } else {
         navigation.replace('Login');
       }
     }, 2000);
     return () => clearTimeout(timer);
-  }, [isRestoring, isAuthenticated, navigation]);
+  }, [isRestoring, isAuthenticated, isGuest, estadoCuenta, navigation]);
 
   return (
     <View style={styles.container}>

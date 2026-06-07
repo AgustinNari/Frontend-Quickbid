@@ -1,22 +1,7 @@
 import { SubastaCategoria } from './subasta';
 
-/**
- * Tipos relacionados al usuario actual de la app.
- *
- * El concepto de "categoria" del usuario comparte el mismo set de valores que
- * la categoria de una subasta (`SubastaCategoria`): comun < especial < plata <
- * oro < platino. Se reexporta como alias `Categoria` para que en los call sites
- * quede claro a quien pertenece (usuario vs requerida por la subasta).
- *
- * Cuando este el backend real, este tipo va a venir de `GET /api/usuario/perfil`.
- */
-
+// Compatibilidad con flujos mock de inscripcion/puja fuera de este bloque.
 export type Categoria = SubastaCategoria;
-
-/**
- * Orden jerarquico de categorias. Cuanto mayor el numero, mas privilegios.
- * Se usa para validar el acceso a inscripciones / pujas.
- */
 export const CATEGORIA_ORDER: Record<Categoria, number> = {
   comun: 0,
   especial: 1,
@@ -24,38 +9,108 @@ export const CATEGORIA_ORDER: Record<Categoria, number> = {
   oro: 3,
   platino: 4,
 };
-
-/**
- * True si la categoria del usuario alcanza para inscribirse en una subasta de
- * categoria dada. Refleja la regla del dominio: "la categoria del usuario debe
- * ser mayor o igual a la categoria de la subasta".
- */
-export function puedeInscribirsePorCategoria(
-  userCat: Categoria,
-  subastaCat: SubastaCategoria,
-): boolean {
+export function puedeInscribirsePorCategoria(userCat: Categoria, subastaCat: SubastaCategoria) {
   return CATEGORIA_ORDER[userCat] >= CATEGORIA_ORDER[subastaCat];
 }
-
-/**
- * Datos del usuario actual cargado en sesion.
- *
- * Hoy es un mock estatico (ver `src/mocks/usuarioActual.ts`). Cuando exista
- * sesion real, esto va a venir de un store global hidratado con el endpoint
- * de perfil.
- */
 export type UsuarioActual = {
   id: string;
   nombre: string;
   apellido: string;
   email: string;
   categoria: Categoria;
-  /** True si el usuario tiene una multa pendiente que le bloquea participar. */
   multaActiva: boolean;
-  /** ID público visible del usuario en la plataforma (ej: "2024-NL"). */
   quickbidId?: string;
-  /** Puntos acumulados en la plataforma. */
   puntos?: number;
-  /** Fecha de registro legible (ej: "marzo 2023"). */
   miembroDesde?: string;
+};
+
+export type PeriodoEstadisticas = 'mes' | 'trimestre' | 'anual' | 'total';
+
+export type ProgresoCategoria = {
+  categoriaActual: string;
+  siguienteCategoria: string | null;
+  puntosActuales: number;
+  puntosSiguienteCategoria: number | null;
+  puntosFaltantes: number;
+  porcentaje: number;
+};
+
+export type PermisosUsuario = {
+  puedeNavegar: boolean;
+  puedePujar: boolean;
+  puedeInscribirse: boolean;
+  puedeConsignar: boolean;
+  tieneRestriccionMulta: boolean;
+};
+
+export type PerfilUsuario = {
+  cuentaId: number;
+  nombre: string;
+  apellido: string;
+  email: string;
+  categoria: string;
+  puntos: number;
+  progreso: ProgresoCategoria;
+  estadoCuenta: string;
+  estadoOperativo: string;
+  permisos: PermisosUsuario;
+};
+
+export type ActividadMensual = {
+  mes: string;
+  pujas: number;
+  compras: number;
+};
+
+export type MetricasComprador = {
+  totalPujado: number;
+  totalPagado: number;
+  tasaExito: number;
+  cantidadCompras: number;
+  cantidadPujas: number;
+  subastasParticipadas: number;
+};
+
+export type MetricasVendedor = {
+  consignaciones: number;
+  vendidas: number;
+  liquidadas: number;
+  totalLiquidado: number;
+};
+
+export type EstadisticasUsuario = MetricasComprador & {
+  periodo: PeriodoEstadisticas;
+  compradorPostor: MetricasComprador;
+  vendedorConsignador: MetricasVendedor;
+  actividadMensual: ActividadMensual[];
+};
+
+export type HistorialUsuarioItem = {
+  tipo: 'puja' | 'compra' | string;
+  subastaId: number;
+  itemCatalogoId: number;
+  productoId: number | null;
+  monto: number;
+  moneda: string;
+  fecha: string;
+  estado: string;
+};
+
+export type NotificacionUsuario = {
+  id: number;
+  tipo: string;
+  titulo: string;
+  descripcion: string;
+  referenciaTipo: string | null;
+  referenciaId: number | null;
+  leida: boolean;
+  createdAt: string;
+};
+
+export type Pagina<T> = {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
 };

@@ -4,6 +4,7 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -31,18 +32,15 @@ import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNav
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SubastaInfoRow } from '../components/SubastaInfoRow';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
-import { getMockDetalle } from '../mocks/subastas';
-import {
-  estaInscripto,
-  getMotivoBloqueoInscripcion,
-} from '../mocks/inscripciones';
+import { subastasApi } from '../api/subastas';
+import { mapSubastaDetalle } from '../mappers/subastas';
 import {
   SubastaDetalle,
   SEGMENTO_LABEL,
   CATEGORIA_LABEL,
   ESTADO_LABEL,
-  MODALIDAD_LABEL,
 } from '../types/subasta';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SubastaDetail'>;
 
@@ -61,24 +59,34 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SubastaDetail'>;
  *      • Primario: "Entrar al catálogo" → navega a `CatalogoSubasta`.
  *      • Secundario: "Inscribirme" (placeholder — la inscripción es otra tarea).
  *
- * Por ahora consumimos `MOCK_SUBASTA_DETALLE` directamente, con un loading
- * momentáneo para mostrar el `<Loader />` del sistema visual. Cuando el
- * backend esté listo, este efecto se reemplaza por la llamada a
- * `GET /api/subastas/{id}` vía TanStack Query.
+ * Consume `GET /api/subastas/{id}` y mantiene las acciones economicas como
+ * placeholders hasta que sus flujos sean implementados.
  */
 export default function SubastaDetailScreen({ navigation, route }: Props) {
+  const { canPerformEconomicActions } = useAuth();
   const { id } = route.params;
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
   const [loading, setLoading] = useState(true);
   const [detalle, setDetalle] = useState<SubastaDetalle | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      setDetalle(getMockDetalle(id));
-      setLoading(false);
-    }, 300);
-    return () => clearTimeout(t);
+    loadDetalle();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  const loadDetalle = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setDetalle(mapSubastaDetalle(await subastasApi.detalle(Number(id))));
+    } catch (loadError) {
+      setDetalle(null);
+      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar la subasta.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fechaPartes = useMemo(
     () => (detalle ? formatFechaPartes(detalle.fechaInicio) : null),
@@ -97,12 +105,20 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
 
   const handleInscribirme = () => {
     if (!detalle) return;
-    navigation.navigate('InscripcionSubasta', { subastaId: detalle.id });
+    if (!canPerformEconomicActions) {
+      navigation.navigate('LimitedAccess');
+      return;
+    }
+    Alert.alert('Proximamente', 'La inscripcion online se habilitara en un proximo bloque.');
   };
 
   const handleEntrarPuja = () => {
     if (!detalle) return;
-    navigation.navigate('PujaEnVivo', { subastaId: detalle.id });
+    if (!canPerformEconomicActions) {
+      navigation.navigate('LimitedAccess');
+      return;
+    }
+    Alert.alert('Proximamente', 'La puja en vivo se habilitara en un proximo bloque.');
   };
 
   return (
@@ -115,10 +131,10 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
         <View style={styles.errorWrap}>
           <EmptyState
             icon={<Icon name="alert" size={48} color={colors.textSubtle} />}
-            title="No encontramos la subasta"
-            description="La subasta que intentás abrir no existe o fue eliminada."
-            actionLabel="Volver"
-            onAction={handleBack}
+            title="No pudimos cargar la subasta"
+            description={error ?? 'La subasta no existe o no esta disponible.'}
+            actionLabel="Reintentar"
+            onAction={() => loadDetalle()}
           />
         </View>
       ) : (
@@ -159,19 +175,13 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
               ) : null}
 
               <View style={styles.infoList}>
-                <SubastaInfoRow
-                  icon="search"
-                  label="Ubicación"
-                  value={`${detalle.ubicacion} · ${
-                    MODALIDAD_LABEL[detalle.modalidad]
-                  }`}
-                />
-                <Divider />
-                <SubastaInfoRow
-                  icon="bank"
-                  label="Rematador"
-                  value={detalle.rematador}
-                />
+                <SubastaInfoRow icon="search" label="Ubicacion" value={detalle.ubicacion} />
+                {detalle.rematador ? (
+                  <>
+                    <Divider />
+                    <SubastaInfoRow icon="bank" label="Rematador" value={detalle.rematador} />
+                  </>
+                ) : null}
                 <Divider />
                 <SubastaInfoRow
                   icon="star"
@@ -245,7 +255,7 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
                   Entrar al catálogo
                 </Button>
                 <InscribirmeButton
-                  detalle={detalle}
+                  canPerformEconomicActions={canPerformEconomicActions}
                   onInscribirme={handleInscribirme}
                 />
               </>
@@ -274,39 +284,19 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
  * inscripto, ese estado gana sobre cualquier otro bloqueo.
  */
 function InscribirmeButton({
-  detalle,
+  canPerformEconomicActions,
   onInscribirme,
 }: {
-  detalle: SubastaDetalle;
+  canPerformEconomicActions: boolean;
   onInscribirme: () => void;
 }) {
-  if (estaInscripto(detalle.id)) {
-    return (
-      <Button variant="secondary" disabled style={styles.secondaryButton}>
-        Ya estás inscripto
-      </Button>
-    );
-  }
-
-  const motivo = getMotivoBloqueoInscripcion({
-    estado: detalle.estado,
-    categoria: detalle.categoria,
-  });
-  if (motivo) {
-    return (
-      <Button variant="secondary" disabled style={styles.secondaryButton}>
-        {motivo.mensaje}
-      </Button>
-    );
-  }
-
   return (
     <Button
       variant="secondary"
       onPress={onInscribirme}
       style={styles.secondaryButton}
     >
-      Inscribirme
+      {canPerformEconomicActions ? 'Inscripcion proximamente' : 'Acceso limitado'}
     </Button>
   );
 }
@@ -327,7 +317,7 @@ function Hero({ detalle }: { detalle: SubastaDetalle }) {
 
 function BadgeEstado({ estado }: { estado: SubastaDetalle['estado'] }) {
   const tone: 'primary' | 'info' | 'neutral' =
-    estado === 'activa' ? 'primary' : estado === 'proxima' ? 'info' : 'neutral';
+    estado === 'activa' ? 'primary' : estado === 'proxima' || estado === 'abierta' ? 'info' : 'neutral';
   return (
     <Badge tone={tone}>
       {estado === 'activa' ? '● ' : ''}

@@ -71,11 +71,14 @@ export default function SecurityScreen({ route, navigation }: Props) {
     try {
       if (isRegistro) {
         // Flujo de registro — etapa3 usa setupToken
-        const setupToken = (params as { mode: 'registro'; setupToken: string }).setupToken;
-        const res = await authApi.etapa3({ setupToken, clave: password, claveConfirmacion: confirm });
+        const setupToken = params.setupToken;
+        const res = await authApi.etapa3({ setupToken, claveNueva: password, claveConfirmacion: confirm });
         if (!res.data) throw new Error('Respuesta inválida del servidor.');
-        login(res.data);
-        navigation.reset({ index: 0, routes: [{ name: 'Subastas' }] });
+        await login(res.data);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: res.data.estadoCuenta === 'bloqueada_permanente' ? 'LimitedAccess' : 'Subastas' }],
+        });
       } else {
         // Flujo de recuperación — cambiarClave
         await authApi.cambiarClave((params as { mode: 'recuperacion'; token: string }).token, password, confirm);

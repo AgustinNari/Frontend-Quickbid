@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { AuthProvider } from './src/context/AuthContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 import HomeScreen from './src/screens/HomeScreen';
 import DetailsScreen from './src/screens/DetailsScreen';
@@ -34,6 +34,8 @@ import NotificacionesScreen from './src/screens/NotificacionesScreen';
 import HistorialScreen from './src/screens/HistorialScreen';
 import PerfilScreen from './src/screens/PerfilScreen';
 import EstadisticasScreen from './src/screens/EstadisticasScreen';
+import AyudaScreen from './src/screens/AyudaScreen';
+import DireccionesEnvioScreen from './src/screens/DireccionesEnvioScreen';
 import ConsignacionesScreen from './src/screens/ConsignacionesScreen';
 import MisComprasScreen from './src/screens/MisComprasScreen';
 import CompraDetailScreen from './src/screens/CompraDetailScreen';
@@ -48,7 +50,7 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   Identity: { email: string; nombre: string; apellido: string; telefono: string; domicilio: string };
-  Security: { mode: 'registro'; email: string } | { mode: 'recuperacion'; token: string };
+  Security: { mode: 'registro'; setupToken: string } | { mode: 'recuperacion'; token: string };
   Verifying: undefined;
   LimitedAccess: undefined;
   EnlaceRegistro: undefined;
@@ -80,6 +82,8 @@ export type RootStackParamList = {
   Historial: undefined;
   Perfil: undefined;
   Estadisticas: undefined;
+  Ayuda: undefined;
+  DireccionesEnvio: undefined;
   Consignaciones: undefined;
   MisCompras: undefined;
   CompraDetail: { compraId: string };
@@ -98,9 +102,13 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function App() {
+function AppNavigator() {
+  const { isAuthenticated, isGuest, canNavigate, estadoCuenta } = useAuth();
+  const isBlocked = isAuthenticated && estadoCuenta === 'bloqueada_permanente';
+  const canUsePublicExperience = !isBlocked;
+  const canUseAuthFlows = !isAuthenticated || isGuest;
+
   return (
-    <AuthProvider>
     <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Splash"
@@ -109,50 +117,71 @@ export default function App() {
         }}
       >
         <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="Identity" component={IdentityScreen} />
-        <Stack.Screen name="Security" component={SecurityScreen} />
-        <Stack.Screen name="Verifying" component={VerifyingScreen} />
         <Stack.Screen name="LimitedAccess" component={LimitedAccessScreen} />
-        <Stack.Screen name="MetodosPago" component={MetodosPagoScreen} />
-        <Stack.Screen name="SeleccionTipoPago" component={SeleccionTipoPagoScreen} />
-        <Stack.Screen name="NuevaTarjeta" component={NuevaTarjetaScreen} />
-        <Stack.Screen name="CuentaBancaria" component={CuentaBancariaScreen} />
-        <Stack.Screen name="ChequeCertificado" component={ChequeCertificadoScreen} />
-        <Stack.Screen name="ValidandoPago" component={ValidandoPagoScreen} />
-        <Stack.Screen name="EnlaceRegistro" component={EnlaceRegistroScreen} />
-        <Stack.Screen name="RecuperacionCuenta" component={RecuperacionCuentaScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Details" component={DetailsScreen} />
-        <Stack.Screen name="UIShowcase" component={UIShowcaseScreen} />
-        <Stack.Screen name="Subastas" component={SubastasScreen} />
-        <Stack.Screen name="SubastaDetail" component={SubastaDetailScreen} />
-        <Stack.Screen name="CatalogoSubasta" component={CatalogoSubastaScreen} />
-        <Stack.Screen name="ItemDetail" component={ItemDetailScreen} />
-        <Stack.Screen name="InscripcionSubasta" component={InscripcionSubastaScreen} />
-        <Stack.Screen name="InscripcionExito" component={InscripcionExitoScreen} />
-        <Stack.Screen name="PujaEnVivo" component={PujaEnVivoScreen} />
-        <Stack.Screen name="PujaExito" component={PujaExitoScreen} />
-        <Stack.Screen name="Notificaciones" component={NotificacionesScreen} />
-        <Stack.Screen name="Historial" component={HistorialScreen} />
-        <Stack.Screen name="Perfil" component={PerfilScreen} />
-        <Stack.Screen name="Estadisticas" component={EstadisticasScreen} />
-        <Stack.Screen name="Consignaciones" component={ConsignacionesScreen} />
-        <Stack.Screen name="MisCompras" component={MisComprasScreen} />
-        <Stack.Screen name="CompraDetail" component={CompraDetailScreen} />
-        <Stack.Screen name="ResumenPago" component={ResumenPagoScreen} />
-        <Stack.Screen name="CompraExito" component={CompraExitoScreen} />
-        <Stack.Screen name="AltaConsignacion" component={AltaConsignacionScreen} />
-        <Stack.Screen name="ConsignacionExito" component={ConsignacionExitoScreen} />
-        <Stack.Screen name="ConsignacionDetail" component={ConsignacionDetailScreen} />
-        <Stack.Screen
-          name="MenuLateral"
-          component={MenuLateralScreen}
-          options={{ presentation: 'transparentModal', animation: 'slide_from_right' }}
-        />
+        {canUseAuthFlows && (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="Identity" component={IdentityScreen} />
+            <Stack.Screen name="Security" component={SecurityScreen} />
+            <Stack.Screen name="Verifying" component={VerifyingScreen} />
+            <Stack.Screen name="EnlaceRegistro" component={EnlaceRegistroScreen} />
+            <Stack.Screen name="RecuperacionCuenta" component={RecuperacionCuentaScreen} />
+          </>
+        )}
+        {canUsePublicExperience && (
+          <>
+            <Stack.Screen name="Subastas" component={SubastasScreen} />
+            <Stack.Screen name="SubastaDetail" component={SubastaDetailScreen} />
+            <Stack.Screen name="CatalogoSubasta" component={CatalogoSubastaScreen} />
+            <Stack.Screen name="ItemDetail" component={ItemDetailScreen} />
+          </>
+        )}
+        {canNavigate && (
+          <>
+            <Stack.Screen name="MetodosPago" component={MetodosPagoScreen} />
+            <Stack.Screen name="SeleccionTipoPago" component={SeleccionTipoPagoScreen} />
+            <Stack.Screen name="NuevaTarjeta" component={NuevaTarjetaScreen} />
+            <Stack.Screen name="CuentaBancaria" component={CuentaBancariaScreen} />
+            <Stack.Screen name="ChequeCertificado" component={ChequeCertificadoScreen} />
+            <Stack.Screen name="ValidandoPago" component={ValidandoPagoScreen} />
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Details" component={DetailsScreen} />
+            <Stack.Screen name="UIShowcase" component={UIShowcaseScreen} />
+            <Stack.Screen name="InscripcionSubasta" component={InscripcionSubastaScreen} />
+            <Stack.Screen name="InscripcionExito" component={InscripcionExitoScreen} />
+            <Stack.Screen name="PujaEnVivo" component={PujaEnVivoScreen} />
+            <Stack.Screen name="PujaExito" component={PujaExitoScreen} />
+            <Stack.Screen name="Notificaciones" component={NotificacionesScreen} />
+            <Stack.Screen name="Historial" component={HistorialScreen} />
+            <Stack.Screen name="Perfil" component={PerfilScreen} />
+            <Stack.Screen name="Estadisticas" component={EstadisticasScreen} />
+            <Stack.Screen name="Ayuda" component={AyudaScreen} />
+            <Stack.Screen name="DireccionesEnvio" component={DireccionesEnvioScreen} />
+            <Stack.Screen name="Consignaciones" component={ConsignacionesScreen} />
+            <Stack.Screen name="MisCompras" component={MisComprasScreen} />
+            <Stack.Screen name="CompraDetail" component={CompraDetailScreen} />
+            <Stack.Screen name="ResumenPago" component={ResumenPagoScreen} />
+            <Stack.Screen name="CompraExito" component={CompraExitoScreen} />
+            <Stack.Screen name="AltaConsignacion" component={AltaConsignacionScreen} />
+            <Stack.Screen name="ConsignacionExito" component={ConsignacionExitoScreen} />
+            <Stack.Screen name="ConsignacionDetail" component={ConsignacionDetailScreen} />
+            <Stack.Screen
+              name="MenuLateral"
+              component={MenuLateralScreen}
+              options={{ presentation: 'transparentModal', animation: 'slide_from_right' }}
+            />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppNavigator />
     </AuthProvider>
   );
 }

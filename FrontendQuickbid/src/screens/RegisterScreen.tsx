@@ -12,7 +12,6 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import Svg, { Path, Circle } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
@@ -21,20 +20,6 @@ import { authApi } from '../api/auth';
 import { ApiError } from '../api/client';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
-
-function GlobeIcon() {
-  return (
-    <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="9" stroke={colors.textSubtle} strokeWidth="1.8" />
-      <Path
-        d="M12 3c-2.5 3-4 5.5-4 9s1.5 6 4 9M12 3c2.5 3 4 5.5 4 9s-1.5 6-4 9M3 12h18"
-        stroke={colors.textSubtle}
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </Svg>
-  );
-}
 
 export default function RegisterScreen({ navigation }: Props) {
   const [email,     setEmail]     = useState('');
@@ -52,7 +37,14 @@ export default function RegisterScreen({ navigation }: Props) {
 
     setLoading(true);
     try {
-      await authApi.etapa1({ nombre, apellido, email: email.trim(), telefono, domicilio });
+      // TODO(auth-registration): reemplazar el país fijo por el selector real.
+      await authApi.etapa1({
+        nombre,
+        apellido,
+        email: email.trim(),
+        domicilioLegal: domicilio,
+        idPaisOrigen: 32,
+      });
       navigation.navigate('Identity', {
         email: email.trim(),
         nombre,

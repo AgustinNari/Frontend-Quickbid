@@ -1,464 +1,157 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { colors, spacing, radius, fontSize, fontWeight, layout } from '../theme';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import BottomNavBar, { BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { notificacionesApi, NotificacionData } from '../api/notificaciones';
-import { FadeIn } from '../components/FadeIn';
+import { EmptyState, Icon, Loader } from '../ui';
+import { colors, fontSize, fontWeight, layout, radius, spacing } from '../theme';
+import { usuarioApi } from '../api/usuario';
+import { NotificacionUsuario } from '../types/usuario';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Notificaciones'>;
+type Filtro = 'todas' | 'subastas' | 'consignas' | 'pagos';
 
-// ── Iconos por tipo ───────────────────────────────────────────────────────────
-
-function IconSubasta() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path d="M12 2L2 7l10 5 10-5-10-5z" stroke={colors.white} strokeWidth="1.8" strokeLinejoin="round" />
-      <Path d="M2 17l10 5 10-5" stroke={colors.white} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M2 12l10 5 10-5" stroke={colors.white} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function IconConsigna() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path d="M9 12l2 2 4-4" stroke={colors.white} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <Rect x="3" y="3" width="18" height="18" rx="3" stroke={colors.white} strokeWidth="1.8" />
-    </Svg>
-  );
-}
-
-function IconPago() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Rect x="2" y="5" width="20" height="14" rx="2" stroke={colors.white} strokeWidth="1.8" />
-      <Path d="M2 10h20" stroke={colors.white} strokeWidth="1.8" strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function IconCatalogo() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Rect x="3" y="3" width="18" height="18" rx="2" stroke={colors.white} strokeWidth="1.8" />
-      <Path d="M7 8h10M7 12h10M7 16h6" stroke={colors.white} strokeWidth="1.8" strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function IconPuja() {
-  return (
-    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Path d="M12 19V5M5 12l7-7 7 7" stroke={colors.white} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-// ── Config visual por tipo (mapeado desde tipos del backend) ──────────────────
-
-type NotifTipoVisual = 'subasta' | 'consigna' | 'puja' | 'pago' | 'catalogo';
-
-const TIPO_CONFIG: Record<NotifTipoVisual, { bg: string; icon: React.ReactNode }> = {
-  subasta:  { bg: colors.primary,   icon: <IconSubasta /> },
-  consigna: { bg: '#16A34A',        icon: <IconConsigna /> },
-  puja:     { bg: '#D97706',        icon: <IconPuja /> },
-  pago:     { bg: '#16A34A',        icon: <IconPago /> },
-  catalogo: { bg: colors.textMuted, icon: <IconCatalogo /> },
-};
-
-/** Mapea el tipo del backend al visual del frontend */
-function tipoVisual(tipo: string): NotifTipoVisual {
-  if (tipo === 'puja_superada' || tipo === 'puja_ganada') return 'puja';
-  if (tipo === 'subasta_por_comenzar')                    return 'subasta';
-  if (tipo === 'catalogo_nuevo')                          return 'catalogo';
-  if (tipo === 'consignacion_aprobada' || tipo === 'consignacion_rechazada' || tipo === 'documentacion_solicitada' || tipo === 'acuerdo_pendiente') return 'consigna';
-  if (tipo === 'medio_pago_verificado' || tipo === 'multa_asignada')        return 'pago';
-  return 'subasta';
-}
-
-/** Título legible desde el tipo del backend */
-function tituloDesde(tipo: string): string {
-  const map: Record<string, string> = {
-    puja_superada:             'Tu puja fue superada',
-    puja_ganada:               'Ganaste la subasta',
-    subasta_por_comenzar:      'Subasta por comenzar',
-    catalogo_nuevo:            'Nuevo catálogo disponible',
-    consignacion_aprobada:     'Consignación aprobada',
-    consignacion_rechazada:    'Consignación rechazada',
-    documentacion_solicitada:  'Documentación requerida',
-    acuerdo_pendiente:         'Acuerdo pendiente',
-    medio_pago_verificado:     'Medio de pago verificado',
-    multa_asignada:            'Multa asignada',
-  };
-  return map[tipo] ?? tipo;
-}
-
-/** Grupo (HOY / AYER / ESTA SEMANA) desde la fecha */
-function grupoDesde(fechaIso: string): string {
-  const ahora = new Date();
-  const fecha = new Date(fechaIso);
-  const diffMs = ahora.getTime() - fecha.getTime();
-  const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDias === 0) return 'HOY';
-  if (diffDias === 1) return 'AYER';
-  return 'ESTA SEMANA';
-}
-
-/** Hora legible desde fecha ISO */
-function horaDesde(fechaIso: string): string {
-  const fecha = new Date(fechaIso);
-  return fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-}
-
-/** Tipo interno de la pantalla (derivado del backend) */
-interface Notificacion {
-  id: number;
-  tipo: NotifTipoVisual;
-  categoria: 'subastas' | 'transacciones';
-  titulo: string;
-  cuerpo: string;
-  hora: string;
-  grupo: string;
-  leida: boolean;
-}
-
-function adaptarNotificacion(n: NotificacionData): Notificacion {
-  return {
-    id:        n.id,
-    tipo:      tipoVisual(n.tipo),
-    categoria: n.categoria,
-    titulo:    tituloDesde(n.tipo),
-    cuerpo:    n.mensaje,
-    hora:      horaDesde(n.fechaCreacion),
-    grupo:     grupoDesde(n.fechaCreacion),
-    leida:     n.leida,
-  };
-}
-
-// ── Tabs ──────────────────────────────────────────────────────────────────────
-
-type TabFiltro = 'todo' | 'subasta' | 'consigna' | 'pago';
-
-const TABS: { id: TabFiltro; label: string }[] = [
-  { id: 'todo',     label: 'Todo'      },
-  { id: 'subasta',  label: 'Subastas'  },
-  { id: 'consigna', label: 'Consignas' },
-  { id: 'pago',     label: 'Pagos'     },
+const FILTERS: { id: Filtro; label: string }[] = [
+  { id: 'todas', label: 'Todas' },
+  { id: 'subastas', label: 'Subastas' },
+  { id: 'consignas', label: 'Consignas' },
+  { id: 'pagos', label: 'Pagos' },
 ];
 
-// ── Ítem de notificación ──────────────────────────────────────────────────────
-
-function NotifItem({ notif }: { notif: Notificacion }) {
-  const cfg = TIPO_CONFIG[notif.tipo];
-  return (
-    <TouchableOpacity style={[styles.item, !notif.leida && styles.itemUnread]} activeOpacity={0.7}>
-      <View style={[styles.iconCircle, { backgroundColor: cfg.bg }]}>
-        {cfg.icon}
-      </View>
-      <View style={styles.itemBody}>
-        <Text style={styles.itemTitulo} numberOfLines={1}>{notif.titulo}</Text>
-        <Text style={styles.itemCuerpo} numberOfLines={2}>{notif.cuerpo}</Text>
-        <Text style={styles.itemHora}>{notif.hora}</Text>
-      </View>
-      {!notif.leida && <View style={styles.unreadDot} />}
-    </TouchableOpacity>
-  );
-}
-
-// ── Pantalla ──────────────────────────────────────────────────────────────────
-
 export default function NotificacionesScreen({ navigation }: Props) {
-  const [activeTab, setActiveTab] = useState<NavTab>('notif');
-  const [filtro,    setFiltro]    = useState<TabFiltro>('todo');
-  const [notifs,    setNotifs]    = useState<Notificacion[]>([]);
-  const [noLeidas,  setNoLeidas]  = useState(0);
-  const [loading,   setLoading]   = useState(true);
+  const [items, setItems] = useState<NotificacionUsuario[]>([]);
+  const [filtro, setFiltro] = useState<Filtro>('todas');
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const cargar = useCallback(async (tab: TabFiltro) => {
+  const cargar = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      // Traemos todas las notificaciones y filtramos localmente
-      // para evitar pérdida de datos cuando 'consigna' y 'pago' comparten
-      // la misma categoría API ('transacciones') pero son tipos visuales distintos.
-      const res = await notificacionesApi.listar({});
-      if (res.data) {
-        let items = res.data.notificaciones.map(adaptarNotificacion);
-        if (tab === 'subasta')  items = items.filter(n => n.tipo === 'subasta' || n.tipo === 'puja' || n.tipo === 'catalogo');
-        if (tab === 'consigna') items = items.filter(n => n.tipo === 'consigna');
-        if (tab === 'pago')     items = items.filter(n => n.tipo === 'pago');
-        setNotifs(items);
-        setNoLeidas(res.data.noLeidas);
-      }
-    } catch {
-      // sin conexión: mantiene la lista anterior
+      const response = await usuarioApi.notificaciones({ page: 0, size: 100 });
+      setItems(response.content);
+    } catch (loadError) {
+      setItems([]);
+      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar las notificaciones.');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { cargar(filtro); }, [filtro, cargar]);
+  useEffect(() => { cargar(); }, [cargar]);
 
-  const filtradas = notifs; // ya filtradas por la API
-  const sinLeer = noLeidas;
+  const unread = items.filter(item => !item.leida).length;
+  const filtered = useMemo(() => items.filter(item => matches(item.tipo, filtro)), [filtro, items]);
 
-  const grupos = useMemo(() => {
-    const map: Record<string, Notificacion[]> = {};
-    for (const n of filtradas) {
-      if (!map[n.grupo]) map[n.grupo] = [];
-      map[n.grupo].push(n);
-    }
-    return map;
-  }, [filtradas]);
-
-  const marcarTodoLeido = async () => {
+  const readOne = async (item: NotificacionUsuario) => {
+    if (item.leida || updating) return;
+    setUpdating(true);
+    setError(null);
     try {
-      await notificacionesApi.marcarLeida('all');
-      setNotifs(prev => prev.map(n => ({ ...n, leida: true })));
-      setNoLeidas(0);
-    } catch { /* ignorar */ }
+      const updated = await usuarioApi.marcarNotificacionLeida(item.id);
+      setItems(previous => previous.map(current => current.id === updated.id ? updated : current));
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : 'No pudimos marcar la notificacion.');
+    } finally {
+      setUpdating(false);
+    }
   };
 
-  const isEmpty = filtradas.length === 0;
+  const readAll = async () => {
+    if (updating || unread === 0) return;
+    setUpdating(true);
+    setError(null);
+    try {
+      await usuarioApi.marcarTodasLeidas();
+      setItems(previous => previous.map(item => ({ ...item, leida: true })));
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : 'No pudimos marcar las notificaciones.');
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScreenHeader />
-
-      {/* Subheader */}
-      <View style={styles.subheader}>
-        <View style={styles.subheaderLeft}>
-          <Text style={styles.titulo}>Notificaciones</Text>
-          {sinLeer > 0 && (
-            <Text style={styles.sinLeer}>{sinLeer} sin leer</Text>
-          )}
-        </View>
-        {sinLeer > 0 && (
-          <TouchableOpacity onPress={marcarTodoLeido} activeOpacity={0.7}>
-            <Text style={styles.marcarLeido}>Marcar todo leído</Text>
-          </TouchableOpacity>
-        )}
+      <View style={styles.header}>
+        <View><Text style={styles.title}>Notificaciones</Text><Text style={styles.subtitle}>{unread} sin leer</Text></View>
+        {unread > 0 ? <TouchableOpacity onPress={readAll} disabled={updating}><Text style={styles.readAll}>{updating ? 'Actualizando...' : 'Marcar todo leido'}</Text></TouchableOpacity> : null}
       </View>
-
-      {/* Tabs */}
-      <View style={styles.tabsRow}>
-        {TABS.map(tab => (
-          <TouchableOpacity
-            key={tab.id}
-            style={[styles.tab, filtro === tab.id && styles.tabActive]}
-            onPress={() => setFiltro(tab.id)}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.tabLabel, filtro === tab.id && styles.tabLabelActive]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      <View style={styles.filters}>
+        {FILTERS.map(filter => <TouchableOpacity key={filter.id} style={[styles.filter, filtro === filter.id && styles.filterActive]} onPress={() => setFiltro(filter.id)}><Text style={[styles.filterText, filtro === filter.id && styles.filterTextActive]}>{filter.label}</Text></TouchableOpacity>)}
       </View>
-
       {loading ? (
-        <View style={styles.emptyWrap}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : isEmpty ? (
-        /* Empty state */
-        <FadeIn style={{ flex: 1 }}>
-          <View style={styles.emptyWrap}>
-            <View style={styles.emptyCircle}>
-              <Svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-                <Path d="M9 12l2 2 4-4" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <Circle cx="12" cy="12" r="9" stroke="#16A34A" strokeWidth="2" />
-              </Svg>
-            </View>
-            <Text style={styles.emptyTitle}>Estás al día</Text>
-            <Text style={styles.emptyBody}>No tenés notificaciones.{'\n'}Te avisamos cuando pase algo.</Text>
-          </View>
-        </FadeIn>
+        <Loader fullScreen label="Cargando notificaciones..." />
+      ) : error && items.length === 0 ? (
+        <View style={styles.emptyWrap}><EmptyState icon={<Icon name="alert" size={48} color={colors.textSubtle} />} title="No pudimos cargar las notificaciones" description={error} actionLabel="Reintentar" onAction={cargar} /></View>
       ) : (
-        <FadeIn style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-            {['HOY', 'AYER', 'ESTA SEMANA'].map(grupo => {
-              const items = grupos[grupo];
-              if (!items?.length) return null;
-              return (
-                <View key={grupo}>
-                  <Text style={styles.grupoLabel}>{grupo}</Text>
-                  {items.map(n => <NotifItem key={n.id} notif={n} />)}
-                </View>
-              );
-            })}
-          </ScrollView>
-        </FadeIn>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {filtered.length === 0 ? (
+            <EmptyState icon={<Icon name="bell" size={48} color={colors.textSubtle} />} title="Estas al dia" description="No hay notificaciones para este filtro." />
+          ) : filtered.map(item => <NotificationCard key={item.id} item={item} onPress={() => readOne(item)} />)}
+        </ScrollView>
       )}
-
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar activeTab="notif" navigation={navigation} />
     </SafeAreaView>
   );
 }
 
-// ── Estilos ───────────────────────────────────────────────────────────────────
+function NotificationCard({ item, onPress }: { item: NotificacionUsuario; onPress: () => void }) {
+  return (
+    <TouchableOpacity style={[styles.card, !item.leida && styles.cardUnread]} onPress={onPress} activeOpacity={0.75}>
+      <View style={styles.icon}><Icon name={notificationIcon(item.tipo)} size={20} color={colors.primary} /></View>
+      <View style={styles.body}>
+        <Text style={styles.cardTitle}>{item.titulo}</Text>
+        <Text style={styles.description}>{item.descripcion}</Text>
+        <Text style={styles.date}>{formatDate(item.createdAt)} - {item.tipo.replaceAll('_', ' ')}</Text>
+      </View>
+      {!item.leida ? <View style={styles.dot} /> : null}
+    </TouchableOpacity>
+  );
+}
+
+function matches(tipo: string, filtro: Filtro) {
+  if (filtro === 'todas') return true;
+  if (filtro === 'consignas') return tipo.includes('consign') || tipo.includes('acuerdo') || tipo.includes('documentacion') || tipo.includes('liquidacion');
+  if (filtro === 'pagos') return tipo.includes('pago') || tipo.includes('multa') || tipo.includes('medio');
+  return tipo.includes('subasta') || tipo.includes('puja') || tipo.includes('lote') || tipo.includes('catalogo');
+}
+
+function notificationIcon(tipo: string): 'bell' | 'card' | 'bag' {
+  if (matches(tipo, 'pagos')) return 'card';
+  if (matches(tipo, 'consignas')) return 'bag';
+  return 'bell';
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+}
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-
-  subheader: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingHorizontal,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
-    backgroundColor: colors.surface,
-  },
-  subheaderLeft: { gap: 2 },
-  titulo: {
-    fontSize: fontSize['4xl'],
-    fontWeight: fontWeight.bold,
-    color: colors.text,
-  },
-  sinLeer: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-  },
-  marcarLeido: {
-    fontSize: fontSize.sm,
-    color: colors.primary,
-    fontWeight: fontWeight.semibold,
-  },
-
-  // Tabs
-  tabsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: layout.screenPaddingHorizontal,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
-    gap: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderMuted,
-  },
-  tab: {
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: radius.pill,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.borderMuted,
-  },
-  tabActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  tabLabel: {
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.medium,
-    color: colors.text,
-  },
-  tabLabelActive: {
-    color: colors.white,
-    fontWeight: fontWeight.semibold,
-  },
-
-  // Lista
-  scroll: {
-    paddingTop: spacing.base,
-    paddingHorizontal: layout.screenPaddingHorizontal,
-    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
-  },
-  grupoLabel: {
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.bold,
-    color: colors.textSubtle,
-    letterSpacing: 0.8,
-    marginTop: spacing.base,
-    marginBottom: spacing.sm,
-  },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.base,
-    marginBottom: spacing.sm,
-    gap: spacing.md,
-  },
-  itemUnread: {
-    backgroundColor: colors.infoSoft,
-  },
-  iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  itemBody: {
-    flex: 1,
-    gap: 3,
-  },
-  itemTitulo: {
-    fontSize: fontSize.md,
-    fontWeight: fontWeight.semibold,
-    color: colors.text,
-  },
-  itemCuerpo: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    lineHeight: 18,
-  },
-  itemHora: {
-    fontSize: fontSize.xs,
-    color: colors.textSubtle,
-    marginTop: 2,
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.primary,
-    marginTop: 6,
-    flexShrink: 0,
-  },
-
-  // Empty
-  emptyWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.base,
-    paddingBottom: BOTTOM_NAV_HEIGHT,
-  },
-  emptyCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: '#DCFCE7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: {
-    fontSize: fontSize['3xl'],
-    fontWeight: fontWeight.bold,
-    color: colors.text,
-  },
-  emptyBody: {
-    fontSize: fontSize.base,
-    color: colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
+  safe: { flex: 1, backgroundColor: colors.background },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', padding: layout.screenPaddingHorizontal, backgroundColor: colors.surface },
+  title: { fontSize: fontSize['4xl'], fontWeight: fontWeight.bold, color: colors.text },
+  subtitle: { fontSize: fontSize.sm, color: colors.textMuted },
+  readAll: { color: colors.primary, fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
+  filters: { flexDirection: 'row', gap: spacing.sm, padding: layout.screenPaddingHorizontal, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.borderMuted },
+  filter: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.pill, backgroundColor: colors.background },
+  filterActive: { backgroundColor: colors.primary },
+  filterText: { color: colors.text, fontSize: fontSize.sm },
+  filterTextActive: { color: colors.white, fontWeight: fontWeight.semibold },
+  emptyWrap: { flex: 1, paddingHorizontal: layout.screenPaddingHorizontal },
+  scroll: { padding: layout.screenPaddingHorizontal, paddingBottom: BOTTOM_NAV_HEIGHT + spacing.xl },
+  errorText: { color: colors.danger, textAlign: 'center', marginBottom: spacing.md },
+  card: { flexDirection: 'row', gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.base, marginBottom: spacing.sm, borderWidth: 1, borderColor: colors.borderMuted },
+  cardUnread: { backgroundColor: colors.infoSoft, borderColor: colors.primary },
+  icon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
+  body: { flex: 1, gap: 3 },
+  cardTitle: { color: colors.text, fontSize: fontSize.base, fontWeight: fontWeight.semibold },
+  description: { color: colors.textMuted, fontSize: fontSize.sm, lineHeight: 18 },
+  date: { color: colors.textSubtle, fontSize: fontSize.xs, textTransform: 'capitalize' },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary, marginTop: spacing.xs },
 });

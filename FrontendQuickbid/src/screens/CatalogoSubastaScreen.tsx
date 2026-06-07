@@ -29,8 +29,10 @@ import {
 import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { ItemCatalogoCard } from '../components/ItemCatalogoCard';
-import { getMockCatalogo, getMockDetalle } from '../mocks/subastas';
+import { subastasApi } from '../api/subastas';
+import { mapItemCatalogo, mapSubastaDetalle } from '../mappers/subastas';
 import { ItemCatalogo } from '../types/subasta';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CatalogoSubasta'>;
 
@@ -44,13 +46,10 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CatalogoSubasta'>;
  *  - Subtítulo: nombre de la subasta + cantidad de lotes.
  *  - Lista vertical con `<ItemCatalogoCard>` (10–12 lotes).
  *  - Empty state si el catálogo está vacío.
- *  - Tocar un ítem: por ahora muestra un Alert ("Tarea #12 pendiente") porque
- *    el detalle de ítem es la siguiente tarea.
- *
- * El precio base se muestra para todos los usuarios — para esta tarea
- * asumimos "autenticado" (el modo invitado es la tarea #9 aparte).
+ * Consume el catalogo real y oculta precios en modo invitado.
  */
 export default function CatalogoSubastaScreen({ navigation, route }: Props) {
+  const { isAuthenticated } = useAuth();
   const { subastaId, titulo: tituloParam } = route.params;
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
   const [loading, setLoading] = useState(true);
@@ -58,18 +57,31 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
   const [tituloResolved, setTituloResolved] = useState<string | undefined>(
     tituloParam,
   );
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      setItems(getMockCatalogo(subastaId));
-      if (!tituloParam) {
-        const detalle = getMockDetalle(subastaId);
-        if (detalle) setTituloResolved(detalle.titulo);
-      }
-      setLoading(false);
-    }, 250);
-    return () => clearTimeout(t);
+    loadCatalogo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subastaId, tituloParam]);
+
+  const loadCatalogo = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [catalogoDto, detalleDto] = await Promise.all([
+        subastasApi.catalogo(Number(subastaId)),
+        subastasApi.detalle(Number(subastaId)),
+      ]);
+      const detalle = mapSubastaDetalle(detalleDto);
+      setItems(catalogoDto.items.map(item => mapItemCatalogo(item, detalle)));
+      setTituloResolved(tituloParam ?? detalle.titulo);
+    } catch (loadError) {
+      setItems([]);
+      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar el catalogo.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBack = () => navigation.goBack();
 
@@ -86,6 +98,16 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
 
       {loading ? (
         <Loader fullScreen label="Cargando catálogo..." />
+      ) : error ? (
+        <View style={styles.emptyWrap}>
+          <EmptyState
+            icon={<Icon name="alert" size={48} color={colors.textSubtle} />}
+            title="No pudimos cargar el catalogo"
+            description={error}
+            actionLabel="Reintentar"
+            onAction={() => loadCatalogo()}
+          />
+        </View>
       ) : (
         <>
           <View style={styles.tabs}>
@@ -134,12 +156,11 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
               renderItem={({ item }) => (
                 <ItemCatalogoCard
                   item={item}
+                  showPrice={isAuthenticated}
                   onPress={() => handleOpenItem(item)}
                 />
               )}
-              ItemSeparatorComponent={() => (
-                <View style={{ height: spacing.md }} />
-              )}
+              ItemSeparatorComponent={VerticalSeparator}
             />
           )}
         </>
@@ -189,6 +210,10 @@ function CatalogoTab({
       </Typography>
     </TouchableOpacity>
   );
+}
+
+function VerticalSeparator() {
+  return <View style={styles.verticalSeparator} />;
 }
 
 // ── Estilos ────────────────────────────────────────────────────────────────
@@ -253,5 +278,8 @@ const styles = StyleSheet.create({
   emptyWrap: {
     flex: 1,
     paddingHorizontal: layout.screenPaddingHorizontal,
+  },
+  verticalSeparator: {
+    height: spacing.md,
   },
 });

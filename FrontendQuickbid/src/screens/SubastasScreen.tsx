@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { View, SafeAreaView, ScrollView, FlatList, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, SafeAreaView, ScrollView, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import {
@@ -14,7 +14,8 @@ import { colors, spacing, layout, radius, fontSize, fontWeight } from '../theme'
 import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { SubastaCard, SubastaCardCompact } from '../components/SubastaCard';
 import { FilterChips, FilterOption } from '../components/FilterChips';
-import { MOCK_SUBASTAS } from '../mocks/subastas';
+import { subastasApi } from '../api/subastas';
+import { mapSubastaResumen } from '../mappers/subastas';
 import {
   SubastaSegmento,
   SubastaCategoria,
@@ -39,8 +40,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Subastas'>;
  *  - Sección "Próximas Subastas" con cards horizontales compactas.
  *  - BottomNavBar al fondo con tab "subastas" activo.
  *
- * Cuando el endpoint GET /api/subastas esté listo, reemplazar MOCK_SUBASTAS
- * por una llamada con TanStack Query y los filtros van como query params.
+ * Consume el listado real y aplica los filtros visuales en cliente.
  */
 export default function SubastasScreen({ navigation }: Props) {
   const scrollRef = useRef<ScrollView>(null);
@@ -48,6 +48,28 @@ export default function SubastasScreen({ navigation }: Props) {
   const [categoria, setCategoria] = useState<SubastaCategoria | null>(null);
   const [moneda, setMoneda] = useState<SubastaMoneda | null>(null);
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
+  const [subastas, setSubastas] = useState<SubastaResumen[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadSubastas = useCallback(async (refresh = false) => {
+    refresh ? setRefreshing(true) : setLoading(true);
+    setError(null);
+    try {
+      const page = await subastasApi.listar({ page: 0, size: 100 });
+      setSubastas(page.content.map(mapSubastaResumen));
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar las subastas.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSubastas();
+  }, [loadSubastas]);
 
   const handleTabPress = (tab: NavTab) => {
     setActiveTab(tab);
@@ -80,16 +102,17 @@ export default function SubastasScreen({ navigation }: Props) {
 
   // Filtrado client-side
   const filtered = useMemo(() => {
-    return MOCK_SUBASTAS.filter((s) => {
+    return subastas.filter((s) => {
       if (segmento && s.segmento !== segmento) return false;
       if (categoria && s.categoria !== categoria) return false;
       if (moneda && s.moneda !== moneda) return false;
       return true;
     });
-  }, [segmento, categoria, moneda]);
+  }, [subastas, segmento, categoria, moneda]);
 
-  const activas = filtered.filter((s) => s.estado === 'activa');
+  const activas = filtered.filter((s) => s.estado === 'activa' || s.estado === 'abierta');
   const proximas = filtered.filter((s) => s.estado === 'proxima');
+  const finalizadas = filtered.filter((s) => s.estado === 'finalizada');
   const isEmpty = filtered.length === 0;
 
   const handleOpenSubasta = (s: SubastaResumen) => {
@@ -109,12 +132,29 @@ export default function SubastasScreen({ navigation }: Props) {
         ref={scrollRef}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => loadSubastas(true)} />
+        }
       >
+        {loading ? (
+          <Loader fullScreen label="Cargando subastas..." />
+        ) : error ? (
+          <View style={styles.emptyWrap}>
+            <EmptyState
+              icon={<Icon name="alert" size={48} color={colors.textSubtle} />}
+              title="No pudimos cargar las subastas"
+              description={error}
+              actionLabel="Reintentar"
+              onAction={() => loadSubastas()}
+            />
+          </View>
+        ) : (
+          <>
         {/* Sección Activas: título + toggle de moneda */}
         <View style={styles.activasHeader}>
           <View style={styles.activasTitleRow}>
             <View style={styles.livePulse} />
-            <Heading>Subastas Activas</Heading>
+            <Heading>Subastas abiertas</Heading>
           </View>
 
           <View style={styles.currencyToggle}>
@@ -142,11 +182,11 @@ export default function SubastasScreen({ navigation }: Props) {
             renderItem={({ item }) => (
               <SubastaCard subasta={item} onPress={() => handleOpenSubasta(item)} />
             )}
-            ItemSeparatorComponent={() => <View style={{ width: spacing.md }} />}
+            ItemSeparatorComponent={HorizontalSeparator}
           />
         ) : (
           <View style={styles.activasEmpty}>
-            <Body muted>No hay subastas en vivo con estos filtros.</Body>
+            <Body muted>No hay subastas abiertas con estos filtros.</Body>
           </View>
         )}
 
@@ -201,6 +241,23 @@ export default function SubastasScreen({ navigation }: Props) {
             </View>
           )}
         </View>
+
+        {finalizadas.length > 0 ? (
+          <View style={styles.proximasWrap}>
+            <Heading style={styles.proximasTitle}>Subastas finalizadas</Heading>
+            <View style={styles.proximasList}>
+              {finalizadas.map((s) => (
+                <SubastaCardCompact
+                  key={s.id}
+                  subasta={s}
+                  onPress={() => handleOpenSubasta(s)}
+                />
+              ))}
+            </View>
+          </View>
+        ) : null}
+          </>
+        )}
       </ScrollView>
 
       <BottomNavBar activeTab={activeTab} onTabPress={handleTabPress} navigation={navigation} />
@@ -230,6 +287,10 @@ function CurrencyChip({
       {label}
     </Typography>
   );
+}
+
+function HorizontalSeparator() {
+  return <View style={styles.horizontalSeparator} />;
 }
 
 // ── Estilos ──────────────────────────────────────────────────────────────────
@@ -300,6 +361,9 @@ const styles = StyleSheet.create({
   activasEmpty: {
     paddingHorizontal: layout.screenPaddingHorizontal,
     paddingVertical: spacing.lg,
+  },
+  horizontalSeparator: {
+    width: spacing.md,
   },
   filtersWrap: {
     marginBottom: spacing.xl,

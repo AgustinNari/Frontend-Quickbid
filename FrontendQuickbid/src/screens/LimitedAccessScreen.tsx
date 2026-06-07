@@ -7,10 +7,11 @@ import {
   SafeAreaView,
   ScrollView,
 } from 'react-native';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
+import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LimitedAccess'>;
 
@@ -65,6 +66,25 @@ function FeatureItem({ icon, title, description }: { icon: React.ReactNode; titl
 }
 
 export default function LimitedAccessScreen({ navigation }: Props) {
+  const { isGuest, estadoCuenta, logout, clearSession } = useAuth();
+  const isBlocked = estadoCuenta === 'bloqueada_permanente';
+  const isRestricted = estadoCuenta === 'restriccion_multa';
+
+  const title = isBlocked
+    ? 'Cuenta bloqueada'
+    : isRestricted
+      ? 'Cuenta restringida'
+      : isGuest
+        ? 'Acceso como invitado'
+        : 'Acceso limitado';
+  const description = isBlocked
+    ? 'Tu cuenta tiene un bloqueo permanente. Podés cerrar sesión, pero no navegar ni operar funciones normales.'
+    : isRestricted
+      ? 'Podés navegar normalmente, pero las acciones económicas están deshabilitadas mientras exista una multa activa.'
+    : isGuest
+      ? 'Podés explorar subastas y catálogos públicos. Iniciá sesión para acceder a precios, perfil y operaciones protegidas.'
+      : 'Para participar en subastas y realizar acciones económicas necesitás una cuenta habilitada.';
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
@@ -77,11 +97,10 @@ export default function LimitedAccessScreen({ navigation }: Props) {
           <UserBadgeIcon />
         </View>
 
-        <Text style={styles.title}>Acceso Limitado</Text>
+        <Text style={styles.title}>{title}</Text>
 
         <Text style={styles.body}>
-          Para participar en subastas en vivo, realizar pujas en tiempo real y consignar bienes, es necesario vincular un medio de pago verificado a tu{' '}
-          <Text style={styles.boldBlue}>cuenta QuickBid.</Text>
+          {description}
         </Text>
 
         <View style={styles.features}>
@@ -97,13 +116,45 @@ export default function LimitedAccessScreen({ navigation }: Props) {
           />
         </View>
 
-        <TouchableOpacity style={styles.btnPrimary} activeOpacity={0.85} onPress={() => navigation.navigate('MetodosPago')}>
-          <Text style={styles.btnPrimaryText}>Agregar Medio de Pago</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.btnSecondary} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>
-          <Text style={styles.btnSecondaryText}>Continuar como Observador</Text>
-        </TouchableOpacity>
+        {isBlocked ? (
+          <TouchableOpacity
+            style={styles.btnPrimary}
+            activeOpacity={0.85}
+            onPress={async () => {
+              await logout();
+              navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+            }}>
+            <Text style={styles.btnPrimaryText}>Cerrar sesión</Text>
+          </TouchableOpacity>
+        ) : isGuest ? (
+          <>
+            <TouchableOpacity
+              style={styles.btnPrimary}
+              activeOpacity={0.85}
+              onPress={async () => {
+                await clearSession();
+                navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+              }}>
+              <Text style={styles.btnPrimaryText}>Iniciar sesión</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.btnSecondary} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>
+              <Text style={styles.btnSecondaryText}>Continuar como observador</Text>
+            </TouchableOpacity>
+          </>
+        ) : isRestricted ? (
+          <TouchableOpacity style={styles.btnPrimary} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>
+            <Text style={styles.btnPrimaryText}>Volver a subastas</Text>
+          </TouchableOpacity>
+        ) : (
+          <>
+            <TouchableOpacity style={styles.btnPrimary} activeOpacity={0.85} onPress={() => navigation.navigate('MetodosPago')}>
+              <Text style={styles.btnPrimaryText}>Agregar medio de pago</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.btnSecondary} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>
+              <Text style={styles.btnSecondaryText}>Volver a subastas</Text>
+            </TouchableOpacity>
+          </>
+        )}
 
       </ScrollView>
     </SafeAreaView>

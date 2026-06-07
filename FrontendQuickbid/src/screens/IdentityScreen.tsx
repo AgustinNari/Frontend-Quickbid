@@ -11,7 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import Svg, { Path, Rect, Line } from 'react-native-svg';
+import Svg, { Rect, Line } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
@@ -98,17 +98,15 @@ export default function IdentityScreen({ route, navigation }: Props) {
   function handleSelectBack()  { seleccionarImagen(setBackImage);  }
 
   async function handleCompletar() {
-    if (!frontImage) {
-      Alert.alert('Foto requerida', 'Subí al menos el frente del DNI.');
+    if (!frontImage || !backImage) {
+      Alert.alert('Fotos requeridas', 'Subí el frente y el dorso del DNI.');
       return;
     }
 
     setLoading(true);
     try {
       const frente = { uri: frontImage, name: 'frente.jpg', type: 'image/jpeg' };
-      const dorso  = backImage
-        ? { uri: backImage, name: 'dorso.jpg', type: 'image/jpeg' }
-        : frente; // si no hay dorso enviamos el frente dos veces como fallback
+      const dorso = { uri: backImage, name: 'dorso.jpg', type: 'image/jpeg' };
       await authApi.etapa2(email, frente, dorso);
       navigation.navigate('Verifying');
     } catch (e) {

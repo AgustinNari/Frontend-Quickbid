@@ -103,6 +103,7 @@ const ESTADO_TONE: Record<ItemCatalogo['estado'], EstadoBadge> = {
   pendiente: { tone: 'neutral', variant: 'soft' },
   vendido: { tone: 'success', variant: 'soft' },
   no_vendido: { tone: 'neutral', variant: 'soft' },
+  sin_estado: { tone: 'neutral', variant: 'soft' },
 };
 
 // ── Estilos ─────────────────────────────────────────────────────────────────

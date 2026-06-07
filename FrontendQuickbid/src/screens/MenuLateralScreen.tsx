@@ -7,13 +7,14 @@ import {
   SafeAreaView,
   ScrollView,
   Pressable,
+  Alert,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, fontWeight } from '../theme';
 import { useAuth } from '../context/AuthContext';
-import { notificacionesApi } from '../api/notificaciones';
+import { usuarioApi } from '../api/usuario';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MenuLateral'>;
 
@@ -136,8 +137,8 @@ export default function MenuLateralScreen({ navigation }: Props) {
 
   useEffect(() => {
     if (!user) return;
-    notificacionesApi.listar({ leidas: false })
-      .then(res => setNoLeidas(res.data?.noLeidas ?? 0))
+    usuarioApi.notificaciones({ leida: false, page: 0, size: 1 })
+      .then(res => setNoLeidas(res.totalElements))
       .catch(() => {});
   }, [user]);
 
@@ -149,7 +150,7 @@ export default function MenuLateralScreen({ navigation }: Props) {
     platino: 'PLATINO',
   };
 
-  const nombre = user ? `${user.nombre}` : 'Invitado';
+  const nombre = user?.nombre ?? user?.email ?? 'Invitado';
   const categoria = user?.categoria ?? 'comun';
 
   return (
@@ -201,7 +202,7 @@ export default function MenuLateralScreen({ navigation }: Props) {
           <MenuItem
             icon={<BagIcon color={colors.textMuted} />}
             label="Mis Compras"
-            onPress={close}
+            onPress={() => { close(); navigation.navigate('MisCompras'); }}
           />
           <MenuItem
             icon={<ConsignacionIcon color={currentRoute === 'Consignaciones' ? colors.primary : colors.textMuted} />}
@@ -218,9 +219,42 @@ export default function MenuLateralScreen({ navigation }: Props) {
           />
           <MenuItem
             icon={<UserIcon color={currentRoute === 'Perfil' ? colors.primary : colors.textMuted} />}
-            label="Perfil"
+            label="Mi perfil"
             active={currentRoute === 'Perfil'}
             onPress={() => { close(); navigation.navigate('Perfil'); }}
+          />
+          <MenuItem
+            icon={<SubastasIcon color={currentRoute === 'Estadisticas' ? colors.primary : colors.textMuted} />}
+            label="Estadisticas"
+            active={currentRoute === 'Estadisticas'}
+            onPress={() => { close(); navigation.navigate('Estadisticas'); }}
+          />
+          <MenuItem
+            icon={<SubastasIcon color={currentRoute === 'Historial' ? colors.primary : colors.textMuted} />}
+            label="Historial"
+            active={currentRoute === 'Historial'}
+            onPress={() => { close(); navigation.navigate('Historial'); }}
+          />
+          <MenuItem
+            icon={<BagIcon color={colors.textMuted} />}
+            label="Metodos de pago"
+            onPress={() => { close(); navigation.navigate('MetodosPago'); }}
+          />
+          <MenuItem
+            icon={<UserIcon color={colors.textMuted} />}
+            label="Direccion de envio"
+            onPress={() => { close(); navigation.navigate('DireccionesEnvio'); }}
+          />
+          <MenuItem
+            icon={<UserIcon color={colors.textMuted} />}
+            label="Seguridad"
+            onPress={() => Alert.alert('Proximamente', 'El cambio de contrasena desde sesion se conectara en un bloque futuro.')}
+          />
+          <MenuItem
+            icon={<BellIcon color={currentRoute === 'Ayuda' ? colors.primary : colors.textMuted} />}
+            label="Ayuda y soporte"
+            active={currentRoute === 'Ayuda'}
+            onPress={() => { close(); navigation.navigate('Ayuda'); }}
           />
         </ScrollView>
 
@@ -229,7 +263,10 @@ export default function MenuLateralScreen({ navigation }: Props) {
           <TouchableOpacity
             style={styles.logoutButton}
             activeOpacity={0.8}
-            onPress={() => { logout(); navigation.reset({ index: 0, routes: [{ name: 'Login' }] }); }}
+            onPress={async () => {
+              await logout();
+              navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+            }}
           >
             <LogoutIcon />
             <View>

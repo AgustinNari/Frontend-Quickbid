@@ -1,10 +1,8 @@
 /**
- * URL base del backend.
- *
- * Con `adb reverse tcp:8080 tcp:8080` el celular tuneliza el tráfico directo a la PC.
- * Esto permite usar localhost en todos los casos mientras el cable esté conectado.
- *
- * Sin cable (solo WiFi): cambiar a la IP local de la PC, ej: 'http://192.168.X.X:8080'
- * El script dev-start.ps1 actualiza este archivo automáticamente.
+ * Default for iOS, adb reverse, and local development.
+ * Android Emulator can use ANDROID_EMULATOR_API_BASE_URL when port reverse is
+ * not available. Keep URL selection centralized here.
  */
-export const BASE_URL = 'http://localhost:8080';
+export const API_BASE_URL = 'http://localhost:8080';
+
+export const ANDROID_EMULATOR_API_BASE_URL = 'http://10.0.2.2:8080';

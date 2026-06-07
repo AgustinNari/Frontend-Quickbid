@@ -40,7 +40,8 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
   const [numero,     setNumero]     = useState('');
   const [vencimiento,setVencimiento]= useState('');
   const [cvv,        setCvv]        = useState('');
-  const [moneda] = useState<'ARS' | 'USD'>('ARS');
+  const [moneda, setMoneda] = useState<'ARS' | 'USD'>('ARS');
+  const [nacional, setNacional] = useState(true);
   const [tipo,       setTipo]       = useState<'tarjeta_credito' | 'tarjeta_debito'>('tarjeta_credito');
   const [loading,    setLoading]    = useState(false);
   const [activeTab,  setActiveTab]  = useState<NavTab>('subastas');
@@ -74,13 +75,15 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
     setLoading(true);
     try {
       await mediosPagoApi.crear({
-        tipo,
+        tipo: 'tarjeta',
         moneda,
-        nombreTitular: nombre.trim(),
+        titular: nombre.trim(),
         numeroTarjeta: digitos,
-        vencimiento: vencimiento.trim(),
         cvv: cvv.trim(),
-        nacional: moneda === 'ARS',
+        vencimientoMes: mes,
+        vencimientoAnio: anio,
+        marca: tipo === 'tarjeta_credito' ? 'Credito/Debito' : 'Debito',
+        nacional,
       });
       navigation.navigate('ValidandoPago');
     } catch (e) {
@@ -95,7 +98,7 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={() => navigation.goBack()} />
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.scroll}>
 
           <Text style={styles.title}>Nueva tarjeta</Text>
@@ -115,6 +118,15 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
                 </Text>
               </TouchableOpacity>
             ))}
+          </View>
+
+          <Text style={styles.label}>MONEDA</Text>
+          <View style={styles.segRow}>
+            {(['ARS', 'USD'] as const).map(value => <TouchableOpacity key={value} style={[styles.seg, moneda === value && styles.segActive]} onPress={() => setMoneda(value)}><Text style={[styles.segText, moneda === value && styles.segTextActive]}>{value}</Text></TouchableOpacity>)}
+          </View>
+          <Text style={styles.label}>ORIGEN</Text>
+          <View style={styles.segRow}>
+            {[true, false].map(value => <TouchableOpacity key={String(value)} style={[styles.seg, nacional === value && styles.segActive]} onPress={() => setNacional(value)}><Text style={[styles.segText, nacional === value && styles.segTextActive]}>{value ? 'Nacional' : 'Extranjera'}</Text></TouchableOpacity>)}
           </View>
 
           <Text style={styles.label}>NOMBRE EN LA TARJETA</Text>
@@ -169,7 +181,7 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
             </View>
           </View>
 
-          <View style={{ flex: 1, minHeight: 24 }} />
+          <View style={styles.spacer} />
 
           <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={handleEnviar} disabled={loading}>
             {loading
@@ -188,6 +200,8 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: colors.white },
+  flex: { flex: 1 },
+  spacer: { flex: 1, minHeight: 24 },
   scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingTop: 28, paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg },
 
   title:    { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 6 },

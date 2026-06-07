@@ -7,6 +7,7 @@ import {
   SubastaSegmento,
   SEGMENTO_LABEL,
   CATEGORIA_LABEL,
+  ESTADO_LABEL,
 } from '../types/subasta';
 
 /**
@@ -49,7 +50,10 @@ export function SubastaCard({ subasta, onPress, style }: Props) {
 
         {/* Badge "ACTIVA" top-left */}
         <View style={styles.imageTopLeft}>
-          <Badge tone="primary">{`● ${subasta.estado === 'activa' ? 'ACTIVA' : subasta.estado.toUpperCase()}`}</Badge>
+          <Badge tone={subasta.estado === 'activa' ? 'primary' : 'info'}>
+            {subasta.estado === 'activa' ? '● ' : ''}
+            {ESTADO_LABEL[subasta.estado]}
+          </Badge>
         </View>
 
         {/* Badge de moneda bottom-right */}
@@ -73,12 +77,14 @@ export function SubastaCard({ subasta, onPress, style }: Props) {
           {subasta.titulo}
         </Typography>
 
-        <View style={styles.metaRow}>
-          <Icon name="bank" size={14} color={colors.textMuted} />
-          <Typography variant="caption" muted numberOfLines={1} style={styles.metaText}>
-            {subasta.rematador}
-          </Typography>
-        </View>
+        {subasta.rematador ? (
+          <View style={styles.metaRow}>
+            <Icon name="bank" size={14} color={colors.textMuted} />
+            <Typography variant="caption" muted numberOfLines={1} style={styles.metaText}>
+              {subasta.rematador}
+            </Typography>
+          </View>
+        ) : null}
 
         <Button onPress={onPress} rightIcon={<Icon name="arrow-right" color={colors.textInverse} size={18} />}>
           Entrar
@@ -123,7 +129,9 @@ export function SubastaCardCompact({ subasta, onPress, style }: Props) {
       {/* Body derecho */}
       <View style={styles.compactBody}>
         <View style={styles.compactHeaderRow}>
-          <Badge tone="info">PRÓXIMA</Badge>
+          <Badge tone={subasta.estado === 'finalizada' ? 'neutral' : 'info'}>
+            {ESTADO_LABEL[subasta.estado]}
+          </Badge>
           <Typography variant="caption" muted style={styles.compactSegmento} numberOfLines={1}>
             Segmento: {SEGMENTO_LABEL[subasta.segmento]}
           </Typography>
@@ -172,6 +180,7 @@ export const SEGMENTO_THEME: Record<SubastaSegmento, SegmentoTheme> = {
   antiguedades: { bg: '#FEF3E2', fg: '#C2410C', icon: 'inbox' },
   diseno: { bg: '#DBEAFE', fg: '#1D4ED8', icon: 'image' },
   coleccion: { bg: '#F3E8FF', fg: '#6D28D9', icon: 'bag' },
+  otro: { bg: colors.borderMuted, fg: colors.textMuted, icon: 'inbox' },
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

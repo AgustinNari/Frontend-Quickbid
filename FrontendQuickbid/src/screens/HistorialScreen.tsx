@@ -1,124 +1,111 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
-import Svg, { Path, Circle } from 'react-native-svg';
+import React, { useCallback, useEffect, useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { colors, spacing, radius, fontSize, fontWeight, layout } from '../theme';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import BottomNavBar, { BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { FadeIn } from '../components/FadeIn';
-import { perfilApi } from '../api/perfil';
+import { EmptyState, Icon, Loader } from '../ui';
+import { colors, fontSize, fontWeight, layout, radius, spacing } from '../theme';
+import { usuarioApi } from '../api/usuario';
+import { HistorialUsuarioItem } from '../types/usuario';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Historial'>;
-
-// ── Pantalla ──────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 20;
 
 export default function HistorialScreen({ navigation }: Props) {
-  const [activeTab, setActiveTab] = useState<NavTab>('compras');
-  const [loading,   setLoading]   = useState(true);
-  const [total,     setTotal]     = useState(0);
+  const [items, setItems] = useState<HistorialUsuarioItem[]>([]);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    perfilApi.getHistorial()
-      .then(res => { if (res.data) setTotal(res.data.total); })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+  const cargar = useCallback(async (nextPage = 0) => {
+    nextPage === 0 ? setLoading(true) : setLoadingMore(true);
+    setError(null);
+    try {
+      const response = await usuarioApi.historial(nextPage, PAGE_SIZE);
+      setItems(previous => nextPage === 0 ? response.content : [...previous, ...response.content]);
+      setPage(response.page);
+      setTotalPages(response.totalPages);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar el historial.');
+      if (nextPage === 0) setItems([]);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
   }, []);
 
-  const isEmpty = total === 0;
+  useEffect(() => { cargar(); }, [cargar]);
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={() => navigation.goBack()} />
-
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-
-        <Text style={styles.titulo}>Historial de subastas</Text>
-        <Text style={styles.subtitulo}>Todas tus pujas y compras.</Text>
-
-        {loading ? (
-          <View style={styles.emptyWrap}>
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        ) : isEmpty ? (
-          <FadeIn>
-            <View style={styles.emptyWrap}>
-              <View style={styles.emptyCircle}>
-                <Svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                  <Circle cx="12" cy="12" r="9" stroke={colors.textSubtle} strokeWidth="1.8" />
-                  <Path d="M12 7v5l3 3" stroke={colors.textSubtle} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </Svg>
-              </View>
-              <Text style={styles.emptyText}>Aún no tenés registros para mostrar</Text>
-            </View>
-          </FadeIn>
-        ) : (
-          <FadeIn>
-            <View style={styles.emptyWrap}>
-              <Text style={styles.emptyText}>
-                Tenés {total} registro{total !== 1 ? 's' : ''} en tu historial.{'\n'}
-                Disponible cuando se conecten las subastas.
-              </Text>
-            </View>
-          </FadeIn>
-        )}
-      </ScrollView>
-
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      {loading ? (
+        <Loader fullScreen label="Cargando historial..." />
+      ) : error && items.length === 0 ? (
+        <View style={styles.emptyWrap}>
+          <EmptyState icon={<Icon name="alert" size={48} color={colors.textSubtle} />} title="No pudimos cargar tu historial" description={error} actionLabel="Reintentar" onAction={() => cargar()} />
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <Text style={styles.title}>Historial de subastas</Text>
+          <Text style={styles.subtitle}>Tus pujas y compras registradas.</Text>
+          {items.length === 0 ? (
+            <EmptyState icon={<Icon name="clock" size={48} color={colors.textSubtle} />} title="Sin actividad" description="Todavia no tenes pujas ni compras en tu historial." />
+          ) : (
+            <>
+              {items.map((item, index) => <HistoryCard key={`${item.tipo}-${item.subastaId}-${item.itemCatalogoId}-${item.fecha}-${index}`} item={item} />)}
+              {error ? <Text style={styles.moreError}>{error}</Text> : null}
+              {page + 1 < totalPages ? (
+                <TouchableOpacity style={styles.moreButton} onPress={() => cargar(page + 1)} disabled={loadingMore}>
+                  <Text style={styles.moreText}>{loadingMore ? 'Cargando...' : 'Ver mas'}</Text>
+                </TouchableOpacity>
+              ) : null}
+            </>
+          )}
+        </ScrollView>
+      )}
+      <BottomNavBar activeTab="menu" navigation={navigation} />
     </SafeAreaView>
   );
 }
 
-// ── Estilos ───────────────────────────────────────────────────────────────────
+function HistoryCard({ item }: { item: HistorialUsuarioItem }) {
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.overline}>{formatDate(item.fecha)} - {item.tipo.toUpperCase()}</Text>
+        <View style={styles.stateBadge}><Text style={styles.stateText}>{item.estado.replaceAll('_', ' ')}</Text></View>
+      </View>
+      <Text style={styles.cardTitle}>Subasta #{item.subastaId} - Lote #{item.itemCatalogoId}</Text>
+      <Text style={styles.meta}>{item.productoId ? `Producto #${item.productoId}` : 'Actividad de puja'}</Text>
+      <Text style={styles.amount}>{item.moneda} {item.monto.toLocaleString('es-AR')}</Text>
+    </View>
+  );
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('es-AR');
+}
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scroll: {
-    paddingHorizontal: layout.screenPaddingHorizontal,
-    paddingTop: spacing.xl,
-    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
-  },
-
-  titulo: {
-    fontSize: fontSize['4xl'],
-    fontWeight: fontWeight.bold,
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  subtitulo: {
-    fontSize: fontSize.base,
-    color: colors.textMuted,
-    marginBottom: spacing.xl,
-  },
-
-  // Empty
-  emptyWrap: {
-    alignItems: 'center',
-    paddingTop: spacing['4xl'],
-    gap: spacing.xl,
-  },
-  emptyCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: colors.borderMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyText: {
-    fontSize: fontSize.lg,
-    fontWeight: fontWeight.semibold,
-    color: colors.text,
-    textAlign: 'center',
-  },
+  safe: { flex: 1, backgroundColor: colors.background },
+  emptyWrap: { flex: 1, paddingHorizontal: layout.screenPaddingHorizontal },
+  scroll: { padding: layout.screenPaddingHorizontal, paddingBottom: BOTTOM_NAV_HEIGHT + spacing.xl },
+  title: { fontSize: fontSize['4xl'], fontWeight: fontWeight.bold, color: colors.text },
+  subtitle: { color: colors.textMuted, fontSize: fontSize.base, marginTop: spacing.xs, marginBottom: spacing.xl },
+  card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.borderMuted, padding: spacing.base, marginBottom: spacing.md },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
+  overline: { flex: 1, color: colors.textMuted, fontSize: fontSize.xs, fontWeight: fontWeight.bold },
+  stateBadge: { backgroundColor: colors.infoSoft, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 3 },
+  stateText: { color: colors.primary, fontSize: fontSize.xs, fontWeight: fontWeight.bold, textTransform: 'uppercase' },
+  cardTitle: { color: colors.text, fontSize: fontSize.base, fontWeight: fontWeight.semibold, marginTop: spacing.sm },
+  meta: { color: colors.textMuted, fontSize: fontSize.sm, marginTop: 3 },
+  amount: { color: colors.text, fontSize: fontSize.lg, fontWeight: fontWeight.bold, textAlign: 'right', marginTop: spacing.sm },
+  moreButton: { borderWidth: 1, borderColor: colors.primary, borderRadius: radius.base, padding: spacing.md, alignItems: 'center', marginTop: spacing.sm },
+  moreText: { color: colors.primary, fontWeight: fontWeight.semibold },
+  moreError: { color: colors.danger, textAlign: 'center', marginVertical: spacing.sm },
 });
