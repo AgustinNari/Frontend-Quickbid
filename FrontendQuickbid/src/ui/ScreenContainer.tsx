@@ -9,7 +9,7 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import { colors, layout, spacing } from '../theme';
+import { colors, layout } from '../theme';
 
 /**
  * Contenedor estándar de pantalla.

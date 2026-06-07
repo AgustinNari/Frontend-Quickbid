@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-import { Typography, Subheading, Body } from './Typography';
+import { Subheading, Body } from './Typography';
 import { Button } from './Button';
 import { spacing } from '../theme';
 
