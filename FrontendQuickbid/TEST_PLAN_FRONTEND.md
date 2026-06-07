@@ -264,7 +264,10 @@ Reglas de validacion:
 
 - Las pujas se envian por HTTP, no por WebSocket.
 - Cada puja HTTP debe incluir `idempotencyKey`.
-- El WebSocket/STOMP se usa para snapshot/eventos realtime.
+- El snapshot inicial de puja actual se obtiene por HTTP con
+  `GET /api/subastas/{id}/puja-actual`.
+- Las pujas se envian por HTTP con `POST /api/subastas/{id}/pujar`.
+- STOMP/WebSocket se usa para eventos realtime y colas privadas.
 - Invitados no deben recibir montos live.
 - Una cuenta `restriccion_multa` puede mirar live, pero no pujar.
 - Una cuenta `bloqueada_permanente` no debe navegar ni suscribirse a live real.
@@ -376,8 +379,8 @@ reseteada o seed seguro preparado para consumirse.
   compatibilidad React Native y posibles modificaciones nativas.
 - Si Android no llega al backend, usar `adb reverse tcp:8080 tcp:8080` o
   configurar `10.0.2.2`.
-- Los endpoints admin no tienen frontend formal y estan deshabilitados por
-  defecto; no agregan pantallas admin mobile.
+- Los endpoints admin no tienen frontend formal; son auxiliares para
+  dev/test/demo y deben permanecer protegidos segun configuracion backend.
 - La validacion final de pujas, pagos y transiciones ocurre en backend; el
   frontend solo debe guiar y bloquear cuando corresponde.
 
