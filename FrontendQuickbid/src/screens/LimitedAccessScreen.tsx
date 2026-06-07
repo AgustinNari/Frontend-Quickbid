@@ -2,7 +2,6 @@ import React from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   SafeAreaView,
   ScrollView,
@@ -10,8 +9,9 @@ import {
 import Svg, { Path, Circle } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
+import { colors, spacing, fontSize } from '../theme';
 import { useAuth } from '../context/AuthContext';
+import { Button, Card, Icon } from '../ui';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LimitedAccess'>;
 
@@ -63,6 +63,7 @@ export default function LimitedAccessScreen({ navigation }: Props) {
   const { isGuest, estadoCuenta, logout, clearSession } = useAuth();
   const isBlocked = estadoCuenta === 'bloqueada_permanente';
   const isRestricted = estadoCuenta === 'restriccion_multa';
+  const statusColor = isBlocked ? colors.danger : isRestricted ? colors.warning : colors.primary;
 
   const title = isBlocked
     ? 'Cuenta bloqueada'
@@ -87,14 +88,28 @@ export default function LimitedAccessScreen({ navigation }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.iconWrap}>
+        <View style={[styles.iconWrap, { backgroundColor: `${statusColor}18` }]}>
           <UserBadgeIcon />
         </View>
 
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.body}>{description}</Text>
 
-        <View style={styles.features}>
+        <Card variant="flat" padding="lg" style={styles.features}>
+          <View style={styles.statusRow}>
+            <Icon
+              name={isBlocked || isRestricted ? 'alert' : 'info'}
+              size={18}
+              color={statusColor}
+            />
+            <Text style={[styles.statusText, { color: statusColor }]}>
+              {isBlocked
+                ? 'La navegacion normal esta bloqueada'
+                : isRestricted
+                  ? 'Las acciones economicas estan bloqueadas'
+                  : 'Estas navegando con acceso limitado'}
+            </Text>
+          </View>
           <FeatureItem
             icon={<ShieldIcon />}
             title={isRestricted ? 'Multa activa' : isBlocked ? 'Cuenta bloqueada' : 'Acceso protegido'}
@@ -111,59 +126,50 @@ export default function LimitedAccessScreen({ navigation }: Props) {
               ? 'Al iniciar sesion vas a poder ver precios, compras, consignaciones y notificaciones.'
               : 'QuickBid respeta el estado que informa el backend para cada accion.'}
           />
-        </View>
+        </Card>
 
         {isBlocked ? (
-          <TouchableOpacity
-            style={styles.btnPrimary}
-            activeOpacity={0.85}
+          <Button
+            variant="danger"
+            style={styles.actionButton}
             onPress={async () => {
               await logout();
               navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
             }}>
-            <Text style={styles.btnPrimaryText}>Cerrar sesion</Text>
-          </TouchableOpacity>
+            Cerrar sesion
+          </Button>
         ) : isGuest ? (
           <>
-            <TouchableOpacity
-              style={styles.btnPrimary}
-              activeOpacity={0.85}
+            <Button
+              style={styles.actionButton}
               onPress={async () => {
                 await clearSession();
                 navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
               }}>
-              <Text style={styles.btnPrimaryText}>Iniciar sesion</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.btnSecondary}
-              activeOpacity={0.85}
+              Iniciar sesion
+            </Button>
+            <Button
+              variant="secondary"
+              style={styles.actionButton}
               onPress={async () => {
                 await clearSession();
                 navigation.reset({ index: 0, routes: [{ name: 'Register' }] });
               }}>
-              <Text style={styles.btnSecondaryText}>Registrarme</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.btnGhost} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>
-              <Text style={styles.btnGhostText}>Continuar como observador</Text>
-            </TouchableOpacity>
+              Registrarme
+            </Button>
+            <Button variant="ghost" style={styles.actionButton} onPress={() => navigation.navigate('Subastas')}>
+              Continuar como observador
+            </Button>
           </>
         ) : isRestricted ? (
           <>
-            <TouchableOpacity style={styles.btnPrimary} activeOpacity={0.85} onPress={() => navigation.navigate('MisCompras')}>
-              <Text style={styles.btnPrimaryText}>Ver compras y multas</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.btnSecondary} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>
-              <Text style={styles.btnSecondaryText}>Volver a subastas</Text>
-            </TouchableOpacity>
+            <Button style={styles.actionButton} onPress={() => navigation.navigate('MisCompras')}>Ver compras y multas</Button>
+            <Button variant="secondary" style={styles.actionButton} onPress={() => navigation.navigate('Subastas')}>Volver a subastas</Button>
           </>
         ) : (
           <>
-            <TouchableOpacity style={styles.btnPrimary} activeOpacity={0.85} onPress={() => navigation.navigate('MetodosPago')}>
-              <Text style={styles.btnPrimaryText}>Agregar medio de pago</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.btnSecondary} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>
-              <Text style={styles.btnSecondaryText}>Volver a subastas</Text>
-            </TouchableOpacity>
+            <Button style={styles.actionButton} onPress={() => navigation.navigate('MetodosPago')}>Agregar medio de pago</Button>
+            <Button variant="secondary" style={styles.actionButton} onPress={() => navigation.navigate('Subastas')}>Volver a subastas</Button>
           </>
         )}
       </ScrollView>
@@ -188,7 +194,14 @@ const styles = StyleSheet.create({
     paddingBottom: 36,
     alignItems: 'center',
   },
-  iconWrap: { marginBottom: spacing.xl },
+  iconWrap: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xl,
+  },
   title: {
     fontSize: fontSize['4xl'],
     fontWeight: 'bold',
@@ -204,6 +217,15 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   features: { width: '100%', gap: 16, marginBottom: spacing['2xl'] },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
+  },
+  statusText: { flex: 1, fontSize: fontSize.sm, fontWeight: '600' },
   featureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
   featureIcon: {
     width: 40,
@@ -216,32 +238,5 @@ const styles = StyleSheet.create({
   featureText: { flex: 1 },
   featureTitle: { fontSize: fontSize.md, fontWeight: '600', color: colors.text, marginBottom: 4 },
   featureDesc: { fontSize: fontSize.sm, color: colors.textMuted, lineHeight: 20 },
-  btnPrimary: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.base,
-    height: controlHeight.base,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
-  btnPrimaryText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600' },
-  btnSecondary: {
-    borderRadius: radius.base,
-    height: controlHeight.base,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.primary,
-    marginBottom: spacing.md,
-  },
-  btnSecondaryText: { color: colors.primary, fontSize: fontSize.lg, fontWeight: '600' },
-  btnGhost: {
-    height: controlHeight.base,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnGhostText: { color: colors.textMuted, fontSize: fontSize.base, fontWeight: '600' },
+  actionButton: { marginBottom: spacing.sm },
 });

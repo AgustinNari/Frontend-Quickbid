@@ -68,7 +68,7 @@ export default function ValidandoPagoScreen({ navigation }: Props) {
           </Text>
         </View>
 
-        <View style={{ flex: 1 }} />
+        <View style={styles.spacer} />
 
         <TouchableOpacity
           style={styles.btn}
@@ -117,6 +117,7 @@ const styles = StyleSheet.create({
   },
   infoTitle: { fontSize: fontSize.base, fontWeight: '700', color: colors.primary, textAlign: 'center' },
   infoBody:  { fontSize: fontSize.sm, color: colors.primary, textAlign: 'center', lineHeight: 20 },
+  spacer: { flex: 1 },
 
   btn: {
     backgroundColor: colors.primary, borderRadius: radius.base, height: controlHeight.base,

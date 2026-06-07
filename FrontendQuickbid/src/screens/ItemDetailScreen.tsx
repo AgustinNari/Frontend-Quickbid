@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -59,8 +58,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ItemDetail'>;
  *    condición).
  *  - Descripción larga.
  *  - Footer con CTA que cambia según el estado del lote:
- *      • `en_vivo`     → "Pujar ahora" (placeholder de tarea #14).
- *      • `pendiente`   → "Avisarme cuando empiece" (placeholder).
+ *      • `en_vivo`     → "Pujar ahora".
+ *      • `pendiente`   → estado informativo, sin simular una suscripcion.
  *      • `vendido`     → Badge "Adjudicado" (sin CTA).
  *      • `no_vendido`  → Badge "No vendido" (sin CTA).
  *
@@ -236,7 +235,7 @@ function ItemFooter({
       <View style={styles.footer}>
         <View style={styles.footerBadgeWrap}>
           <Badge tone="neutral" variant="soft">
-            Acciones disponibles proximamente
+            Estado del lote no disponible
           </Badge>
         </View>
       </View>
@@ -281,18 +280,9 @@ function ItemFooter({
 
   return (
     <View style={styles.footer}>
-      <Button
-        variant="secondary"
-        onPress={() =>
-          Alert.alert(
-            'Notificación',
-            'Las notificaciones llegan con la tarea de notificaciones.',
-          )
-        }
-        leftIcon={<Icon name="bell" color={colors.text} size={18} />}
-      >
-        Avisarme cuando empiece
-      </Button>
+      <View style={styles.footerBadgeWrap}>
+        <Badge tone="info" variant="soft">Lote programado</Badge>
+      </View>
     </View>
   );
 }

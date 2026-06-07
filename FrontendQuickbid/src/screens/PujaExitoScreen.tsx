@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -17,6 +16,7 @@ import {
   Badge,
   Icon,
   EmptyState,
+  Loader,
 } from '../ui';
 import {
   colors,
@@ -30,7 +30,9 @@ import {
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
 import { formatPrecio } from '../utils/format';
-import { getMockItemDetalle, getMockDetalle } from '../mocks/subastas';
+import { subastasApi } from '../api/subastas';
+import { mapItemDetalle, mapSubastaDetalle } from '../mappers/subastas';
+import { ItemDetalle, SubastaDetalle } from '../types/subasta';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PujaExito'>;
 
@@ -41,37 +43,57 @@ type Props = NativeStackScreenProps<RootStackParamList, 'PujaExito'>;
  * `navigation.replace` desde `PujaEnVivoScreen` al confirmarse una puja
  * ganadora, para que el back vuelva a la subasta y no a la sala de puja.
  *
- * El CTA principal ("Ir a completar el pago") es placeholder hasta que exista
- * el modulo de Compras: el cobro de comisiones + envio vive en ese flujo
- * (consigna: articulo+multa en un checkout, comisiones+envio en otro). Por eso
- * el banner remite a Compras.
+ * Completa el resumen con datos reales del item y remite al modulo de Compras
+ * para continuar el seguimiento.
  */
 export default function PujaExitoScreen({ navigation, route }: Props) {
   const { subastaId, itemId, montoFinal, numeroPostor } = route.params;
-  const item = getMockItemDetalle(itemId);
-  const subasta = getMockDetalle(subastaId);
+  const [item, setItem] = useState<ItemDetalle | null>(null);
+  const [subasta, setSubasta] = useState<SubastaDetalle | null>(null);
+  const [loading, setLoading] = useState(true);
   const moneda = subasta?.moneda ?? 'USD';
 
-  const irASubastas = () => navigation.navigate('Subastas');
+  useEffect(() => {
+    Promise.all([
+      subastasApi.item(Number(itemId)),
+      subastasApi.detalle(Number(subastaId)),
+    ])
+      .then(([itemDto, subastaDto]) => {
+        const detalle = mapSubastaDetalle(subastaDto);
+        setSubasta(detalle);
+        setItem(mapItemDetalle(itemDto, detalle));
+      })
+      .catch(() => {
+        setSubasta(null);
+        setItem(null);
+      })
+      .finally(() => setLoading(false));
+  }, [itemId, subastaId]);
 
-  const irACompras = () =>
-    Alert.alert(
-      'Compras',
-      'El pago de comisiones y la gestión de envío se habilitan en la sección Compras (próxima tarea). Tu adjudicación ya quedó registrada.',
+  const volverAlLive = () => navigation.replace('PujaEnVivo', { subastaId });
+  const irACompras = () => navigation.navigate('MisCompras');
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader onBack={volverAlLive} />
+        <Loader fullScreen label="Preparando el resumen de tu adjudicacion..." />
+      </SafeAreaView>
     );
+  }
 
   if (!item) {
     return (
       <SafeAreaView style={styles.safe}>
-        <ScreenHeader onBack={irASubastas} />
+        <ScreenHeader onBack={volverAlLive} />
         <View style={styles.errorWrap}>
           <EmptyState
             icon={<Icon name="check-circle" size={48} color={colors.success} />}
             title="¡Ganaste la puja!"
             description="Tu adjudicación quedó registrada. Vas a recibir el detalle en breve."
-            actionLabel="Volver a Subastas"
-            onAction={irASubastas}
           />
+          <Button onPress={irACompras}>Ir a Compras</Button>
+          <Button variant="secondary" onPress={volverAlLive}>Volver a la subasta</Button>
         </View>
       </SafeAreaView>
     );
@@ -81,7 +103,7 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScreenHeader onBack={irASubastas} />
+      <ScreenHeader onBack={volverAlLive} />
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -162,10 +184,10 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
           onPress={irACompras}
           rightIcon={<Icon name="arrow-right" color={colors.textInverse} size={18} />}
         >
-          Ir a completar el pago
+          Ir a Compras
         </Button>
-        <Button variant="secondary" onPress={irASubastas} style={styles.secondaryButton}>
-          Volver a Subastas
+        <Button variant="secondary" onPress={volverAlLive} style={styles.secondaryButton}>
+          Volver a la subasta
         </Button>
       </View>
     </SafeAreaView>

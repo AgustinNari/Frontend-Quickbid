@@ -4,7 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import BottomNavBar, { BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { EmptyState, Icon, Loader } from '../ui';
+import { Badge, Button, EmptyState, Icon, Loader } from '../ui';
 import { colors, fontSize, fontWeight, layout, radius, spacing } from '../theme';
 import { mediosPagoApi } from '../api/mediosPago';
 import { MedioPagoDto } from '../types/mediosPago';
@@ -59,11 +59,25 @@ export default function MetodosPagoScreen({ navigation }: Props) {
         >
           <Text style={styles.title}>Metodos de pago</Text>
           <Text style={styles.subtitle}>Gestiona tus medios y su estado de verificacion.</Text>
-          <TouchableOpacity style={styles.add} onPress={() => navigation.navigate('SeleccionTipoPago')}><Text style={styles.addText}>+ Agregar nuevo</Text></TouchableOpacity>
+          <Button
+            size="sm"
+            fullWidth={false}
+            leftIcon={<Icon name="plus" size={16} color={colors.textInverse} />}
+            style={styles.add}
+            onPress={() => navigation.navigate('SeleccionTipoPago')}
+          >
+            Agregar nuevo
+          </Button>
           {error ? (
             <EmptyState icon={<Icon name="alert" size={48} color={colors.textSubtle} />} title="No pudimos cargar tus medios" description={error} actionLabel="Reintentar" onAction={() => cargar()} />
           ) : items.length === 0 ? (
-            <EmptyState icon={<Icon name="card" size={48} color={colors.textSubtle} />} title="Sin medios guardados" description="Agrega un medio para enviarlo a verificacion." />
+            <EmptyState
+              icon={<Icon name="card" size={48} color={colors.textSubtle} />}
+              title="Sin medios guardados"
+              description="Agrega un medio para enviarlo a verificacion."
+              actionLabel="Agregar medio"
+              onAction={() => navigation.navigate('SeleccionTipoPago')}
+            />
           ) : items.map(item => <PaymentCard key={item.id} item={item} onPrincipal={() => principal(item)} onDelete={() => eliminar(item)} />)}
         </ScrollView>
       )}
@@ -74,6 +88,7 @@ export default function MetodosPagoScreen({ navigation }: Props) {
 
 function PaymentCard({ item, onPrincipal, onDelete }: { item: MedioPagoDto; onPrincipal: () => void; onDelete: () => void }) {
   const verified = item.estado === 'verificado';
+  const visual = paymentStateVisual(item.estado);
   return (
     <View style={styles.card}>
       <View style={styles.row}>
@@ -85,8 +100,10 @@ function PaymentCard({ item, onPrincipal, onDelete }: { item: MedioPagoDto; onPr
         </View>
         {item.principal ? <View style={styles.primaryBadge}><Text style={styles.primaryText}>PRINCIPAL</Text></View> : null}
       </View>
-      <View style={[styles.stateBadge, verified ? styles.stateVerified : styles.statePending]}><Text style={styles.stateText}>{item.estado.replaceAll('_', ' ')}</Text></View>
-      {!verified ? <Text style={styles.warning}>Este medio todavia no esta habilitado para acciones que requieran verificacion.</Text> : null}
+      <View style={styles.stateRow}>
+        <Badge tone={visual.tone} variant="soft">{visual.label}</Badge>
+      </View>
+      <Text style={styles.warning}>{visual.description}</Text>
       <View style={styles.actions}>
         {!item.principal ? <TouchableOpacity onPress={onPrincipal} disabled={!verified}><Text style={[styles.action, !verified && styles.disabled]}>Marcar principal</Text></TouchableOpacity> : null}
         <TouchableOpacity onPress={onDelete}><Text style={styles.delete}>Eliminar</Text></TouchableOpacity>
@@ -98,6 +115,25 @@ function PaymentCard({ item, onPrincipal, onDelete }: { item: MedioPagoDto; onPr
 function typeLabel(type: MedioPagoDto['tipo']) {
   return type === 'tarjeta' ? 'Tarjeta' : type === 'cuenta_bancaria' ? 'Cuenta bancaria' : 'Cheque certificado';
 }
+function paymentStateVisual(estado: MedioPagoDto['estado']): {
+  tone: 'success' | 'warning' | 'danger' | 'neutral';
+  label: string;
+  description: string;
+} {
+  if (estado === 'verificado') {
+    return { tone: 'success', label: 'VERIFICADO', description: 'Listo para operar mientras siga vigente y sea compatible.' };
+  }
+  if (estado === 'rechazado') {
+    return { tone: 'danger', label: 'RECHAZADO', description: 'Revisa los datos o registra otro medio para poder operar.' };
+  }
+  if (estado === 'vencido') {
+    return { tone: 'danger', label: 'VENCIDO', description: 'Necesita revalidacion antes de volver a utilizarse.' };
+  }
+  if (estado === 'pendiente_verificacion') {
+    return { tone: 'warning', label: 'PENDIENTE', description: 'La verificacion sigue pendiente; todavia no esta habilitado para operar.' };
+  }
+  return { tone: 'neutral', label: estado.replaceAll('_', ' ').toUpperCase(), description: 'Este medio no esta habilitado para operar en su estado actual.' };
+}
 function message(error: unknown) { return error instanceof Error ? error.message : 'Intenta nuevamente.'; }
 
 const styles = StyleSheet.create({
@@ -105,8 +141,7 @@ const styles = StyleSheet.create({
   scroll: { padding: layout.screenPaddingHorizontal, paddingBottom: BOTTOM_NAV_HEIGHT + spacing.xl },
   title: { fontSize: fontSize['4xl'], fontWeight: fontWeight.bold, color: colors.text },
   subtitle: { color: colors.textMuted, marginTop: spacing.xs, marginBottom: spacing.base },
-  add: { alignSelf: 'flex-end', backgroundColor: colors.primary, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.base },
-  addText: { color: colors.white, fontWeight: fontWeight.semibold },
+  add: { alignSelf: 'flex-end', marginBottom: spacing.base },
   card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderMuted, borderRadius: radius.lg, padding: spacing.base, marginBottom: spacing.md },
   row: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
   icon: { width: 42, height: 42, borderRadius: radius.md, backgroundColor: colors.infoSoft, alignItems: 'center', justifyContent: 'center' },
@@ -115,10 +150,7 @@ const styles = StyleSheet.create({
   detail: { color: colors.textMuted, fontSize: fontSize.sm, marginTop: 2 },
   primaryBadge: { backgroundColor: colors.primary, borderRadius: radius.xs, paddingHorizontal: spacing.xs, paddingVertical: 3 },
   primaryText: { color: colors.white, fontSize: fontSize.xs, fontWeight: fontWeight.bold },
-  stateBadge: { alignSelf: 'flex-start', borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 4, marginTop: spacing.md },
-  stateVerified: { backgroundColor: colors.successSoft },
-  statePending: { backgroundColor: colors.warningSoft },
-  stateText: { color: colors.text, fontSize: fontSize.xs, fontWeight: fontWeight.bold, textTransform: 'uppercase' },
+  stateRow: { flexDirection: 'row', marginTop: spacing.md },
   warning: { color: colors.textMuted, fontSize: fontSize.sm, marginTop: spacing.sm },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.lg, marginTop: spacing.md },
   action: { color: colors.primary, fontWeight: fontWeight.semibold },
