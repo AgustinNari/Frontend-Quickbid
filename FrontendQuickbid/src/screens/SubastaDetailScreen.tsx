@@ -140,6 +140,10 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
       navigation.navigate('LimitedAccess');
       return;
     }
+    if (verificacion?.cuentaRestringida || estadoCuenta === 'restriccion_multa') {
+      navigation.navigate('LimitedAccess');
+      return;
+    }
     if (estadoCuenta === 'activa' && verificacion && !verificacion.yaInscripto) {
       Alert.alert(
         'Inscripcion requerida',

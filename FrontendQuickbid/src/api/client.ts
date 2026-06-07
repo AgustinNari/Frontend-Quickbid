@@ -72,6 +72,22 @@ function readableError(envelope: ApiEnvelope<unknown> | null, fallback: string) 
   return details.length > 0 ? details.join('\n') : envelope?.message || fallback;
 }
 
+function fallbackForStatus(status: number) {
+  if (status === 400) return 'La solicitud tiene datos invalidos. Revisa la informacion e intenta nuevamente.';
+  if (status === 401) return 'Tu sesion expiro o no estas autenticado. Inicia sesion para continuar.';
+  if (status === 403) return 'No tenes permiso para realizar esta accion con el estado actual de tu cuenta.';
+  if (status === 409) return 'La operacion no se puede completar porque el estado cambio. Actualiza e intenta nuevamente.';
+  return 'Error del servidor';
+}
+
+async function safeFetch(input: RequestInfo, init?: RequestInit) {
+  try {
+    return await fetch(input, init);
+  } catch {
+    throw new ApiError(0, 'No se pudo conectar con QuickBid. Verifica tu conexion o intenta nuevamente en unos minutos.');
+  }
+}
+
 async function parseEnvelope<T>(response: Response): Promise<ApiEnvelope<T> | null> {
   const text = await response.text();
   if (!text) return null;
@@ -88,7 +104,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
   refreshPromise = (async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+      const response = await safeFetch(`${API_BASE_URL}/api/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken: tokens.refreshToken }),
@@ -131,7 +147,7 @@ export async function apiFetch<T = null>(
     headers.Authorization = `Bearer ${tokens.accessToken}`;
   }
 
-  let response = await fetch(`${API_BASE_URL}${path}`, {
+  let response = await safeFetch(`${API_BASE_URL}${path}`, {
     ...requestOptions,
     headers,
   });
@@ -139,7 +155,7 @@ export async function apiFetch<T = null>(
   if (response.status === 401 && !isPublic && !skipRefresh && tokens.refreshToken) {
     const refreshedToken = await refreshAccessToken();
     if (refreshedToken) {
-      response = await fetch(`${API_BASE_URL}${path}`, {
+      response = await safeFetch(`${API_BASE_URL}${path}`, {
         ...requestOptions,
         headers: { ...headers, Authorization: `Bearer ${refreshedToken}` },
       });
@@ -148,7 +164,7 @@ export async function apiFetch<T = null>(
 
   const body = await parseEnvelope<T>(response);
   if (!response.ok) {
-    throw new ApiError(response.status, readableError(body, 'Error del servidor'), body?.errors ?? []);
+    throw new ApiError(response.status, readableError(body, fallbackForStatus(response.status)), body?.errors ?? []);
   }
 
   return body ?? { data: null, message: '', errors: [] };

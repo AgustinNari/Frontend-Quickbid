@@ -18,17 +18,11 @@ type Props = NativeStackScreenProps<RootStackParamList, 'LimitedAccess'>;
 function UserBadgeIcon() {
   return (
     <Svg width="90" height="90" viewBox="0 0 90 90" fill="none">
-      {/* Fondo */}
       <Circle cx="45" cy="45" r="44" stroke="#E0EDFF" strokeWidth="2" fill={colors.infoSoft} />
-      {/* Cabeza */}
       <Circle cx="45" cy="33" r="12" stroke={colors.primary} strokeWidth="2" fill="none" />
-      {/* Cuerpo */}
       <Path d="M19 76c0-14.359 11.641-26 26-26s26 11.641 26 26" stroke={colors.primary} strokeWidth="2" strokeLinecap="round" />
-      {/* Badge rojo */}
       <Circle cx="71" cy="22" r="11" fill={colors.danger} />
-      {/* Línea del ! */}
       <Path d="M71 16v7" stroke={colors.white} strokeWidth="2.5" strokeLinecap="round" />
-      {/* Punto del ! */}
       <Circle cx="71" cy="27" r="1.8" fill={colors.white} />
     </Svg>
   );
@@ -77,13 +71,14 @@ export default function LimitedAccessScreen({ navigation }: Props) {
       : isGuest
         ? 'Acceso como invitado'
         : 'Acceso limitado';
+
   const description = isBlocked
-    ? 'Tu cuenta tiene un bloqueo permanente. Podés cerrar sesión, pero no navegar ni operar funciones normales.'
+    ? 'Tu cuenta tiene un bloqueo permanente. Podes cerrar sesion, pero no navegar ni operar funciones normales.'
     : isRestricted
-      ? 'Podés navegar normalmente, pero las acciones económicas están deshabilitadas mientras exista una multa activa.'
-    : isGuest
-      ? 'Podés explorar subastas y catálogos públicos. Iniciá sesión para acceder a precios, perfil y operaciones protegidas.'
-      : 'Para participar en subastas y realizar acciones económicas necesitás una cuenta habilitada.';
+      ? 'Podes navegar normalmente, pero las acciones economicas estan deshabilitadas mientras exista una multa activa.'
+      : isGuest
+        ? 'Podes explorar subastas y catalogos publicos. Inicia sesion para acceder a precios, perfil y operaciones protegidas.'
+        : 'Para participar en subastas y realizar acciones economicas necesitas una cuenta habilitada.';
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -92,27 +87,29 @@ export default function LimitedAccessScreen({ navigation }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-
         <View style={styles.iconWrap}>
           <UserBadgeIcon />
         </View>
 
         <Text style={styles.title}>{title}</Text>
-
-        <Text style={styles.body}>
-          {description}
-        </Text>
+        <Text style={styles.body}>{description}</Text>
 
         <View style={styles.features}>
           <FeatureItem
             icon={<ShieldIcon />}
-            title="Pujas Seguras"
-            description="Garantizamos la legitimidad de cada oferta en nuestra plataforma."
+            title={isRestricted ? 'Multa activa' : isBlocked ? 'Cuenta bloqueada' : 'Acceso protegido'}
+            description={isRestricted
+              ? 'Regulariza la multa desde tus compras para volver a inscribirte y pujar.'
+              : isBlocked
+                ? 'Los endpoints protegidos no estan disponibles para esta sesion limitada.'
+                : 'Las operaciones requieren una cuenta registrada y habilitada.'}
           />
           <FeatureItem
             icon={<ClockIcon />}
-            title="Validación requerida"
-            description="Es recomendable vincularlo hoy para poder utilizarlo lo antes posible."
+            title={isGuest ? 'Sesion requerida' : 'Estado de cuenta'}
+            description={isGuest
+              ? 'Al iniciar sesion vas a poder ver precios, compras, consignaciones y notificaciones.'
+              : 'QuickBid respeta el estado que informa el backend para cada accion.'}
           />
         </View>
 
@@ -124,7 +121,7 @@ export default function LimitedAccessScreen({ navigation }: Props) {
               await logout();
               navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
             }}>
-            <Text style={styles.btnPrimaryText}>Cerrar sesión</Text>
+            <Text style={styles.btnPrimaryText}>Cerrar sesion</Text>
           </TouchableOpacity>
         ) : isGuest ? (
           <>
@@ -135,16 +132,30 @@ export default function LimitedAccessScreen({ navigation }: Props) {
                 await clearSession();
                 navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
               }}>
-              <Text style={styles.btnPrimaryText}>Iniciar sesión</Text>
+              <Text style={styles.btnPrimaryText}>Iniciar sesion</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.btnSecondary} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>
-              <Text style={styles.btnSecondaryText}>Continuar como observador</Text>
+            <TouchableOpacity
+              style={styles.btnSecondary}
+              activeOpacity={0.85}
+              onPress={async () => {
+                await clearSession();
+                navigation.reset({ index: 0, routes: [{ name: 'Register' }] });
+              }}>
+              <Text style={styles.btnSecondaryText}>Registrarme</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.btnGhost} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>
+              <Text style={styles.btnGhostText}>Continuar como observador</Text>
             </TouchableOpacity>
           </>
         ) : isRestricted ? (
-          <TouchableOpacity style={styles.btnPrimary} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>
-            <Text style={styles.btnPrimaryText}>Volver a subastas</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity style={styles.btnPrimary} activeOpacity={0.85} onPress={() => navigation.navigate('MisCompras')}>
+              <Text style={styles.btnPrimaryText}>Ver compras y multas</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.btnSecondary} activeOpacity={0.85} onPress={() => navigation.navigate('Subastas')}>
+              <Text style={styles.btnSecondaryText}>Volver a subastas</Text>
+            </TouchableOpacity>
+          </>
         ) : (
           <>
             <TouchableOpacity style={styles.btnPrimary} activeOpacity={0.85} onPress={() => navigation.navigate('MetodosPago')}>
@@ -155,7 +166,6 @@ export default function LimitedAccessScreen({ navigation }: Props) {
             </TouchableOpacity>
           </>
         )}
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -163,7 +173,6 @@ export default function LimitedAccessScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
-
   header: {
     backgroundColor: colors.white,
     paddingHorizontal: spacing.xl,
@@ -172,7 +181,6 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.borderMuted,
   },
   brand: { fontSize: fontSize.xl, fontWeight: 'bold', color: colors.primary },
-
   scroll: {
     flexGrow: 1,
     paddingHorizontal: 28,
@@ -180,9 +188,7 @@ const styles = StyleSheet.create({
     paddingBottom: 36,
     alignItems: 'center',
   },
-
   iconWrap: { marginBottom: spacing.xl },
-
   title: {
     fontSize: fontSize['4xl'],
     fontWeight: 'bold',
@@ -197,8 +203,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 28,
   },
-  boldBlue: { color: colors.primary, fontWeight: '600' },
-
   features: { width: '100%', gap: 16, marginBottom: spacing['2xl'] },
   featureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
   featureIcon: {
@@ -211,8 +215,7 @@ const styles = StyleSheet.create({
   },
   featureText: { flex: 1 },
   featureTitle: { fontSize: fontSize.md, fontWeight: '600', color: colors.text, marginBottom: 4 },
-  featureDesc:  { fontSize: fontSize.sm, color: colors.textMuted, lineHeight: 20 },
-
+  featureDesc: { fontSize: fontSize.sm, color: colors.textMuted, lineHeight: 20 },
   btnPrimary: {
     backgroundColor: colors.primary,
     borderRadius: radius.base,
@@ -223,7 +226,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   btnPrimaryText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600' },
-
   btnSecondary: {
     borderRadius: radius.base,
     height: controlHeight.base,
@@ -232,6 +234,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: colors.primary,
+    marginBottom: spacing.md,
   },
   btnSecondaryText: { color: colors.primary, fontSize: fontSize.lg, fontWeight: '600' },
+  btnGhost: {
+    height: controlHeight.base,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnGhostText: { color: colors.textMuted, fontSize: fontSize.base, fontWeight: '600' },
 });
