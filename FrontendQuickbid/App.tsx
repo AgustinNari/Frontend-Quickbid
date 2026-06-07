@@ -143,6 +143,7 @@ function AppNavigator() {
             <Stack.Screen name="SubastaDetail" component={SubastaDetailScreen} />
             <Stack.Screen name="CatalogoSubasta" component={CatalogoSubastaScreen} />
             <Stack.Screen name="ItemDetail" component={ItemDetailScreen} />
+            <Stack.Screen name="PujaEnVivo" component={PujaEnVivoScreen} />
           </>
         )}
         {canNavigate && (
@@ -158,7 +159,6 @@ function AppNavigator() {
             <Stack.Screen name="UIShowcase" component={UIShowcaseScreen} />
             <Stack.Screen name="InscripcionSubasta" component={InscripcionSubastaScreen} />
             <Stack.Screen name="InscripcionExito" component={InscripcionExitoScreen} />
-            <Stack.Screen name="PujaEnVivo" component={PujaEnVivoScreen} />
             <Stack.Screen name="PujaExito" component={PujaExitoScreen} />
             <Stack.Screen name="Notificaciones" component={NotificacionesScreen} />
             <Stack.Screen name="Historial" component={HistorialScreen} />

@@ -69,7 +69,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ItemDetail'>;
 type ItemTab = 'detalles' | 'historia' | 'datos';
 
 export default function ItemDetailScreen({ navigation, route }: Props) {
-  const { canPerformEconomicActions, isAuthenticated } = useAuth();
+  const { estadoCuenta, isAuthenticated, isGuest } = useAuth();
   const { itemId, subastaId } = route.params;
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
   const [itemTab, setItemTab] = useState<ItemTab>('detalles');
@@ -102,11 +102,15 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
   const handleBack = () => navigation.goBack();
 
   const handlePujar = () => {
-    if (!canPerformEconomicActions) {
+    if (estadoCuenta === 'bloqueada_permanente') {
       navigation.navigate('LimitedAccess');
       return;
     }
-    Alert.alert('Proximamente', 'La puja en vivo se habilitara en un proximo bloque.');
+    if (isGuest) {
+      navigation.navigate('PujaEnVivo', { subastaId });
+      return;
+    }
+    navigation.navigate('PujaEnVivo', { subastaId });
   };
 
   return (

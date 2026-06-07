@@ -5,7 +5,6 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -114,13 +113,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
             <CatalogoTab label="Catálogo completo" active />
             <CatalogoTab
               label="Ver en puja actual"
-              comingSoon
-              onPress={() =>
-                Alert.alert(
-                  'Puja en vivo',
-                  'La puja en vivo se va a habilitar en una tarea posterior.',
-                )
-              }
+              onPress={() => navigation.navigate('PujaEnVivo', { subastaId })}
             />
           </View>
 

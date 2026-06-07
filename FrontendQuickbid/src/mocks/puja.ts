@@ -71,9 +71,9 @@ function initSala(item: ItemDetalle): SalaState {
     numeroPostorUsuario: null,
     cerrado: false,
     historial: [
-      { id: 'h_1', numeroPostor: 482, monto: ofertaGanadora, haceMinutos: 1, ganadora: true },
-      { id: 'h_2', numeroPostor: 201, monto: ofertaPrevia, haceMinutos: 2 },
-      { id: 'h_3', numeroPostor: 137, monto: ofertaInicial, haceMinutos: 4 },
+      { id: 'h_1', numeroPostor: 482, postorAlias: 'Postor #482', monto: ofertaGanadora, haceMinutos: 1, ganadora: true },
+      { id: 'h_2', numeroPostor: 201, postorAlias: 'Postor #201', monto: ofertaPrevia, haceMinutos: 2 },
+      { id: 'h_3', numeroPostor: 137, postorAlias: 'Postor #137', monto: ofertaInicial, haceMinutos: 4 },
     ],
   };
 }
@@ -146,10 +146,15 @@ export function getPujaActual(subastaId: string): PujaActual | null {
     categoria: subasta.categoria,
     precioBase: sala.precioBase,
     mejorOferta: sala.mejorOferta,
+    versionEstado: 1,
+    puedePujar: true,
     numeroPostorGanador: sala.numeroPostorGanador,
     segundosRestantes: RETENCION_SEGUNDOS,
     historialReciente: sala.historial,
     esGanadorActual: sala.esGanadorActual,
+    loteCerrado: false,
+    loteGanado: false,
+    mediosParaPujar: [],
   };
 }
 
@@ -280,7 +285,7 @@ export function pujar(
   // Exito — asignar numero de postor en la primera puja del usuario.
   if (sala.numeroPostorUsuario == null) {
     const maxPostor = sala.historial.reduce(
-      (m, h) => Math.max(m, h.numeroPostor),
+      (m, h) => Math.max(m, h.numeroPostor ?? 0),
       0,
     );
     sala.numeroPostorUsuario = maxPostor + 1;
@@ -294,6 +299,7 @@ export function pujar(
     {
       id: `h_u_${sala.historial.length}`,
       numeroPostor,
+      postorAlias: `Postor #${numeroPostor}`,
       monto: valorOfertado,
       haceMinutos: 0,
       ganadora: true,

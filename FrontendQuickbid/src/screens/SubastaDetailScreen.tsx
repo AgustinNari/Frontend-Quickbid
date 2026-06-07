@@ -132,11 +132,26 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
 
   const handleEntrarPuja = () => {
     if (!detalle) return;
-    if (!canPerformEconomicActions) {
+    if (isGuest) {
+      navigation.navigate('PujaEnVivo', { subastaId: detalle.id });
+      return;
+    }
+    if (verificacion?.cuentaBloqueada || estadoCuenta === 'bloqueada_permanente') {
       navigation.navigate('LimitedAccess');
       return;
     }
-    Alert.alert('Proximamente', 'La puja en vivo se habilitara en un proximo bloque.');
+    if (estadoCuenta === 'activa' && verificacion && !verificacion.yaInscripto) {
+      Alert.alert(
+        'Inscripcion requerida',
+        'Para entrar a la puja en vivo primero completa la inscripcion a esta subasta.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Inscribirme', onPress: () => navigation.navigate('InscripcionSubasta', { subastaId: detalle.id }) },
+        ],
+      );
+      return;
+    }
+    navigation.navigate('PujaEnVivo', { subastaId: detalle.id });
   };
 
   return (
