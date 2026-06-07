@@ -189,7 +189,11 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
             </View>
           </ScrollView>
 
-          <ItemFooter estado={item.estado} onPujar={handlePujar} />
+          <ItemFooter
+            estado={item.estado}
+            onPujar={handlePujar}
+            onOpenSubasta={() => navigation.navigate('SubastaDetail', { id: subastaId })}
+          />
         </>
       )}
 
@@ -226,18 +230,21 @@ function Hero({ item }: { item: ItemDetalle }) {
 function ItemFooter({
   estado,
   onPujar,
+  onOpenSubasta,
 }: {
   estado: ItemEstado;
   onPujar: () => void;
+  onOpenSubasta: () => void;
 }) {
   if (estado === 'sin_estado') {
     return (
       <View style={styles.footer}>
-        <View style={styles.footerBadgeWrap}>
-          <Badge tone="neutral" variant="soft">
-            Estado del lote no disponible
-          </Badge>
-        </View>
+        <Body muted style={styles.footerStatusText}>
+          El estado en vivo se consulta desde la sala de subasta.
+        </Body>
+        <Button variant="secondary" onPress={onOpenSubasta}>
+          Ver subasta
+        </Button>
       </View>
     );
   }
@@ -616,5 +623,9 @@ const styles = StyleSheet.create({
   footerBadgeWrap: {
     alignItems: 'center',
     paddingVertical: spacing.sm,
+  },
+  footerStatusText: {
+    textAlign: 'center',
+    fontSize: fontSize.sm,
   },
 });

@@ -3,8 +3,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 
-import HomeScreen from './src/screens/HomeScreen';
-import DetailsScreen from './src/screens/DetailsScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SplashScreen from './src/screens/SplashScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
@@ -20,7 +18,6 @@ import NuevaTarjetaScreen from './src/screens/NuevaTarjetaScreen';
 import CuentaBancariaScreen from './src/screens/CuentaBancariaScreen';
 import ChequeCertificadoScreen from './src/screens/ChequeCertificadoScreen';
 import ValidandoPagoScreen from './src/screens/ValidandoPagoScreen';
-import UIShowcaseScreen from './src/screens/UIShowcaseScreen';
 import SubastasScreen from './src/screens/SubastasScreen';
 import SubastaDetailScreen from './src/screens/SubastaDetailScreen';
 import CatalogoSubastaScreen from './src/screens/CatalogoSubastaScreen';
@@ -61,9 +58,6 @@ export type RootStackParamList = {
   CuentaBancaria: undefined;
   ChequeCertificado: undefined;
   ValidandoPago: undefined;
-  Home: undefined;
-  Details: undefined;
-  UIShowcase: undefined;
   Subastas: undefined;
   SubastaDetail: { id: string };
   CatalogoSubasta: { subastaId: string; titulo?: string };
@@ -154,9 +148,6 @@ function AppNavigator() {
             <Stack.Screen name="CuentaBancaria" component={CuentaBancariaScreen} />
             <Stack.Screen name="ChequeCertificado" component={ChequeCertificadoScreen} />
             <Stack.Screen name="ValidandoPago" component={ValidandoPagoScreen} />
-            <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="Details" component={DetailsScreen} />
-            <Stack.Screen name="UIShowcase" component={UIShowcaseScreen} />
             <Stack.Screen name="InscripcionSubasta" component={InscripcionSubastaScreen} />
             <Stack.Screen name="InscripcionExito" component={InscripcionExitoScreen} />
             <Stack.Screen name="PujaExito" component={PujaExitoScreen} />

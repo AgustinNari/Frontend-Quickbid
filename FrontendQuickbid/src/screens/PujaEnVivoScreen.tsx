@@ -77,6 +77,8 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
   const pujaRef = useRef<PujaActual | null>(null);
 
   const liveId = Number(subastaId);
+  const realtimeSubastaId = puja?.subastaId ?? null;
+  const realtimeItemId = puja?.item.id ?? null;
 
   const loadLive = useCallback(async () => {
     if (!isAuthenticated) {
@@ -175,14 +177,20 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
   }, [navigation]);
 
   useEffect(() => {
-    if (!accessToken || !puja || isGuest || estadoCuenta === 'bloqueada_permanente') {
+    if (
+      !accessToken ||
+      !realtimeSubastaId ||
+      !realtimeItemId ||
+      isGuest ||
+      estadoCuenta === 'bloqueada_permanente'
+    ) {
       return;
     }
 
     setRealtimeStatus('connecting');
     const client = createLiveRealtimeClient({
-      subastaId: Number(puja.subastaId),
-      itemId: Number(puja.item.id),
+      subastaId: Number(realtimeSubastaId),
+      itemId: Number(realtimeItemId),
       accessToken,
       includePrivateQueues: isAuthenticated,
       onEvent: handleRealtimeEvent,
@@ -193,7 +201,15 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
 
     client.connect();
     return () => client.disconnect();
-  }, [accessToken, estadoCuenta, handleRealtimeEvent, isAuthenticated, isGuest, puja]);
+  }, [
+    accessToken,
+    estadoCuenta,
+    handleRealtimeEvent,
+    isAuthenticated,
+    isGuest,
+    realtimeItemId,
+    realtimeSubastaId,
+  ]);
 
   const refreshSnapshot = async () => {
     await loadLive();
