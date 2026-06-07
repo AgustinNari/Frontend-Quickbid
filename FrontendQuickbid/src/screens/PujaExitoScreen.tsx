@@ -162,9 +162,11 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
             </View>
           </View>
 
-          <Typography style={styles.postorNota}>
-            Quedaste registrado como Postor #{numeroPostor} en esta subasta.
-          </Typography>
+          {numeroPostor != null ? (
+            <Typography style={styles.postorNota}>
+              Quedaste registrado como Postor #{numeroPostor} en esta subasta.
+            </Typography>
+          ) : null}
 
           {/* Banner informativo sobre Compras */}
           <View style={styles.infoBanner}>

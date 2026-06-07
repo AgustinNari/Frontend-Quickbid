@@ -83,7 +83,7 @@ export type RootStackParamList = {
     subastaId: string;
     itemId: string;
     montoFinal: number;
-    numeroPostor: number;
+    numeroPostor?: number;
   };
   MenuLateral: undefined;
   Notificaciones: undefined;

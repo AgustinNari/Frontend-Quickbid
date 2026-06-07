@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -74,6 +74,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>('idle');
+  const pujaRef = useRef<PujaActual | null>(null);
 
   const liveId = Number(subastaId);
 
@@ -119,6 +120,10 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
     loadLive();
   }, [loadLive]);
 
+  useEffect(() => {
+    pujaRef.current = puja;
+  }, [puja]);
+
   const handleRealtimeEvent = useCallback((event: PujaEventoApi) => {
     setPuja(current => {
       if (!current) return current;
@@ -154,10 +159,12 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
         message: 'Este lote ya cerro. Las compras se conectaran en un bloque posterior.',
       });
     } else if (event.tipo === 'LOTE_GANADO') {
-      setFeedback({
-        tone: 'success',
-        title: 'Lote ganado',
-        message: 'Ganaste el lote. El detalle de compra se habilitara en el bloque de compras.',
+      const current = pujaRef.current;
+      navigation.replace('PujaExito', {
+        subastaId: String(event.subastaId ?? current?.subastaId),
+        itemId: String(event.itemCatalogoId ?? current?.item.id),
+        montoFinal: event.montoAdjudicacion ?? current?.mejorOferta ?? 0,
+        numeroPostor: current?.numeroPostorGanador ?? undefined,
       });
     } else if (
       event.tipo !== 'MEJOR_OFERTA_ACTUALIZADA' &&
@@ -165,7 +172,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
     ) {
       console.warn('Evento live no reconocido', event);
     }
-  }, []);
+  }, [navigation]);
 
   useEffect(() => {
     if (!accessToken || !puja || isGuest || estadoCuenta === 'bloqueada_permanente') {
