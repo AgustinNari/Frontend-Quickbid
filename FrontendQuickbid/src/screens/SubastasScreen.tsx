@@ -110,10 +110,9 @@ export default function SubastasScreen({ navigation }: Props) {
     });
   }, [subastas, segmento, categoria, moneda]);
 
-  const activas = filtered.filter((s) => s.estado === 'activa' || s.estado === 'abierta');
+  const activas = filtered.filter((s) => s.estado === 'activa');
   const proximas = filtered.filter((s) => s.estado === 'proxima');
-  const finalizadas = filtered.filter((s) => s.estado === 'finalizada');
-  const isEmpty = filtered.length === 0;
+  const isEmpty = activas.length === 0 && proximas.length === 0;
 
   const handleOpenSubasta = (s: SubastaResumen) => {
     navigation.navigate('SubastaDetail', { id: s.id });
@@ -154,7 +153,7 @@ export default function SubastasScreen({ navigation }: Props) {
         <View style={styles.activasHeader}>
           <View style={styles.activasTitleRow}>
             <View style={styles.livePulse} />
-            <Heading>Subastas abiertas</Heading>
+            <Heading>Subastas en vivo</Heading>
           </View>
 
           <View style={styles.currencyToggle}>
@@ -186,7 +185,7 @@ export default function SubastasScreen({ navigation }: Props) {
           />
         ) : (
           <View style={styles.activasEmpty}>
-            <Body muted>No hay subastas abiertas con estos filtros.</Body>
+            <Body muted>No hay subastas en vivo con estos filtros.</Body>
           </View>
         )}
 
@@ -242,20 +241,6 @@ export default function SubastasScreen({ navigation }: Props) {
           )}
         </View>
 
-        {finalizadas.length > 0 ? (
-          <View style={styles.proximasWrap}>
-            <Heading style={styles.proximasTitle}>Subastas finalizadas</Heading>
-            <View style={styles.proximasList}>
-              {finalizadas.map((s) => (
-                <SubastaCardCompact
-                  key={s.id}
-                  subasta={s}
-                  onPress={() => handleOpenSubasta(s)}
-                />
-              ))}
-            </View>
-          </View>
-        ) : null}
           </>
         )}
       </ScrollView>

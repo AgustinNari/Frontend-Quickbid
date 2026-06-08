@@ -359,6 +359,26 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
               <MejorOfertaBlock puja={puja} />
               <PujarButton puja={puja} submitting={submitting} onPress={handleOpenBid} />
               <HistorialReciente puja={puja} />
+              <View style={styles.liveNavigationActions}>
+                <Button
+                  variant="secondary"
+                  onPress={() => navigation.navigate('ItemDetail', {
+                    itemId: puja.item.id,
+                    subastaId: puja.subastaId,
+                  })}
+                >
+                  Ver detalle del articulo
+                </Button>
+                <Button
+                  variant="secondary"
+                  onPress={() => navigation.navigate('CatalogoSubasta', {
+                    subastaId: puja.subastaId,
+                    titulo: puja.subastaTitulo,
+                  })}
+                >
+                  Ver catalogo
+                </Button>
+              </View>
             </View>
           </ScrollView>
 
@@ -959,6 +979,9 @@ const styles = StyleSheet.create({
     color: colors.textSubtle,
   },
   historialWrap: {
+    gap: spacing.sm,
+  },
+  liveNavigationActions: {
     gap: spacing.sm,
   },
   historialLabel: {

@@ -30,7 +30,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { ItemCatalogoCard } from '../components/ItemCatalogoCard';
 import { subastasApi } from '../api/subastas';
 import { mapItemCatalogo, mapSubastaDetalle } from '../mappers/subastas';
-import { ItemCatalogo } from '../types/subasta';
+import { ItemCatalogo, SubastaEstado } from '../types/subasta';
 import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CatalogoSubasta'>;
@@ -56,6 +56,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
   const [tituloResolved, setTituloResolved] = useState<string | undefined>(
     tituloParam,
   );
+  const [subastaEstado, setSubastaEstado] = useState<SubastaEstado | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,6 +75,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
       const detalle = mapSubastaDetalle(detalleDto);
       setItems(catalogoDto.items.map(item => mapItemCatalogo(item, detalle)));
       setTituloResolved(tituloParam ?? detalle.titulo);
+      setSubastaEstado(detalle.estado);
     } catch (loadError) {
       setItems([]);
       setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar el catalogo.');
@@ -112,8 +114,11 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
           <View style={styles.tabs}>
             <CatalogoTab label="Catálogo completo" active />
             <CatalogoTab
-              label="Ver en puja actual"
-              onPress={() => navigation.navigate('PujaEnVivo', { subastaId })}
+              label={subastaEstado === 'activa' ? 'Ver en puja actual' : 'Live no iniciado'}
+              comingSoon={subastaEstado !== 'activa'}
+              onPress={subastaEstado === 'activa'
+                ? () => navigation.navigate('PujaEnVivo', { subastaId })
+                : undefined}
             />
           </View>
 

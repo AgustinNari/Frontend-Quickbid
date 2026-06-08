@@ -11,7 +11,7 @@
 // ── Enums / literales ────────────────────────────────────────────────────────
 
 /** Estado de la subasta en su ciclo de vida. */
-export type SubastaEstado = 'activa' | 'abierta' | 'proxima' | 'finalizada';
+export type SubastaEstado = 'activa' | 'proxima' | 'finalizada';
 
 /** Categoría requerida para participar (controla quién puede pujar). */
 export type SubastaCategoria = 'comun' | 'especial' | 'plata' | 'oro' | 'platino';
@@ -180,7 +180,6 @@ export const CATEGORIA_LABEL: Record<SubastaCategoria, string> = {
 
 export const ESTADO_LABEL: Record<SubastaEstado, string> = {
   activa: 'EN VIVO',
-  abierta: 'ABIERTA',
   proxima: 'PRÓXIMA',
   finalizada: 'FINALIZADA',
 };

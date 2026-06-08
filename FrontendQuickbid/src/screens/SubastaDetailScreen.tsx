@@ -140,21 +140,6 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
       navigation.navigate('LimitedAccess');
       return;
     }
-    if (verificacion?.cuentaRestringida || estadoCuenta === 'restriccion_multa') {
-      navigation.navigate('LimitedAccess');
-      return;
-    }
-    if (estadoCuenta === 'activa' && verificacion && !verificacion.yaInscripto) {
-      Alert.alert(
-        'Inscripcion requerida',
-        'Para entrar a la puja en vivo primero completa la inscripcion a esta subasta.',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Inscribirme', onPress: () => navigation.navigate('InscripcionSubasta', { subastaId: detalle.id }) },
-        ],
-      );
-      return;
-    }
     navigation.navigate('PujaEnVivo', { subastaId: detalle.id });
   };
 
@@ -388,7 +373,7 @@ function Hero({ detalle }: { detalle: SubastaDetalle }) {
 
 function BadgeEstado({ estado }: { estado: SubastaDetalle['estado'] }) {
   const tone: 'primary' | 'info' | 'neutral' =
-    estado === 'activa' ? 'primary' : estado === 'proxima' || estado === 'abierta' ? 'info' : 'neutral';
+    estado === 'activa' ? 'primary' : estado === 'proxima' ? 'info' : 'neutral';
   return (
     <Badge tone={tone}>
       {estado === 'activa' ? '● ' : ''}

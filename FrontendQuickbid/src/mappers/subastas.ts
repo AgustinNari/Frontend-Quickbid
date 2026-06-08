@@ -41,7 +41,7 @@ function fechaInicio(dto: SubastaApiResumen) {
 
 function estado(value: string): SubastaResumen['estado'] {
   if (value === 'programada') return 'proxima';
-  if (value === 'abierta') return 'abierta';
+  if (value === 'abierta') return 'proxima';
   if (value === 'en_vivo') return 'activa';
   if (value === 'cerrada' || value === 'finalizada') return 'finalizada';
   return 'proxima';

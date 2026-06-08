@@ -457,6 +457,26 @@ ESM. No cambiar configuracion de Jest dentro de una tarea no relacionada.
 
 ## Fuentes de verdad
 
+## Hallazgos live contra backend real
+
+- En Android/Hermes, el WebSocket abria y `@stomp/stompjs` enviaba `CONNECT`,
+  pero Spring no procesaba el frame de texto terminado en NULL. Configurar
+  `forceBinaryWSFrames: true` conserva el terminador y permite recibir
+  `CONNECTED`, registrar las suscripciones y negociar heartbeat.
+- `GET /api/subastas/{id}/puja-actual` expone `itemActivoId`,
+  `mejorOfertaActual`, `versionEstado`, `puedePujar` y `motivo`, pero no expone
+  timestamp de puja, `retencionHasta`, `reservaHasta`, segundos restantes ni la
+  identidad de la cuenta que mantiene la mejor oferta.
+- Los eventos actuales `MEJOR_OFERTA_ACTUALIZADA`, `ESTADO_ACTUALIZADO`,
+  `PUJA_ACEPTADA`, `PUJA_SUPERADA`, `LOTE_CERRADO` y `LOTE_GANADO` tampoco
+  incluyen una fecha limite de retencion.
+- Por esa falta de datos, el frontend no muestra un countdown de 60 segundos ni
+  bloquea back/detalle/catalogo suponiendo una puja ganadora propia. Hacerlo
+  seria inventar estado que el backend no confirma.
+- El avance fino de lotes requiere eventos como `LOTE_ACTIVADO`,
+  `PROXIMO_LOTE_PROGRAMADO` y `SUBASTA_FINALIZADA`, documentados como parciales.
+  Mientras no esten disponibles, la sala conserva snapshot/refresco HTTP.
+
 Para contratos y comportamiento backend, consultar:
 
 ```text
