@@ -477,6 +477,25 @@ ESM. No cambiar configuracion de Jest dentro de una tarea no relacionada.
   `PROXIMO_LOTE_PROGRAMADO` y `SUBASTA_FINALIZADA`, documentados como parciales.
   Mientras no esten disponibles, la sala conserva snapshot/refresco HTTP.
 
+## Hallazgos de medios de pago y entrega
+
+- `GET /api/usuario/medios-pago` expone `id`, `tipo`, `moneda`, `estado`,
+  `principal`, `aliasVisible`, `ultimos4`, `banco`, `saldoGarantia`,
+  `verificadoHasta` y `createdAt`.
+- Ese contrato no expone limite aprobado, consumo actual, reservas activas ni
+  limite disponible. El frontend no puede mostrar ni validar un remanente antes
+  de pagar sin inventar datos; conserva el rechazo controlado que informa el
+  backend al procesar la operacion.
+- La entrega de una compra reutiliza direcciones guardadas mediante
+  `direccionEnvioId` en `PUT /api/compras/{id}/entrega`.
+- La devolucion de una consignacion recibe direccion, codigo postal, localidad,
+  provincia y telefono como texto en `POST /api/consignaciones/{id}/devolucion`.
+  Ese contrato no acepta `direccionEnvioId`, por lo que no puede reutilizar de
+  forma real la libreta de direcciones sin un cambio backend.
+- El backend no expone una cotizacion de envio previa a configurar la entrega.
+  El costo final se obtiene despues de confirmar la modalidad y refrescar el
+  detalle de la compra.
+
 Para contratos y comportamiento backend, consultar:
 
 ```text

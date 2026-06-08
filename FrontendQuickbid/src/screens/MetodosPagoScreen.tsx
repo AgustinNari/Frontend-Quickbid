@@ -7,7 +7,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { Badge, Button, EmptyState, Icon, Loader } from '../ui';
 import { colors, fontSize, fontWeight, layout, radius, spacing } from '../theme';
 import { mediosPagoApi } from '../api/mediosPago';
-import { MedioPagoDto } from '../types/mediosPago';
+import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MetodosPago'>;
 
@@ -87,8 +87,8 @@ export default function MetodosPagoScreen({ navigation }: Props) {
 }
 
 function PaymentCard({ item, onPrincipal, onDelete }: { item: MedioPagoDto; onPrincipal: () => void; onDelete: () => void }) {
-  const verified = item.estado === 'verificado';
-  const visual = paymentStateVisual(item.estado);
+  const verified = isMedioPagoVigente(item);
+  const visual = paymentStateVisual(item);
   return (
     <View style={styles.card}>
       <View style={styles.row}>
@@ -115,12 +115,16 @@ function PaymentCard({ item, onPrincipal, onDelete }: { item: MedioPagoDto; onPr
 function typeLabel(type: MedioPagoDto['tipo']) {
   return type === 'tarjeta' ? 'Tarjeta' : type === 'cuenta_bancaria' ? 'Cuenta bancaria' : 'Cheque certificado';
 }
-function paymentStateVisual(estado: MedioPagoDto['estado']): {
+function paymentStateVisual(medio: MedioPagoDto): {
   tone: 'success' | 'warning' | 'danger' | 'neutral';
   label: string;
   description: string;
 } {
+  const { estado } = medio;
   if (estado === 'verificado') {
+    if (!isMedioPagoVigente(medio)) {
+      return { tone: 'danger', label: 'VENCIDO', description: 'Necesita revalidacion antes de volver a utilizarse.' };
+    }
     return { tone: 'success', label: 'VERIFICADO', description: 'Listo para operar mientras siga vigente y sea compatible.' };
   }
   if (estado === 'rechazado') {

@@ -27,7 +27,7 @@ import {
   formatMoney,
 } from '../mappers/consignaciones';
 import { ConsignacionFileInput } from '../types/consignacionApi';
-import { MedioPagoDto } from '../types/mediosPago';
+import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConsignacionDetail'>;
 
@@ -55,7 +55,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
 
   const mediosCompatibles = useMemo(() => {
     if (!detalle) return [];
-    return mediosPago.filter(medio => medio.estado === 'verificado' && medio.moneda === detalle.moneda);
+    return mediosPago.filter(medio => isMedioPagoVigente(medio) && medio.moneda === detalle.moneda);
   }, [detalle, mediosPago]);
 
   const load = useCallback(async () => {
@@ -186,7 +186,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
     setActionLoading(true);
     try {
       const medios = await mediosPagoApi.listar();
-      const compatibles = medios.filter(medio => medio.estado === 'verificado' && medio.moneda === detalle.moneda);
+      const compatibles = medios.filter(medio => isMedioPagoVigente(medio) && medio.moneda === detalle.moneda);
       setMediosPago(medios);
       setMedioPagoId(compatibles.find(medio => medio.principal)?.id ?? compatibles[0]?.id ?? null);
       setPaymentModal(true);

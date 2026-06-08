@@ -17,7 +17,7 @@ import { comprasApi, createIdempotencyKey } from '../api/compras';
 import { mediosPagoApi } from '../api/mediosPago';
 import { direccionesApi } from '../api/direcciones';
 import { ApiError } from '../api/client';
-import { MedioPagoDto } from '../types/mediosPago';
+import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
 import { DireccionEnvioDto } from '../types/direcciones';
 import {
   CompraDetalleUi,
@@ -55,7 +55,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
       ]);
       const mapped = mapCompraDetalle(detalle);
       const compatibles = mediosUsuario.filter(
-        medio => medio.estado === 'verificado' && medio.moneda === mapped.moneda,
+        medio => isMedioPagoVigente(medio) && medio.moneda === mapped.moneda,
       );
       const principal = compatibles.find(medio => medio.principal) ?? compatibles[0] ?? null;
       setCompra(mapped);
@@ -87,16 +87,8 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
   );
   const total = compra ? totalParaPago(compra, tipo) : 0;
 
-  const configurarEntrega = async (modo: 'retiro' | 'envio') => {
+  const persistirEntrega = async (modo: 'retiro' | 'envio') => {
     if (!compra) return;
-    if (modo === 'envio' && !direccionPrincipal) {
-      Alert.alert(
-        'Direccion requerida',
-        'Agrega una direccion de envio antes de elegir envio a domicilio.',
-        [{ text: 'Ir a direcciones', onPress: () => navigation.navigate('DireccionesEnvio') }],
-      );
-      return;
-    }
     setConfigurandoEntrega(true);
     try {
       await comprasApi.configurarEntrega(
@@ -111,6 +103,31 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
     } finally {
       setConfigurandoEntrega(false);
     }
+  };
+
+  const configurarEntrega = (modo: 'retiro' | 'envio') => {
+    if (!compra) return;
+    if (modo === 'envio' && !direccionPrincipal) {
+      Alert.alert(
+        'Direccion requerida',
+        'Agrega una direccion de envio antes de elegir envio a domicilio.',
+        [{ text: 'Ir a direcciones', onPress: () => navigation.navigate('DireccionesEnvio') }],
+      );
+      return;
+    }
+
+    const detalleConfirmacion = modo === 'envio'
+      ? `Vas a fijar el envio a ${direccionPrincipal!.calle} ${direccionPrincipal!.numero}, ${direccionPrincipal!.localidad}. El backend informara el costo final.`
+      : 'Vas a fijar retiro en sede, sin envio a domicilio.';
+
+    Alert.alert(
+      modo === 'envio' ? 'Confirmar envio' : 'Confirmar retiro',
+      `${detalleConfirmacion}\n\nLuego no podras cambiar la modalidad de entrega.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Confirmar', onPress: () => persistirEntrega(modo) },
+      ],
+    );
   };
 
   const handleConfirmar = async () => {
