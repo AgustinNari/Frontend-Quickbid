@@ -88,7 +88,7 @@ export const authApi = {
       method: 'POST',
       body: JSON.stringify({
         setup_token: data.setupToken,
-        claveNueva: data.claveNueva,
+        clave: data.claveNueva,
         claveConfirmacion: data.claveConfirmacion,
       }),
       public: true,
