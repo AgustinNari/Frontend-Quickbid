@@ -23,6 +23,15 @@ import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Security'>;
 
+function passwordPolicyMessage(password: string) {
+  if (password.length < 8) return 'La clave debe tener al menos 8 caracteres.';
+  if (!/[a-z]/.test(password)) return 'La clave debe incluir al menos una minuscula.';
+  if (!/[A-Z]/.test(password)) return 'La clave debe incluir al menos una mayuscula.';
+  if (!/\d/.test(password)) return 'La clave debe incluir al menos un numero.';
+  if (!/[^A-Za-z0-9]/.test(password)) return 'La clave debe incluir al menos un simbolo.';
+  return null;
+}
+
 function EyeIcon({ visible }: { visible: boolean }) {
   return (
     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -58,8 +67,9 @@ export default function SecurityScreen({ route, navigation }: Props) {
       Alert.alert('Campos requeridos', 'Completá ambos campos.');
       return;
     }
-    if (password.length < 8) {
-      Alert.alert('Clave muy corta', 'La clave debe tener al menos 8 caracteres.');
+    const policyError = passwordPolicyMessage(password);
+    if (policyError) {
+      Alert.alert('Clave debil', policyError);
       return;
     }
     if (password !== confirm) {
@@ -70,8 +80,11 @@ export default function SecurityScreen({ route, navigation }: Props) {
     setLoading(true);
     try {
       if (isRegistro) {
-        // Flujo de registro — etapa3 usa setupToken
         const setupToken = params.setupToken;
+        if (!setupToken?.trim()) {
+          Alert.alert('Token requerido', 'El enlace de registro no incluye un token valido.');
+          return;
+        }
         const res = await authApi.etapa3({ setupToken, claveNueva: password, claveConfirmacion: confirm });
         if (!res.data) throw new Error('Respuesta inválida del servidor.');
         await login(res.data);
@@ -80,8 +93,12 @@ export default function SecurityScreen({ route, navigation }: Props) {
           routes: [{ name: res.data.estadoCuenta === 'bloqueada_permanente' ? 'LimitedAccess' : 'Subastas' }],
         });
       } else {
-        // Flujo de recuperación — cambiarClave
-        await authApi.cambiarClave((params as { mode: 'recuperacion'; token: string }).token, password, confirm);
+        const recoveryToken = (params as { mode: 'recuperacion'; token: string }).token;
+        if (!recoveryToken?.trim()) {
+          Alert.alert('Token requerido', 'El enlace de recuperacion no incluye un token valido.');
+          return;
+        }
+        await authApi.cambiarClave(recoveryToken, password, confirm);
         Alert.alert(
           'Clave actualizada',
           'Tu contraseña fue cambiada. Iniciá sesión.',
@@ -123,7 +140,7 @@ export default function SecurityScreen({ route, navigation }: Props) {
               <EyeIcon visible={showPass} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.hint}>Mínimo 8 caracteres.</Text>
+          <Text style={styles.hint}>Minimo 8 caracteres, una minuscula, una mayuscula, un numero y un simbolo.</Text>
 
           <Text style={styles.label}>REPETIR CONTRASEÑA</Text>
           <View style={styles.inputRow}>

@@ -357,6 +357,28 @@ Registro:
 Los flujos de setup por token, recuperacion y cambio desde sesion activa son
 independientes.
 
+### Deep links Android para auth
+
+La app soporta estos deep links:
+
+```text
+quickbid://auth/completar-registro?token=...
+quickbid://auth/recuperar-clave?token=...
+```
+
+Para probarlos en Android local:
+
+```powershell
+adb reverse tcp:8080 tcp:8080
+adb reverse tcp:8081 tcp:8081
+adb shell am start -W -a android.intent.action.VIEW -d "quickbid://auth/completar-registro?token=abc"
+adb shell am start -W -a android.intent.action.VIEW -d "quickbid://auth/recuperar-clave?token=abc"
+```
+
+Con un token falso como `abc`, la app abre la pantalla correspondiente y el
+backend debe responder con error controlado cuando se intenta completar la
+operacion.
+
 ## 13. Observaciones conocidas
 
 - Jest puede fallar por configuracion ESM de React Navigation.

@@ -329,6 +329,28 @@ Checklist especifico:
 No enviar registro completo salvo caso controlado y con datos nuevos
 descartables. El flujo completo crea solicitud y consume estados de registro.
 
+## 7.1 Deep links de registro y recuperacion
+
+Precondicion: app instalada en Android y Metro activo.
+
+```powershell
+adb reverse tcp:8080 tcp:8080
+adb reverse tcp:8081 tcp:8081
+adb shell am start -W -a android.intent.action.VIEW -d "quickbid://auth/completar-registro?token=abc"
+adb shell am start -W -a android.intent.action.VIEW -d "quickbid://auth/recuperar-clave?token=abc"
+```
+
+Resultado esperado:
+
+- `quickbid://auth/completar-registro?token=abc` abre la pantalla de nueva
+  clave en modo registro con `setupToken=abc`.
+- `quickbid://auth/recuperar-clave?token=abc` abre la pantalla de nueva clave
+  en modo recuperacion con `token=abc`.
+- Si falta `token`, la app muestra error claro y deriva al flujo manual
+  correspondiente.
+- Con token falso, no crashea; el backend devuelve error controlado al enviar la
+  nueva clave.
+
 ## 8. Compras y documentos
 
 Checklist:

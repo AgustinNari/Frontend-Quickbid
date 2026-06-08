@@ -13,6 +13,8 @@ import CambiarClaveScreen from './src/screens/CambiarClaveScreen';
 import LimitedAccessScreen from './src/screens/LimitedAccessScreen';
 import EnlaceRegistroScreen from './src/screens/EnlaceRegistroScreen';
 import RecuperacionCuentaScreen from './src/screens/RecuperacionCuentaScreen';
+import CompletarRegistroLinkScreen from './src/screens/CompletarRegistroLinkScreen';
+import RecuperarClaveLinkScreen from './src/screens/RecuperarClaveLinkScreen';
 import MetodosPagoScreen from './src/screens/MetodosPagoScreen';
 import SeleccionTipoPagoScreen from './src/screens/SeleccionTipoPagoScreen';
 import NuevaTarjetaScreen from './src/screens/NuevaTarjetaScreen';
@@ -54,6 +56,8 @@ export type RootStackParamList = {
   LimitedAccess: undefined;
   EnlaceRegistro: undefined;
   RecuperacionCuenta: undefined;
+  CompletarRegistroLink: { token?: string };
+  RecuperarClaveLink: { token?: string };
   MetodosPago: undefined;
   SeleccionTipoPago: undefined;
   NuevaTarjeta: undefined;
@@ -106,6 +110,16 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+const linking = {
+  prefixes: ['quickbid://auth'],
+  config: {
+    screens: {
+      CompletarRegistroLink: 'completar-registro',
+      RecuperarClaveLink: 'recuperar-clave',
+    },
+  },
+};
+
 function AppNavigator() {
   const { isAuthenticated, isGuest, canNavigate, estadoCuenta } = useAuth();
   const isBlocked = isAuthenticated && estadoCuenta === 'bloqueada_permanente';
@@ -113,24 +127,26 @@ function AppNavigator() {
   const canUseAuthFlows = !isAuthenticated || isGuest;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator
         initialRouteName="Splash"
         screenOptions={{
           headerShown: false,
         }}
-      >
+        >
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="LimitedAccess" component={LimitedAccessScreen} />
+        <Stack.Screen name="Security" component={SecurityScreen} />
+        <Stack.Screen name="EnlaceRegistro" component={EnlaceRegistroScreen} />
+        <Stack.Screen name="RecuperacionCuenta" component={RecuperacionCuentaScreen} />
+        <Stack.Screen name="CompletarRegistroLink" component={CompletarRegistroLinkScreen} />
+        <Stack.Screen name="RecuperarClaveLink" component={RecuperarClaveLinkScreen} />
         {canUseAuthFlows && (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
             <Stack.Screen name="Identity" component={IdentityScreen} />
-            <Stack.Screen name="Security" component={SecurityScreen} />
             <Stack.Screen name="Verifying" component={VerifyingScreen} />
-            <Stack.Screen name="EnlaceRegistro" component={EnlaceRegistroScreen} />
-            <Stack.Screen name="RecuperacionCuenta" component={RecuperacionCuentaScreen} />
           </>
         )}
         {canUsePublicExperience && (
