@@ -71,6 +71,15 @@ export type ConsignacionDevolucionDto = {
   direccionResumen: string | null;
 };
 
+export type ConsignacionDevolucionPreviewDto = {
+  modalidad: 'retiro' | 'envio';
+  direccionEnvioId: number | null;
+  costo: number;
+  moneda: 'ARS' | 'USD';
+  totalEstimado: number;
+  direccionResumen: string | null;
+};
+
 export type ConsignacionPagoDevolucionDto = {
   id: number;
   devolucionId: number;

@@ -2,6 +2,7 @@ import { apiFetch } from './client';
 import {
   CompraDetalleDto,
   CompraEntregaDto,
+  CompraEntregaPreviewDto,
   CompraEstadoBackend,
   CompraResumenDto,
   ConfigurarEntregaRequest,
@@ -49,6 +50,16 @@ export const comprasApi = {
         body: JSON.stringify(payload),
       })).data,
       'El servidor no devolvio la entrega',
+    );
+  },
+
+  async previewEntrega(id: number, payload: ConfigurarEntregaRequest) {
+    return required(
+      (await apiFetch<CompraEntregaPreviewDto>(`/api/compras/${id}/entrega/preview`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })).data,
+      'El servidor no devolvio la cotizacion de entrega',
     );
   },
 

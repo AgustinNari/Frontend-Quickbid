@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   SafeAreaView,
@@ -19,6 +19,7 @@ import { direccionesApi } from '../api/direcciones';
 import { ApiError } from '../api/client';
 import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
 import { DireccionEnvioDto } from '../types/direcciones';
+import { CompraEntregaPreviewDto, ConfigurarEntregaRequest, EntregaTipo } from '../types/compraApi';
 import {
   CompraDetalleUi,
   mapCompraDetalle,
@@ -39,6 +40,9 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
   const [medioId, setMedioId] = useState<number | null>(null);
   const [cambiandoMedio, setCambiandoMedio] = useState(false);
   const [configurandoEntrega, setConfigurandoEntrega] = useState(false);
+  const [entregaSeleccionada, setEntregaSeleccionada] = useState<EntregaTipo | null>(null);
+  const [previewEntrega, setPreviewEntrega] = useState<CompraEntregaPreviewDto | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { refreshSession } = useAuth();
@@ -61,6 +65,8 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
       setCompra(mapped);
       setMedios(compatibles);
       setDirecciones(direccionesUsuario);
+      setEntregaSeleccionada(mapped.entrega?.tipo ?? null);
+      setPreviewEntrega(null);
       setMedioId(current => current ?? principal?.id ?? null);
     } catch (err) {
       setError(readableError(err));
@@ -85,18 +91,46 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
     () => direcciones.find(direccion => direccion.principal) ?? direcciones[0] ?? null,
     [direcciones],
   );
-  const total = compra ? totalParaPago(compra, tipo) : 0;
+  const total = compra
+    ? tipo === 'comisiones' && !compra.entrega && previewEntrega
+      ? Number(previewEntrega.totalEstimado)
+      : totalParaPago(compra, tipo)
+    : 0;
+  const costoEnvioActual = tipo === 'comisiones' && !compra?.entrega && previewEntrega
+    ? Number(previewEntrega.costoEnvio)
+    : Number(compra?.entrega?.costoEnvio ?? 0);
 
-  const persistirEntrega = async (modo: 'retiro' | 'envio') => {
+  const entregaPayload = useCallback((modo: EntregaTipo): ConfigurarEntregaRequest | null => {
+    if (modo === 'retiro') return { tipo: 'retiro' };
+    if (!direccionPrincipal) return null;
+    return { tipo: 'envio', direccionEnvioId: direccionPrincipal.id };
+  }, [direccionPrincipal]);
+
+  const cotizarEntrega = useCallback(async (modo: EntregaTipo) => {
+    if (!compra || compra.entrega) return;
+    const payload = entregaPayload(modo);
+    if (!payload) {
+      setPreviewEntrega(null);
+      return;
+    }
+    setPreviewLoading(true);
+    try {
+      setPreviewEntrega(await comprasApi.previewEntrega(compra.numericId, payload));
+    } catch (err) {
+      setPreviewEntrega(null);
+      Alert.alert('No pudimos calcular el envio', readableError(err));
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [compra, entregaPayload]);
+
+  const persistirEntrega = async (modo: EntregaTipo) => {
     if (!compra) return;
+    const payload = entregaPayload(modo);
+    if (!payload) return;
     setConfigurandoEntrega(true);
     try {
-      await comprasApi.configurarEntrega(
-        compra.numericId,
-        modo === 'envio'
-          ? { tipo: 'envio', direccionEnvioId: direccionPrincipal!.id }
-          : { tipo: 'retiro' },
-      );
+      await comprasApi.configurarEntrega(compra.numericId, payload);
       await load();
     } catch (err) {
       Alert.alert('No se pudo configurar la entrega', readableError(err));
@@ -105,7 +139,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
     }
   };
 
-  const configurarEntrega = (modo: 'retiro' | 'envio') => {
+  const seleccionarEntrega = (modo: EntregaTipo) => {
     if (!compra) return;
     if (modo === 'envio' && !direccionPrincipal) {
       Alert.alert(
@@ -115,17 +149,25 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
       );
       return;
     }
+    setEntregaSeleccionada(modo);
+    cotizarEntrega(modo);
+  };
 
-    const detalleConfirmacion = modo === 'envio'
-      ? `Vas a fijar el envio a ${direccionPrincipal!.calle} ${direccionPrincipal!.numero}, ${direccionPrincipal!.localidad}. El backend informara el costo final.`
-      : 'Vas a fijar retiro en sede, sin envio a domicilio.';
+  const confirmarEntrega = () => {
+    if (!compra || !entregaSeleccionada) return;
+    const direccion = direccionPrincipal
+      ? `${direccionPrincipal.calle} ${direccionPrincipal.numero}, ${direccionPrincipal.localidad}`
+      : null;
+    const detalleConfirmacion = entregaSeleccionada === 'envio'
+      ? `Modalidad: envio a domicilio\nDireccion: ${direccion}\nCosto de envio: ${formatPrecio(costoEnvioActual, compra.moneda)}\nTotal estimado: ${formatPrecio(total, compra.moneda)}`
+      : `Modalidad: retiro en sede\nCosto de envio: ${formatPrecio(costoEnvioActual, compra.moneda)}\nTotal estimado: ${formatPrecio(total, compra.moneda)}`;
 
     Alert.alert(
-      modo === 'envio' ? 'Confirmar envio' : 'Confirmar retiro',
+      'Confirmar entrega',
       `${detalleConfirmacion}\n\nLuego no podras cambiar la modalidad de entrega.`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Confirmar', onPress: () => persistirEntrega(modo) },
+        { text: 'Confirmar', onPress: () => persistirEntrega(entregaSeleccionada) },
       ],
     );
   };
@@ -133,7 +175,11 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
   const handleConfirmar = async () => {
     if (!compra || !medioSeleccionado) return;
     if (tipo === 'comisiones' && !compra.entrega) {
-      Alert.alert('Elegí entrega', 'Antes de pagar extras tenes que elegir envio o retiro.');
+      if (!entregaSeleccionada || previewLoading || !previewEntrega) {
+        Alert.alert('Elegi entrega', 'Selecciona envio o retiro para ver el total antes de confirmar.');
+        return;
+      }
+      confirmarEntrega();
       return;
     }
     setProcesando(true);
@@ -160,9 +206,10 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
       } else {
         Alert.alert(
           'Pago fallido',
-          pago.errorLabel ?? 'El backend rechazo el pago. Revisá el medio seleccionado o el limite disponible.',
+          pago.errorLabel ?? 'No pudimos aprobar el pago. Revisa el medio seleccionado o el limite disponible.',
         );
         await load();
+        return;
       }
     } catch (err) {
       Alert.alert('No se pudo completar el pago', readableError(err));
@@ -213,7 +260,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
                 <Typography style={styles.itemAutor} numberOfLines={1}>{compra.subtitle}</Typography>
                 <View style={styles.verificadoRow}>
                   <Icon name="check-circle" size={14} color={colors.success} />
-                  <Typography style={styles.verificadoText}>Compra autorizada por backend</Typography>
+                  <Typography style={styles.verificadoText}>Compra autorizada</Typography>
                 </View>
               </View>
             </View>
@@ -223,8 +270,10 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
             <EntregaPicker
               compra={compra}
               direccionPrincipal={direccionPrincipal}
-              loading={configurandoEntrega}
-              onPick={configurarEntrega}
+              selected={entregaSeleccionada}
+              preview={previewEntrega}
+              loading={configurandoEntrega || previewLoading}
+              onPick={seleccionarEntrega}
               onManage={() => navigation.navigate('DireccionesEnvio')}
             />
           ) : null}
@@ -259,7 +308,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
                       <Typography style={styles.medioOptEtiqueta}>{medio.aliasVisible}</Typography>
                       <Typography style={styles.medioOptTipo}>
                         {medioTipoLabel(medio.tipo)}
-                        {medio.ultimos4 ? ` ··· ${medio.ultimos4}` : ''} · {medio.moneda}
+                        {medio.ultimos4 ? ` Â·Â·Â· ${medio.ultimos4}` : ''} Â· {medio.moneda}
                       </Typography>
                     </View>
                     <View style={[styles.radio, selected ? styles.radioSel : null]}>
@@ -287,9 +336,9 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
               ) : (
                 <>
                   <Row label="Comision comprador" value={formatPrecio(compra.comisionComprador, compra.moneda)} />
-                  <Row label="Envio" value={formatPrecio(compra.entrega?.costoEnvio ?? 0, compra.moneda)} />
-                  {!compra.entrega ? (
-                    <Typography style={styles.helpText}>El total final requiere elegir envio o retiro.</Typography>
+                  <Row label="Envio" value={formatPrecio(costoEnvioActual, compra.moneda)} />
+                  {!compra.entrega && !previewEntrega ? (
+                    <Typography style={styles.helpText}>Elegi envio o retiro para ver el total antes de confirmar.</Typography>
                   ) : null}
                 </>
               )}
@@ -297,7 +346,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
               <View style={styles.totalRow}>
                 <View style={styles.totalCopy}>
                   <Typography style={styles.totalLabel}>Total a pagar</Typography>
-                  <Typography style={styles.totalNota}>Segun estado actual de backend</Typography>
+                  <Typography style={styles.totalNota}>Segun el estado actual de la compra</Typography>
                 </View>
                 <Typography style={styles.totalValue}>{formatPrecio(total, compra.moneda)}</Typography>
               </View>
@@ -310,10 +359,10 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
         <Button
           onPress={handleConfirmar}
           loading={procesando}
-          disabled={!medioSeleccionado || (tipo === 'comisiones' && !compra.entrega)}
+          disabled={!medioSeleccionado || (tipo === 'comisiones' && !compra.entrega && (!entregaSeleccionada || !previewEntrega || previewLoading))}
           leftIcon={<Icon name="lock" color={colors.textInverse} size={16} />}
         >
-          {procesando ? 'Procesando...' : 'Confirmar y pagar ahora'}
+          {procesando ? 'Procesando...' : tipo === 'comisiones' && !compra.entrega ? 'Confirmar entrega' : 'Confirmar y pagar ahora'}
         </Button>
       </View>
     </SafeAreaView>
@@ -323,14 +372,18 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
 function EntregaPicker({
   compra,
   direccionPrincipal,
+  selected,
+  preview,
   loading,
   onPick,
   onManage,
 }: {
   compra: CompraDetalleUi;
   direccionPrincipal: DireccionEnvioDto | null;
+  selected: EntregaTipo | null;
+  preview: CompraEntregaPreviewDto | null;
   loading: boolean;
-  onPick: (modo: 'retiro' | 'envio') => void;
+  onPick: (modo: EntregaTipo) => void;
   onManage: () => void;
 }) {
   return (
@@ -345,17 +398,22 @@ function EntregaPicker({
           </Typography>
         ) : (
           <View style={styles.entregaActions}>
-            <Button variant="secondary" size="sm" loading={loading} onPress={() => onPick('retiro')} fullWidth={false}>
-              Retiro en sede
+            <Button variant={selected === 'retiro' ? 'primary' : 'secondary'} size="sm" loading={loading && selected === 'retiro'} onPress={() => onPick('retiro')} fullWidth={false}>
+              {selected === 'retiro' ? 'Retiro seleccionado' : 'Retiro en sede'}
             </Button>
-            <Button size="sm" loading={loading} onPress={() => onPick('envio')} fullWidth={false}>
-              Enviar
+            <Button variant={selected === 'envio' ? 'primary' : 'secondary'} size="sm" loading={loading && selected === 'envio'} onPress={() => onPick('envio')} fullWidth={false}>
+              {selected === 'envio' ? 'Envio seleccionado' : 'Enviar'}
             </Button>
           </View>
         )}
+        {!compra.entrega && selected ? (
+          <Typography style={styles.helpText}>
+            Costo de envio: {preview ? formatPrecio(preview.costoEnvio, preview.moneda) : 'Calculando...'}
+          </Typography>
+        ) : null}
         {direccionPrincipal ? (
           <Typography style={styles.direccionText} numberOfLines={2}>
-            Direccion principal: {direccionPrincipal.alias} · {direccionPrincipal.calle} {direccionPrincipal.numero}, {direccionPrincipal.localidad}
+            Direccion principal: {direccionPrincipal.alias} Â· {direccionPrincipal.calle} {direccionPrincipal.numero}, {direccionPrincipal.localidad}
           </Typography>
         ) : (
           <Button variant="secondary" size="sm" onPress={onManage}>
@@ -377,7 +435,7 @@ function Row({ label, value, danger }: { label: string; value: string; danger?: 
 }
 
 function medioLabel(medio: MedioPagoDto) {
-  const last4 = medio.ultimos4 ? ` ··· ${medio.ultimos4}` : '';
+  const last4 = medio.ultimos4 ? ` Â·Â·Â· ${medio.ultimos4}` : '';
   return `${medio.aliasVisible}${last4}`;
 }
 
@@ -390,7 +448,7 @@ function medioTipoLabel(tipo: MedioPagoDto['tipo']) {
 function readableError(err: unknown) {
   if (err instanceof ApiError) return err.message;
   if (err instanceof Error) return err.message;
-  return 'El backend no esta disponible. Probalo de nuevo en unos minutos.';
+  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
 }
 
 const hitSlop = { top: 10, bottom: 10, left: 10, right: 10 };

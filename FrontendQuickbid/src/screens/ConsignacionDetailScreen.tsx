@@ -26,7 +26,7 @@ import {
   mapConsignacionDetalle,
   formatMoney,
 } from '../mappers/consignaciones';
-import { ConsignacionFileInput } from '../types/consignacionApi';
+import { ConsignacionDevolucionPreviewDto, ConsignacionFileInput } from '../types/consignacionApi';
 import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
 import { DireccionEnvioDto } from '../types/direcciones';
 
@@ -46,6 +46,8 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
   const [leyoContrato, setLeyoContrato] = useState(false);
   const [aceptaClausulas, setAceptaClausulas] = useState(false);
   const [modalidadDevolucion, setModalidadDevolucion] = useState<'retiro' | 'envio'>('retiro');
+  const [previewDevolucion, setPreviewDevolucion] = useState<ConsignacionDevolucionPreviewDto | null>(null);
+  const [previewDevolucionLoading, setPreviewDevolucionLoading] = useState(false);
   const [direcciones, setDirecciones] = useState<DireccionEnvioDto[]>([]);
   const [direccionEnvioId, setDireccionEnvioId] = useState<number | null>(null);
   const [mediosPago, setMediosPago] = useState<MedioPagoDto[]>([]);
@@ -73,6 +75,35 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!returnModal || !detalle) return;
+    if (modalidadDevolucion === 'envio' && !direccionEnvioId) {
+      setPreviewDevolucion(null);
+      return;
+    }
+    let active = true;
+    setPreviewDevolucionLoading(true);
+    consignacionesApi.previewDevolucion(detalle.numericId, {
+      modalidad: modalidadDevolucion,
+      direccionEnvioId: modalidadDevolucion === 'envio' ? direccionEnvioId ?? undefined : undefined,
+    })
+      .then(preview => {
+        if (active) setPreviewDevolucion(preview);
+      })
+      .catch(err => {
+        if (active) {
+          setPreviewDevolucion(null);
+          Alert.alert('No pudimos calcular la devolucion', readableError(err));
+        }
+      })
+      .finally(() => {
+        if (active) setPreviewDevolucionLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [returnModal, detalle, modalidadDevolucion, direccionEnvioId]);
 
   const subirDocumentacion = async () => {
     if (!detalle) return;
@@ -129,7 +160,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
     if (!detalle) return;
     Alert.alert(
       'Rechazar acuerdo',
-      'Si rechazas la propuesta, el backend registrara el rechazo y podra generar una devolucion pendiente.',
+      'Si rechazas la propuesta, se registrara el rechazo y podria quedar una devolucion pendiente.',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -159,6 +190,8 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
       const values = await direccionesApi.listar();
       setDirecciones(values);
       setDireccionEnvioId(values.find(value => value.principal)?.id ?? values[0]?.id ?? null);
+      setModalidadDevolucion('retiro');
+      setPreviewDevolucion(null);
       setReturnModal(true);
     } catch (err) {
       Alert.alert('No se pudieron cargar direcciones', readableError(err));
@@ -190,12 +223,19 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
       Alert.alert('Direccion requerida', 'Agrega o selecciona una direccion guardada para continuar.');
       return;
     }
+    if (!previewDevolucion || previewDevolucionLoading) {
+      Alert.alert('Costo pendiente', 'Espera a que calculemos el costo antes de confirmar.');
+      return;
+    }
     const selected = direcciones.find(value => value.id === direccionEnvioId);
+    const costo = formatMoney(previewDevolucion.costo, previewDevolucion.moneda);
+    const total = formatMoney(previewDevolucion.totalEstimado, previewDevolucion.moneda);
+    const resumen = modalidadDevolucion === 'envio'
+      ? `Modalidad: envio a domicilio\nDireccion: ${selected ? direccionLabel(selected) : previewDevolucion.direccionResumen ?? 'direccion seleccionada'}\nCosto de devolucion: ${costo}\nTotal estimado: ${total}`
+      : `Modalidad: retiro en sucursal\nCosto de devolucion: ${costo}\nTotal estimado: ${total}`;
     Alert.alert(
       'Confirmar devolucion',
-      modalidadDevolucion === 'envio'
-        ? `Se usara ${selected ? direccionLabel(selected) : 'la direccion seleccionada'} para la devolucion.`
-        : 'La devolucion quedara configurada para retiro en sucursal.',
+      `${resumen}\n\nLuego no podras cambiar la modalidad de devolucion.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Confirmar', onPress: persistirDevolucion },
@@ -318,7 +358,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                   <Typography style={styles.rechazoTitulo}>Documentacion de origen requerida</Typography>
                 </View>
                 <Body style={styles.rechazoMotivo}>
-                  El backend permite adjuntar factura o comprobante como imagen/PDF. En mobile usamos selector de imagenes para una carga minima.
+                  Adjunta factura o comprobante como imagen o PDF para continuar con la revision.
                 </Body>
                 <Button onPress={subirDocumentacion} loading={uploadingDoc} leftIcon={<Icon name="upload" size={18} color={colors.textInverse} />}>
                   Subir foto de documento
@@ -431,6 +471,8 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
             modalidad={modalidadDevolucion}
             direcciones={direcciones}
             direccionEnvioId={direccionEnvioId}
+            preview={previewDevolucion}
+            previewLoading={previewDevolucionLoading}
             loading={actionLoading}
             onModalidad={setModalidadDevolucion}
             onDireccion={setDireccionEnvioId}
@@ -591,6 +633,8 @@ function ReturnModal({
   modalidad,
   direcciones,
   direccionEnvioId,
+  preview,
+  previewLoading,
   loading,
   onModalidad,
   onDireccion,
@@ -602,6 +646,8 @@ function ReturnModal({
   modalidad: 'retiro' | 'envio';
   direcciones: DireccionEnvioDto[];
   direccionEnvioId: number | null;
+  preview: ConsignacionDevolucionPreviewDto | null;
+  previewLoading: boolean;
   loading: boolean;
   onModalidad: (value: 'retiro' | 'envio') => void;
   onDireccion: (value: number) => void;
@@ -615,7 +661,7 @@ function ReturnModal({
         <View style={styles.modalSheet}>
           <Typography style={styles.modalEyebrow}>DEVOLUCION</Typography>
           <Heading style={styles.modalTitle}>Gestionar devolucion</Heading>
-          <Body style={styles.modalText}>Elegi una modalidad real soportada por el backend.</Body>
+          <Body style={styles.modalText}>Elegi como queres recuperar el bien.</Body>
           <View style={styles.segmented}>
             <SegmentButton label="Retiro" selected={modalidad === 'retiro'} onPress={() => onModalidad('retiro')} />
             <SegmentButton label="Envio" selected={modalidad === 'envio'} onPress={() => onModalidad('envio')} />
@@ -654,8 +700,19 @@ function ReturnModal({
               <Typography style={styles.infoSoftText}>Retiro en sucursal no genera pago de envio.</Typography>
             </View>
           )}
+          <View style={styles.modalSummary}>
+            <InfoRow label="Modalidad" value={modalidad === 'envio' ? 'Envio a domicilio' : 'Retiro en sucursal'} />
+            <InfoRow
+              label="Costo"
+              value={previewLoading ? 'Calculando...' : preview ? formatMoney(preview.costo, preview.moneda) : 'Pendiente'}
+            />
+            <InfoRow
+              label="Total"
+              value={previewLoading ? 'Calculando...' : preview ? formatMoney(preview.totalEstimado, preview.moneda) : 'Pendiente'}
+            />
+          </View>
           <View style={styles.modalActions}>
-            <Button onPress={onConfirm} loading={loading} disabled={modalidad === 'envio' && !direccionEnvioId}>
+            <Button onPress={onConfirm} loading={loading} disabled={previewLoading || !preview || (modalidad === 'envio' && !direccionEnvioId)}>
               Confirmar devolucion
             </Button>
             <Button variant="ghost" onPress={onClose} disabled={loading}>
@@ -775,7 +832,7 @@ function assetToFile(asset?: Asset): ConsignacionFileInput | null {
 function readableError(err: unknown) {
   if (err instanceof ApiError) return err.message;
   if (err instanceof Error) return err.message;
-  return 'El backend no esta disponible. Probalo de nuevo en unos minutos.';
+  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
 }
 
 function medioTipoLabel(tipo: MedioPagoDto['tipo']) {

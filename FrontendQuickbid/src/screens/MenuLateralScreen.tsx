@@ -185,7 +185,7 @@ export default function MenuLateralScreen({ navigation }: Props) {
           <View style={styles.idRow}>
             <Text style={styles.idText}>{user?.email ?? ''}</Text>
             <View style={styles.verificadoBadge}>
-              <Text style={styles.verificadoText}>Nivel Verificado</Text>
+              <Text style={styles.verificadoText}>Cuenta verificada</Text>
             </View>
           </View>
 
@@ -224,7 +224,7 @@ export default function MenuLateralScreen({ navigation }: Props) {
           />
           <MenuItem
             icon={<SubastasIcon color={currentRoute === 'Estadisticas' ? colors.primary : colors.textMuted} />}
-            label="Estadisticas"
+            label="Estadísticas"
             active={currentRoute === 'Estadisticas'}
             onPress={() => { close(); navigation.navigate('Estadisticas'); }}
           />
@@ -236,12 +236,12 @@ export default function MenuLateralScreen({ navigation }: Props) {
           />
           <MenuItem
             icon={<BagIcon color={colors.textMuted} />}
-            label="Metodos de pago"
+            label="Métodos de pago"
             onPress={() => { close(); navigation.navigate('MetodosPago'); }}
           />
           <MenuItem
             icon={<UserIcon color={colors.textMuted} />}
-            label="Direccion de envio"
+            label="Dirección de envío"
             onPress={() => { close(); navigation.navigate('DireccionesEnvio'); }}
           />
           <MenuItem

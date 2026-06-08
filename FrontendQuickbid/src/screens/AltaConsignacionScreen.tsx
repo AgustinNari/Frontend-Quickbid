@@ -78,7 +78,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   const elegirFotos = async () => {
     const remaining = MAX_FOTOS - fotos.length;
     if (remaining <= 0) {
-      Alert.alert('Limite alcanzado', `El backend permite un maximo de ${MAX_FOTOS} fotos.`);
+      Alert.alert('Limite alcanzado', `Podes cargar hasta ${MAX_FOTOS} fotos.`);
       return;
     }
     const result = await launchImageLibrary({
@@ -184,7 +184,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
               <Body muted style={styles.subtitulo}>
                 {paso === 1
                   ? 'Revisa requisitos reales y acepta las condiciones para empezar.'
-                  : 'Carga datos y fotos reales para enviar la solicitud al backend.'}
+                  : 'Carga datos y fotos reales para enviar la solicitud.'}
               </Body>
 
               {paso === 1 ? (
@@ -421,7 +421,7 @@ function assetToFile(asset: Asset): ConsignacionFileInput | null {
 function readableError(err: unknown) {
   if (err instanceof ApiError) return err.message;
   if (err instanceof Error) return err.message;
-  return 'El backend no esta disponible. Probalo de nuevo en unos minutos.';
+  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
 }
 
 const styles = StyleSheet.create({

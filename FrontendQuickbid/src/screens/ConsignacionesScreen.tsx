@@ -118,7 +118,7 @@ export default function ConsignacionesScreen({ navigation }: Props) {
           <View style={styles.warningBox}>
             <Icon name="info" size={17} color={colors.warning} />
             <Typography style={styles.warningText}>
-              Tu cuenta tiene restriccion por multa, pero el backend permite consultar y crear consignaciones.
+              Tu cuenta tiene restriccion por multa, pero podes consultar y crear consignaciones.
             </Typography>
           </View>
         ) : null}
@@ -210,7 +210,7 @@ function ConsignacionItem({ item, onVerDetalle }: { item: ConsignacionResumenUi;
 function readableError(err: unknown) {
   if (err instanceof ApiError) return err.message;
   if (err instanceof Error) return err.message;
-  return 'El backend no esta disponible. Probalo de nuevo en unos minutos.';
+  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
 }
 
 const itemStyles = StyleSheet.create({

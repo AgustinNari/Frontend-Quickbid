@@ -19,7 +19,7 @@ export default function InscripcionExitoScreen({ navigation, route }: Props) {
     ? 'La solicitud no pudo aprobarse. Revisa el estado de tu medio de pago e intenta nuevamente.'
     : pending
       ? 'Tu inscripcion quedo pendiente mientras el equipo revisa o revalida el medio de pago seleccionado.'
-      : 'Tu inscripcion esta aprobada. La verificacion del backend confirmo que cumples las condiciones.';
+      : 'Tu inscripcion esta aprobada. Cumplis las condiciones para participar.';
 
   return (
     <SafeAreaView style={styles.safe}>

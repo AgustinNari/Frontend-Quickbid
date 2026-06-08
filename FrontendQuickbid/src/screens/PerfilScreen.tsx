@@ -89,16 +89,16 @@ export default function PerfilScreen({ navigation }: Props) {
           <View style={styles.card}>
             <MenuRow icon="clock" title="Historial" subtitle="Pujas, compras y resultados reales" onPress={() => navigation.navigate('Historial')} />
             <Divider />
-            <MenuRow icon="star" title="Estadisticas" subtitle="Rendimiento por periodo" onPress={() => navigation.navigate('Estadisticas')} />
+            <MenuRow icon="star" title="Estadísticas" subtitle="Rendimiento por periodo" onPress={() => navigation.navigate('Estadisticas')} />
             <Divider />
             <MenuRow icon="bell" title="Notificaciones" subtitle="Novedades de tu cuenta" onPress={() => navigation.navigate('Notificaciones')} />
           </View>
 
           <Text style={styles.sectionLabel}>CUENTA</Text>
           <View style={styles.card}>
-            <MenuRow icon="card" title="Metodos de pago" subtitle="Gestion existente" onPress={() => navigation.navigate('MetodosPago')} />
+            <MenuRow icon="card" title="Métodos de pago" subtitle="Gestión existente" onPress={() => navigation.navigate('MetodosPago')} />
             <Divider />
-            <MenuRow icon="check-doc" title="Direccion de envio" subtitle="Gestiona tus direcciones" onPress={() => navigation.navigate('DireccionesEnvio')} />
+            <MenuRow icon="check-doc" title="Dirección de envío" subtitle="Gestiona tus direcciones" onPress={() => navigation.navigate('DireccionesEnvio')} />
             <Divider />
             <MenuRow icon="lock" title="Seguridad" subtitle="Cambia tu contrasena" onPress={() => navigation.navigate('CambiarClave')} />
           </View>

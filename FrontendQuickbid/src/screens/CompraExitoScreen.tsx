@@ -38,7 +38,7 @@ export default function CompraExitoScreen({ navigation, route }: Props) {
               <Icon name="check" size={34} color={colors.textInverse} />
             </View>
             <Heading style={styles.titulo}>Compra completada con exito</Heading>
-            <Body muted style={styles.subcopy}>El backend registro el pago de forma segura.</Body>
+            <Body muted style={styles.subcopy}>Pago registrado correctamente.</Body>
           </View>
 
           <Card variant="flat" padding="none" style={styles.itemCard}>
@@ -76,11 +76,11 @@ export default function CompraExitoScreen({ navigation, route }: Props) {
 
           {docPrincipal ? (
             <Typography style={styles.documentoNota}>
-              Metadata generada: {docPrincipal}
+              Documento generado: {docPrincipal}
             </Typography>
           ) : (
             <Typography style={styles.documentoNota}>
-              Si el documento no aparece todavia, revisa Mis Compras para refrescar la metadata.
+              Si el documento no aparece todavia, revisa Mis Compras para actualizar la informacion.
             </Typography>
           )}
 

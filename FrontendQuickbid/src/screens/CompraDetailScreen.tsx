@@ -75,7 +75,7 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
       showDocumento(documentos[0]);
       return;
     }
-    Alert.alert('Documentos', 'Todavia no hay metadata de documentos disponible para esta compra.');
+    Alert.alert('Documentos', 'Todavia no hay documentos disponibles para esta compra.');
   };
 
   return (
@@ -239,11 +239,10 @@ function EntregaSection({ compra }: { compra: CompraDetalleUi }) {
         <>
           <EconRow label="Estado entrega" value={humanize(compra.entrega.estado)} />
           <EconRow label="Costo" value={formatPrecio(compra.entrega.costoEnvio, compra.moneda)} />
-          {compra.entrega.direccionEnvioId ? <EconRow label="Direccion ID" value={`#${compra.entrega.direccionEnvioId}`} /> : null}
-          {compra.direccionSnapshotLabel ? <EconRow label="Direccion congelada" value={compra.direccionSnapshotLabel} /> : null}
+          {compra.direccionSnapshotLabel ? <EconRow label="Direccion registrada" value={compra.direccionSnapshotLabel} /> : null}
         </>
       ) : editable ? (
-        <Typography style={styles.helpText}>La seleccion se hace en el resumen de pago antes de llamar a /entrega.</Typography>
+        <Typography style={styles.helpText}>La seleccion se hace en el resumen de pago antes de confirmar.</Typography>
       ) : null}
     </View>
   );
@@ -262,7 +261,7 @@ function DocumentosSection({
     <View style={styles.infoCard}>
       <View style={styles.infoHeader}>
         <Icon name="check-doc" size={18} color={colors.primary} />
-        <Typography style={styles.econLabel}>DOCUMENTOS METADATA</Typography>
+        <Typography style={styles.econLabel}>DOCUMENTOS</Typography>
       </View>
       {error ? <Typography style={styles.helpText}>{error}</Typography> : null}
       {!error && documentos.length === 0 ? (
@@ -363,7 +362,7 @@ function showDocumento(doc: DocumentoCompraUi) {
 function readableError(err: unknown) {
   if (err instanceof ApiError) return err.message;
   if (err instanceof Error) return err.message;
-  return 'El backend no esta disponible. Probalo de nuevo en unos minutos.';
+  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
 }
 
 function formatShortDate(iso: string | null) {

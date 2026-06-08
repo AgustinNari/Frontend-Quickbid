@@ -200,7 +200,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       setFeedback({
         tone: 'danger',
         title: 'Puja rechazada',
-        message: event.message ?? 'El backend rechazo la puja. Actualiza la sala e intenta nuevamente.',
+        message: event.message ?? 'No pudimos registrar la oferta. Actualiza la sala e intenta nuevamente.',
       });
     } else if (event.tipo === 'LOTE_CERRADO') {
       setFeedback({
@@ -330,8 +330,8 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
         : current);
       setFeedback({
         tone: 'success',
-        title: response.idempotentReplay ? 'Puja ya registrada' : 'Puja aceptada',
-        message: `${formatPrecio(response.monto, response.moneda === 'USD' ? 'USD' : 'ARS')} fue enviada por HTTP y quedo registrada.`,
+        title: response.idempotentReplay ? 'Oferta ya registrada' : 'Oferta aceptada',
+        message: `${formatPrecio(response.monto, response.moneda === 'USD' ? 'USD' : 'ARS')} quedo registrada.`,
       });
     } catch (bidError) {
       const message = readableError(bidError, 'No pudimos registrar la puja.');
@@ -385,7 +385,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
                 <StatusBanner
                   tone="danger"
                   icon="alert"
-                  text="Realtime no esta disponible. El snapshot funciona; podes refrescar antes de ofertar."
+                  text="La actualizacion en vivo no esta disponible. Podes refrescar antes de ofertar."
                   actionLabel="Reintentar"
                   onAction={refreshSnapshot}
                 />
@@ -495,10 +495,10 @@ function SalaHeader({ puja, realtimeStatus }: { puja: PujaActual; realtimeStatus
           ]} />
           <Typography style={styles.realtimeText}>
             {realtimeStatus === 'connected'
-              ? 'Realtime activo'
+              ? 'En vivo'
               : realtimeStatus === 'connecting'
                 ? 'Conectando'
-                : 'Snapshot'}
+                : 'Actualizar'}
           </Typography>
         </View>
       </View>
@@ -583,7 +583,7 @@ function MejorOfertaBlock({ puja, secondsRemaining }: { puja: PujaActual; second
           <Typography style={styles.mejorOfertaValue}>{formatPrecio(puja.precioBase, puja.moneda)}</Typography>
         </>
       )}
-      <Typography style={styles.versionText}>Version estado {puja.versionEstado}</Typography>
+      <Typography style={styles.versionText}>Ultima actualizacion reciente</Typography>
       {secondsRemaining != null ? (
         <View style={styles.countdownRow}>
           <Icon name="clock" size={18} color={colors.warning} />
@@ -637,7 +637,7 @@ function HistorialReciente({ puja }: { puja: PujaActual }) {
               <View style={styles.historialInfo}>
                 <Typography style={styles.historialPostor}>{item.postorAlias}</Typography>
                 <Typography style={styles.historialTiempo}>
-                  {item.versionEstado ? `Version ${item.versionEstado}` : 'Snapshot'}
+                  {item.ganadora ? 'Mejor oferta actual' : 'Oferta actualizada'}
                 </Typography>
               </View>
               <Typography style={[styles.historialMonto, item.ganadora ? styles.historialMontoGanadora : null]}>
@@ -823,7 +823,7 @@ function SubmittingOverlay({ visible, puja }: { visible: boolean; puja: PujaActu
           </View>
           <Heading style={styles.overlayTitle}>Enviando tu puja...</Heading>
           <Body muted style={styles.overlayText}>
-            La oferta se envia por HTTP y el resultado se valida con el backend.
+            Estamos procesando tu oferta.
           </Body>
           {puja ? (
             <View style={styles.overlaySummary}>
@@ -881,7 +881,7 @@ function readableError(error: unknown, fallback: string) {
 function bloqueoPujaMessage(puja: PujaActual) {
   if (puja.loteCerrado) return 'El lote ya esta cerrado.';
   if (puja.mediosParaPujar.length === 0) return 'Necesitas un medio de pago verificado vigente compatible para pujar.';
-  return 'El backend indica que no cumplis las condiciones para pujar en este momento.';
+  return 'No cumplis las condiciones para pujar en este momento.';
 }
 
 const hitSlop = { top: 10, bottom: 10, left: 10, right: 10 };

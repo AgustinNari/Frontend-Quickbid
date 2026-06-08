@@ -268,7 +268,7 @@ export default function RegisterScreen({ navigation }: Props) {
 function readableError(error: unknown) {
   if (error instanceof ApiError) return error.message;
   if (error instanceof Error) return error.message;
-  return 'No se pudo cargar el catalogo de paises. Verifica que el backend este disponible.';
+  return 'No se pudo cargar el catalogo de paises. Probalo de nuevo en unos minutos.';
 }
 
 const styles = StyleSheet.create({

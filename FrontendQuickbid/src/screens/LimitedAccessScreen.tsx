@@ -116,7 +116,7 @@ export default function LimitedAccessScreen({ navigation }: Props) {
             description={isRestricted
               ? 'Regulariza la multa desde tus compras para volver a inscribirte y pujar.'
               : isBlocked
-                ? 'Los endpoints protegidos no estan disponibles para esta sesion limitada.'
+                ? 'Las funciones protegidas no estan disponibles para esta sesion limitada.'
                 : 'Las operaciones requieren una cuenta registrada y habilitada.'}
           />
           <FeatureItem
@@ -124,7 +124,7 @@ export default function LimitedAccessScreen({ navigation }: Props) {
             title={isGuest ? 'Sesion requerida' : 'Estado de cuenta'}
             description={isGuest
               ? 'Al iniciar sesion vas a poder ver precios, compras, consignaciones y notificaciones.'
-              : 'QuickBid respeta el estado que informa el backend para cada accion.'}
+              : 'QuickBid usa el estado de tu cuenta para habilitar cada accion.'}
           />
         </Card>
 

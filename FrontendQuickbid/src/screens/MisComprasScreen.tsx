@@ -241,7 +241,7 @@ function TabButton({ label, active, onPress }: { label: string; active: boolean;
 function readableError(err: unknown) {
   if (err instanceof ApiError) return err.message;
   if (err instanceof Error) return err.message;
-  return 'El backend no esta disponible. Probalo de nuevo en unos minutos.';
+  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
 }
 
 const styles = StyleSheet.create({

@@ -4,6 +4,7 @@ import {
   ConsignacionFiltro,
   ConsignacionPageDto,
   ConsignacionPagoDevolucionDto,
+  ConsignacionDevolucionPreviewDto,
   ConsignacionRequisitosDto,
   ConsignacionResumenDto,
   ConsignacionDevolucionDto,
@@ -117,6 +118,16 @@ export const consignacionesApi = {
         body: JSON.stringify(payload),
       })).data,
       'El servidor no devolvio la devolucion registrada',
+    );
+  },
+
+  async previewDevolucion(id: number, payload: SeleccionarDevolucionRequest) {
+    return required(
+      (await apiFetch<ConsignacionDevolucionPreviewDto>(`/api/consignaciones/${id}/devolucion/preview`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })).data,
+      'El servidor no devolvio la cotizacion de devolucion',
     );
   },
 

@@ -42,6 +42,15 @@ export type CompraEntregaDto = {
   direccionSnapshotAt: string | null;
 };
 
+export type CompraEntregaPreviewDto = {
+  tipo: EntregaTipo;
+  direccionEnvioId: number | null;
+  costoEnvio: number;
+  moneda: 'ARS' | 'USD';
+  comisionComprador: number;
+  totalEstimado: number;
+};
+
 export type CompraMultaDto = {
   id: number;
   monto: number;
