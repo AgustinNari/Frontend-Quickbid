@@ -8,18 +8,34 @@ function required<T>(data: T | null): T {
 
 export const direccionesApi = {
   async listar() {
-    return required((await apiFetch<DireccionEnvioDto[]>('/api/usuario/direcciones-envio')).data);
+    return required(
+      (await apiFetch<DireccionEnvioDto[]>('/api/usuario/direcciones-envio'))
+        .data,
+    );
   },
   async crear(payload: CrearDireccionRequest) {
-    return required((await apiFetch<DireccionEnvioDto>('/api/usuario/direcciones-envio', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    })).data);
+    return required(
+      (
+        await apiFetch<DireccionEnvioDto>('/api/usuario/direcciones-envio', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        })
+      ).data,
+    );
   },
   async eliminar(id: number) {
-    await apiFetch(`/api/usuario/direcciones-envio/${id}`, { method: 'DELETE' });
+    await apiFetch(`/api/usuario/direcciones-envio/${id}`, {
+      method: 'DELETE',
+    });
   },
   async marcarPrincipal(id: number) {
-    return required((await apiFetch<DireccionEnvioDto>(`/api/usuario/direcciones-envio/${id}/principal`, { method: 'PATCH' })).data);
+    return required(
+      (
+        await apiFetch<DireccionEnvioDto>(
+          `/api/usuario/direcciones-envio/${id}/principal`,
+          { method: 'PATCH' },
+        )
+      ).data,
+    );
   },
 };

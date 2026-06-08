@@ -39,7 +39,12 @@ function construirEtapas(
   return ETAPAS_LABELS.map((label, i) => {
     let st: EtapaEstado;
     if (estado === 'rechazada' || estado === 'devolucion_pendiente') {
-      st = i < rechazoEnEtapa ? 'completada' : i === rechazoEnEtapa ? 'rechazada' : 'pendiente';
+      st =
+        i < rechazoEnEtapa
+          ? 'completada'
+          : i === rechazoEnEtapa
+          ? 'rechazada'
+          : 'pendiente';
     } else {
       const p = PROGRESO[estado];
       st = i < p ? 'completada' : i === p ? 'actual' : 'pendiente';
@@ -168,8 +173,8 @@ export function getRequisitos(): {
     },
   ];
   const puedeContinuar = requisitos
-    .filter((r) => r.obligatorio)
-    .every((r) => r.cumplido);
+    .filter(r => r.obligatorio)
+    .every(r => r.cumplido);
   return { puedeContinuar, requisitos };
 }
 
@@ -232,7 +237,11 @@ export function aceptarAcuerdo(id: string): ResultadoConsignacion {
   if (!det) {
     return {
       ok: false,
-      error: { codigo: 404, tipo: 'NO_ENCONTRADA', mensaje: 'No encontramos la consignación.' },
+      error: {
+        codigo: 404,
+        tipo: 'NO_ENCONTRADA',
+        mensaje: 'No encontramos la consignación.',
+      },
     };
   }
   if (det.estado !== 'acuerdo_pendiente') {
@@ -254,7 +263,11 @@ export function rechazarAcuerdo(id: string): ResultadoConsignacion {
   if (!det) {
     return {
       ok: false,
-      error: { codigo: 404, tipo: 'NO_ENCONTRADA', mensaje: 'No encontramos la consignación.' },
+      error: {
+        codigo: 404,
+        tipo: 'NO_ENCONTRADA',
+        mensaje: 'No encontramos la consignación.',
+      },
     };
   }
   if (det.estado !== 'acuerdo_pendiente') {

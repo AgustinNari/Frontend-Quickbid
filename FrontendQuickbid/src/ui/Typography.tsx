@@ -1,5 +1,11 @@
 import React from 'react';
-import { Text, TextProps, StyleSheet, StyleProp, TextStyle } from 'react-native';
+import {
+  Text,
+  TextProps,
+  StyleSheet,
+  StyleProp,
+  TextStyle,
+} from 'react-native';
 import { colors, fontSize, fontWeight, letterSpacing } from '../theme';
 
 type Variant =

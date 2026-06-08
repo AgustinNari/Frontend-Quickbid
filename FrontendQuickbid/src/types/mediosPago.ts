@@ -1,4 +1,7 @@
-export type TipoMedioPago = 'tarjeta' | 'cuenta_bancaria' | 'cheque_certificado';
+export type TipoMedioPago =
+  | 'tarjeta'
+  | 'cuenta_bancaria'
+  | 'cheque_certificado';
 export type EstadoMedioPago =
   | 'pendiente_verificacion'
   | 'verificado'

@@ -95,22 +95,22 @@ function estadoActual(compra: Compra): CompraEstado {
 }
 
 export function getMockCompras(tab: CompraTab = 'todas'): Compra[] {
-  const lista = MOCK_COMPRAS.map((c) => ({ ...c, estado: estadoActual(c) }));
+  const lista = MOCK_COMPRAS.map(c => ({ ...c, estado: estadoActual(c) }));
   if (tab === 'pendientes') {
     return lista.filter(
-      (c) => c.estado === 'multa_pendiente' || c.estado === 'pago_pendiente',
+      c => c.estado === 'multa_pendiente' || c.estado === 'pago_pendiente',
     );
   }
   if (tab === 'pagadas') {
     return lista.filter(
-      (c) => c.estado === 'pagada' || c.estado === 'completada',
+      c => c.estado === 'pagada' || c.estado === 'completada',
     );
   }
   return lista;
 }
 
 export function getMockCompra(id: string): CompraDetalle | null {
-  const base = MOCK_COMPRAS.find((c) => c.id === id);
+  const base = MOCK_COMPRAS.find(c => c.id === id);
   if (!base) return null;
   const estado = estadoActual(base);
   const yaPagada = estado === 'pagada' || estado === 'completada';
@@ -155,7 +155,7 @@ export function pagar(
   compraId: string,
   idMedioPago: string,
 ): ResultadoPagoCompra {
-  const compra = MOCK_COMPRAS.find((c) => c.id === compraId);
+  const compra = MOCK_COMPRAS.find(c => c.id === compraId);
   if (!compra) {
     return {
       ok: false,
@@ -192,7 +192,7 @@ export function pagarConMulta(
   compraId: string,
   idMedioPago: string,
 ): ResultadoPagoCompra {
-  const compra = MOCK_COMPRAS.find((c) => c.id === compraId);
+  const compra = MOCK_COMPRAS.find(c => c.id === compraId);
   if (!compra) {
     return {
       ok: false,

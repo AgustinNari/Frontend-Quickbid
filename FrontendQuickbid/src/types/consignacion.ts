@@ -1,4 +1,3 @@
-
 import { SubastaMoneda, SubastaSegmento } from './subasta';
 
 export type EstadoConsignacion =

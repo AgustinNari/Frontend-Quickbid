@@ -7,9 +7,19 @@ import {
   SubastaResumen,
   SubastaSegmento,
 } from '../types/subasta';
-import { ItemApi, SubastaApiDetalle, SubastaApiResumen } from '../types/subastaApi';
+import {
+  ItemApi,
+  SubastaApiDetalle,
+  SubastaApiResumen,
+} from '../types/subastaApi';
 
-const CATEGORIAS: SubastaCategoria[] = ['comun', 'especial', 'plata', 'oro', 'platino'];
+const CATEGORIAS: SubastaCategoria[] = [
+  'comun',
+  'especial',
+  'plata',
+  'oro',
+  'platino',
+];
 const SEGMENTOS: SubastaSegmento[] = [
   'arte',
   'joyas',
@@ -68,7 +78,10 @@ export function mapSubastaDetalle(dto: SubastaApiDetalle): SubastaDetalle {
   };
 }
 
-export function mapItemCatalogo(dto: ItemApi, subasta: SubastaDetalle): ItemCatalogo {
+export function mapItemCatalogo(
+  dto: ItemApi,
+  subasta: SubastaDetalle,
+): ItemCatalogo {
   const descripcion = dto.descripcion?.trim();
   return {
     id: String(dto.id),
@@ -83,7 +96,10 @@ export function mapItemCatalogo(dto: ItemApi, subasta: SubastaDetalle): ItemCata
   };
 }
 
-export function mapItemDetalle(dto: ItemApi, subasta: SubastaDetalle): ItemDetalle {
+export function mapItemDetalle(
+  dto: ItemApi,
+  subasta: SubastaDetalle,
+): ItemDetalle {
   return {
     ...mapItemCatalogo(dto, subasta),
     descripcion: dto.descripcion ?? undefined,

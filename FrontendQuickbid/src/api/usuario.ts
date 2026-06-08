@@ -14,10 +14,15 @@ function requiredData<T>(data: T | null, message: string): T {
 }
 
 function query(params: Record<string, string | number | boolean | undefined>) {
-  const values = Object.entries(params).filter(([, value]) => value !== undefined);
+  const values = Object.entries(params).filter(
+    ([, value]) => value !== undefined,
+  );
   if (values.length === 0) return '';
   return `?${values
-    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`,
+    )
     .join('&')}`;
 }
 
@@ -31,7 +36,10 @@ export const usuarioApi = {
     const response = await apiFetch<EstadisticasUsuario>(
       `/api/usuario/estadisticas${query({ periodo })}`,
     );
-    return requiredData(response.data, 'El servidor no devolvio las estadisticas');
+    return requiredData(
+      response.data,
+      'El servidor no devolvio las estadisticas',
+    );
   },
 
   async historial(page = 0, size = 20) {
@@ -41,17 +49,22 @@ export const usuarioApi = {
     return requiredData(response.data, 'El servidor no devolvio el historial');
   },
 
-  async notificaciones(params: {
-    tipo?: string;
-    categoria?: string;
-    leida?: boolean;
-    page?: number;
-    size?: number;
-  } = {}) {
+  async notificaciones(
+    params: {
+      tipo?: string;
+      categoria?: string;
+      leida?: boolean;
+      page?: number;
+      size?: number;
+    } = {},
+  ) {
     const response = await apiFetch<Pagina<NotificacionUsuario>>(
       `/api/usuario/notificaciones${query(params)}`,
     );
-    return requiredData(response.data, 'El servidor no devolvio las notificaciones');
+    return requiredData(
+      response.data,
+      'El servidor no devolvio las notificaciones',
+    );
   },
 
   async marcarNotificacionLeida(id: number) {
@@ -59,7 +72,10 @@ export const usuarioApi = {
       `/api/usuario/notificaciones/${id}/leer`,
       { method: 'PATCH' },
     );
-    return requiredData(response.data, 'El servidor no devolvio la notificacion');
+    return requiredData(
+      response.data,
+      'El servidor no devolvio la notificacion',
+    );
   },
 
   async marcarTodasLeidas() {
@@ -67,6 +83,9 @@ export const usuarioApi = {
       '/api/usuario/notificaciones/all/leer',
       { method: 'PATCH' },
     );
-    return requiredData(response.data, 'El servidor no devolvio las notificaciones');
+    return requiredData(
+      response.data,
+      'El servidor no devolvio las notificaciones',
+    );
   },
 };

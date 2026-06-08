@@ -162,7 +162,7 @@ export function getMockDetalle(id: string): SubastaDetalle | null {
   const explicit = MOCK_SUBASTA_DETALLE[id];
   if (explicit) return explicit;
 
-  const resumen = MOCK_SUBASTAS.find((s) => s.id === id);
+  const resumen = MOCK_SUBASTAS.find(s => s.id === id);
   if (!resumen) return null;
 
   return {
@@ -488,7 +488,7 @@ export function getMockItemDetalle(itemId: string): ItemDetalle | null {
   if (explicit) return explicit;
 
   for (const items of Object.values(MOCK_CATALOGO)) {
-    const found = items.find((i) => i.id === itemId);
+    const found = items.find(i => i.id === itemId);
     if (found) return { ...found };
   }
   return null;

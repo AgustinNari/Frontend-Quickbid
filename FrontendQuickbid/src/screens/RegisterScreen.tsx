@@ -32,7 +32,9 @@ export default function RegisterScreen({ navigation }: Props) {
   const [domicilio, setDomicilio] = useState('');
   const [loading, setLoading] = useState(false);
   const [busquedaPais, setBusquedaPais] = useState('');
-  const [paisSeleccionado, setPaisSeleccionado] = useState<PaisCatalogo | null>(null);
+  const [paisSeleccionado, setPaisSeleccionado] = useState<PaisCatalogo | null>(
+    null,
+  );
   const [paises, setPaises] = useState<PaisCatalogo[]>([]);
   const [loadingPaises, setLoadingPaises] = useState(true);
   const [errorPaises, setErrorPaises] = useState<string | null>(null);
@@ -62,20 +64,23 @@ export default function RegisterScreen({ navigation }: Props) {
 
   useEffect(() => {
     let active = true;
-    const timer = setTimeout(async () => {
-      setLoadingPaises(true);
-      setErrorPaises(null);
-      try {
-        const response = await catalogosApi.buscarPaises(busquedaPais);
-        if (active) setPaises(response.content);
-      } catch (error) {
-        if (!active) return;
-        setPaises([]);
-        setErrorPaises(readableError(error));
-      } finally {
-        if (active) setLoadingPaises(false);
-      }
-    }, busquedaPais.trim() ? 300 : 0);
+    const timer = setTimeout(
+      async () => {
+        setLoadingPaises(true);
+        setErrorPaises(null);
+        try {
+          const response = await catalogosApi.buscarPaises(busquedaPais);
+          if (active) setPaises(response.content);
+        } catch (error) {
+          if (!active) return;
+          setPaises([]);
+          setErrorPaises(readableError(error));
+        } finally {
+          if (active) setLoadingPaises(false);
+        }
+      },
+      busquedaPais.trim() ? 300 : 0,
+    );
 
     return () => {
       active = false;
@@ -84,21 +89,35 @@ export default function RegisterScreen({ navigation }: Props) {
   }, [busquedaPais, reintentoPaises]);
 
   useEffect(() => {
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      volverAlLogin();
-      return true;
-    });
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        volverAlLogin();
+        return true;
+      },
+    );
 
     return () => subscription.remove();
   }, [volverAlLogin]);
 
   async function handleContinuar() {
-    if (!email.trim() || !nombre.trim() || !apellido.trim() || !domicilio.trim()) {
-      Alert.alert('Campos requeridos', 'Completa todos los campos para continuar.');
+    if (
+      !email.trim() ||
+      !nombre.trim() ||
+      !apellido.trim() ||
+      !domicilio.trim()
+    ) {
+      Alert.alert(
+        'Campos requeridos',
+        'Completa todos los campos para continuar.',
+      );
       return;
     }
     if (!paisSeleccionado) {
-      Alert.alert('Pais requerido', 'Busca y selecciona un pais de origen para continuar.');
+      Alert.alert(
+        'Pais requerido',
+        'Busca y selecciona un pais de origen para continuar.',
+      );
       return;
     }
 
@@ -123,8 +142,14 @@ export default function RegisterScreen({ navigation }: Props) {
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={volverAlLogin} />
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
           <Text style={styles.title}>Registro de Datos</Text>
           <Text style={styles.subtitle}>Paso 1 de 3: Informacion personal</Text>
 
@@ -174,19 +199,36 @@ export default function RegisterScreen({ navigation }: Props) {
           <TouchableOpacity
             activeOpacity={0.75}
             onPress={toggleDropdownPais}
-            style={[styles.countryTrigger, dropdownPaisAbierto && styles.countryTriggerOpen]}
+            style={[
+              styles.countryTrigger,
+              dropdownPaisAbierto && styles.countryTriggerOpen,
+            ]}
           >
             <View style={styles.countryTriggerText}>
-              <Text style={paisSeleccionado ? styles.countryTriggerValue : styles.countryTriggerPlaceholder}>
+              <Text
+                style={
+                  paisSeleccionado
+                    ? styles.countryTriggerValue
+                    : styles.countryTriggerPlaceholder
+                }
+              >
                 {paisSeleccionado
-                  ? `${paisSeleccionado.nombre}${paisSeleccionado.nombreCorto ? ` (${paisSeleccionado.nombreCorto})` : ''}`
+                  ? `${paisSeleccionado.nombre}${
+                      paisSeleccionado.nombreCorto
+                        ? ` (${paisSeleccionado.nombreCorto})`
+                        : ''
+                    }`
                   : 'Seleccionar pais de origen'}
               </Text>
               {paisSeleccionado?.nacionalidad ? (
-                <Text style={styles.countryTriggerMeta}>{paisSeleccionado.nacionalidad}</Text>
+                <Text style={styles.countryTriggerMeta}>
+                  {paisSeleccionado.nacionalidad}
+                </Text>
               ) : null}
             </View>
-            <Text style={styles.countryTriggerAction}>{dropdownPaisAbierto ? 'Cerrar' : 'Abrir'}</Text>
+            <Text style={styles.countryTriggerAction}>
+              {dropdownPaisAbierto ? 'Cerrar' : 'Abrir'}
+            </Text>
           </TouchableOpacity>
 
           {dropdownPaisAbierto ? (
@@ -203,7 +245,9 @@ export default function RegisterScreen({ navigation }: Props) {
               {loadingPaises ? (
                 <View style={styles.countryStatus}>
                   <ActivityIndicator color={colors.primary} />
-                  <Text style={styles.countryStatusText}>Cargando paises...</Text>
+                  <Text style={styles.countryStatusText}>
+                    Cargando paises...
+                  </Text>
                 </View>
               ) : errorPaises ? (
                 <View style={styles.countryStatus}>
@@ -217,7 +261,9 @@ export default function RegisterScreen({ navigation }: Props) {
                   </TouchableOpacity>
                 </View>
               ) : paises.length === 0 ? (
-                <Text style={styles.countryStatusText}>No encontramos paises para esa busqueda.</Text>
+                <Text style={styles.countryStatusText}>
+                  No encontramos paises para esa busqueda.
+                </Text>
               ) : (
                 <ScrollView
                   nestedScrollEnabled
@@ -231,12 +277,15 @@ export default function RegisterScreen({ navigation }: Props) {
                       onPress={() => seleccionarPais(pais)}
                       style={[
                         styles.countryOption,
-                        paisSeleccionado?.id === pais.id && styles.countryOptionSelected,
+                        paisSeleccionado?.id === pais.id &&
+                          styles.countryOptionSelected,
                       ]}
                     >
                       <Text style={styles.countryName}>{pais.nombre}</Text>
                       <Text style={styles.countryMeta}>
-                        {[pais.nombreCorto, pais.nacionalidad].filter(Boolean).join(' - ')}
+                        {[pais.nombreCorto, pais.nacionalidad]
+                          .filter(Boolean)
+                          .join(' - ')}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -248,7 +297,10 @@ export default function RegisterScreen({ navigation }: Props) {
           <View style={styles.spacer} />
 
           <TouchableOpacity
-            style={[styles.btn, (!paisSeleccionado || loading) && styles.btnDisabled]}
+            style={[
+              styles.btn,
+              (!paisSeleccionado || loading) && styles.btnDisabled,
+            ]}
             activeOpacity={0.85}
             onPress={handleContinuar}
             disabled={loading || !paisSeleccionado}
@@ -274,56 +326,149 @@ function readableError(error: unknown) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
   flex: { flex: 1, backgroundColor: colors.background },
-  scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingTop: 28, paddingBottom: spacing['2xl'] },
-  title: { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 6 },
-  subtitle: { fontSize: fontSize.base, color: colors.textMuted, marginBottom: 28 },
-  label: { fontSize: fontSize.sm, fontWeight: '600', color: colors.textLabel, letterSpacing: 0.5, marginBottom: 6 },
+  scroll: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.xl,
+    paddingTop: 28,
+    paddingBottom: spacing['2xl'],
+  },
+  title: {
+    fontSize: fontSize['4xl'],
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: fontSize.base,
+    color: colors.textMuted,
+    marginBottom: 28,
+  },
+  label: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.textLabel,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
   input: {
-    backgroundColor: colors.white, borderRadius: radius.md, borderWidth: 1,
-    borderColor: colors.border, paddingHorizontal: 14, height: 48,
-    fontSize: fontSize.md, color: colors.text, marginBottom: 18,
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 14,
+    height: 48,
+    fontSize: fontSize.md,
+    color: colors.text,
+    marginBottom: 18,
   },
   countryTrigger: {
-    minHeight: 48, backgroundColor: colors.white, borderRadius: radius.md, borderWidth: 1,
-    borderColor: colors.border, paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
-    marginBottom: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    minHeight: 48,
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   countryTriggerOpen: { borderColor: colors.primary, marginBottom: spacing.sm },
   countryTriggerText: { flex: 1 },
-  countryTriggerValue: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
-  countryTriggerPlaceholder: { fontSize: fontSize.md, color: colors.textSubtle },
-  countryTriggerMeta: { fontSize: fontSize.xs, color: colors.textMuted, marginTop: 2 },
-  countryTriggerAction: { fontSize: fontSize.sm, fontWeight: '600', color: colors.primary },
+  countryTriggerValue: {
+    fontSize: fontSize.md,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  countryTriggerPlaceholder: {
+    fontSize: fontSize.md,
+    color: colors.textSubtle,
+  },
+  countryTriggerMeta: {
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  countryTriggerAction: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.primary,
+  },
   countryDropdown: {
-    backgroundColor: colors.white, borderRadius: radius.md, borderWidth: 1,
-    borderColor: colors.border, marginBottom: spacing.lg, overflow: 'hidden',
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.lg,
+    overflow: 'hidden',
   },
   countrySearch: {
-    height: 46, borderBottomWidth: 1, borderBottomColor: colors.borderMuted,
-    paddingHorizontal: spacing.md, fontSize: fontSize.md, color: colors.text,
+    height: 46,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
+    paddingHorizontal: spacing.md,
+    fontSize: fontSize.md,
+    color: colors.text,
     backgroundColor: colors.surfaceMuted,
   },
   countryOptionsScroll: { maxHeight: 220 },
   countryOption: {
-    paddingHorizontal: spacing.md, paddingVertical: spacing.md,
-    borderBottomWidth: 1, borderBottomColor: colors.borderMuted,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
   },
   countryOptionSelected: { backgroundColor: colors.infoSoft },
   countryName: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
-  countryMeta: { fontSize: fontSize.sm, color: colors.textMuted, marginTop: spacing.xs },
-  countryStatus: { alignItems: 'center', padding: spacing.base, gap: spacing.sm },
-  countryStatusText: { color: colors.textMuted, fontSize: fontSize.sm, padding: spacing.base, textAlign: 'center' },
-  countryError: { color: colors.danger, fontSize: fontSize.sm, textAlign: 'center' },
-  retryButton: {
-    borderRadius: radius.md, borderWidth: 1, borderColor: colors.primary,
-    paddingHorizontal: spacing.base, paddingVertical: spacing.sm,
+  countryMeta: {
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
   },
-  retryText: { color: colors.primary, fontSize: fontSize.sm, fontWeight: '600' },
+  countryStatus: {
+    alignItems: 'center',
+    padding: spacing.base,
+    gap: spacing.sm,
+  },
+  countryStatusText: {
+    color: colors.textMuted,
+    fontSize: fontSize.sm,
+    padding: spacing.base,
+    textAlign: 'center',
+  },
+  countryError: {
+    color: colors.danger,
+    fontSize: fontSize.sm,
+    textAlign: 'center',
+  },
+  retryButton: {
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.sm,
+  },
+  retryText: {
+    color: colors.primary,
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+  },
   spacer: { flex: 1, minHeight: 20 },
   btn: {
-    backgroundColor: colors.primary, borderRadius: radius.base, height: controlHeight.base,
-    alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.lg, marginTop: spacing.md,
+    backgroundColor: colors.primary,
+    borderRadius: radius.base,
+    height: controlHeight.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.md,
   },
   btnDisabled: { backgroundColor: colors.textSubtle },
-  btnText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600', textAlign: 'center' },
+  btnText: {
+    color: colors.textInverse,
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 });

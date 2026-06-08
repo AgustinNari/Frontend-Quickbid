@@ -1,6 +1,9 @@
 import { SubastaMoneda } from './subasta';
 
-export type MedioPagoTipo = 'tarjeta' | 'cuenta_bancaria' | 'cheque_certificado';
+export type MedioPagoTipo =
+  | 'tarjeta'
+  | 'cuenta_bancaria'
+  | 'cheque_certificado';
 
 export type MedioPagoEstado = 'activo' | 'pendiente_validacion' | 'vencido';
 

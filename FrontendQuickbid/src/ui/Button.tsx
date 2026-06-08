@@ -10,7 +10,14 @@ import {
   TextStyle,
 } from 'react-native';
 import { Typography } from './Typography';
-import { colors, radius, spacing, controlHeight, fontSize, fontWeight } from '../theme';
+import {
+  colors,
+  radius,
+  spacing,
+  controlHeight,
+  fontSize,
+  fontWeight,
+} from '../theme';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'base' | 'lg';

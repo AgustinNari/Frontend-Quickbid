@@ -44,10 +44,15 @@ type ApiFetchOptions = RequestInit & {
 
 let tokens: SessionTokens = { accessToken: null, refreshToken: null };
 let refreshPromise: Promise<string | null> | null = null;
-let onSessionRefreshed: ((session: RefreshedSession) => void | Promise<void>) | null = null;
+let onSessionRefreshed:
+  | ((session: RefreshedSession) => void | Promise<void>)
+  | null = null;
 let onSessionExpired: (() => void | Promise<void>) | null = null;
 
-export function setSessionTokens(accessToken: string | null, refreshToken: string | null) {
+export function setSessionTokens(
+  accessToken: string | null,
+  refreshToken: string | null,
+) {
   tokens = { accessToken, refreshToken };
 }
 
@@ -67,16 +72,26 @@ export function configureSessionHandlers(handlers: {
   onSessionExpired = handlers.onExpired;
 }
 
-function readableError(envelope: ApiEnvelope<unknown> | null, fallback: string) {
-  const details = envelope?.errors?.map(error => error.message).filter(Boolean) ?? [];
-  return details.length > 0 ? details.join('\n') : envelope?.message || fallback;
+function readableError(
+  envelope: ApiEnvelope<unknown> | null,
+  fallback: string,
+) {
+  const details =
+    envelope?.errors?.map(error => error.message).filter(Boolean) ?? [];
+  return details.length > 0
+    ? details.join('\n')
+    : envelope?.message || fallback;
 }
 
 function fallbackForStatus(status: number) {
-  if (status === 400) return 'La solicitud tiene datos invalidos. Revisa la informacion e intenta nuevamente.';
-  if (status === 401) return 'Tu sesion expiro o no estas autenticado. Inicia sesion para continuar.';
-  if (status === 403) return 'No tenes permiso para realizar esta accion con el estado actual de tu cuenta.';
-  if (status === 409) return 'La operacion no se puede completar porque el estado cambio. Actualiza e intenta nuevamente.';
+  if (status === 400)
+    return 'La solicitud tiene datos invalidos. Revisa la informacion e intenta nuevamente.';
+  if (status === 401)
+    return 'Tu sesion expiro o no estas autenticado. Inicia sesion para continuar.';
+  if (status === 403)
+    return 'No tenes permiso para realizar esta accion con el estado actual de tu cuenta.';
+  if (status === 409)
+    return 'La operacion no se puede completar porque el estado cambio. Actualiza e intenta nuevamente.';
   return 'Error del servidor';
 }
 
@@ -92,17 +107,25 @@ async function safeFetch(input: RequestInfo, init?: RequestInit) {
         suggestion: 'Verificar backend, adb reverse o API base URL.',
       });
     }
-    throw new ApiError(0, 'No se pudo conectar con QuickBid. Verifica tu conexion o intenta nuevamente en unos minutos.');
+    throw new ApiError(
+      0,
+      'No se pudo conectar con QuickBid. Verifica tu conexion o intenta nuevamente en unos minutos.',
+    );
   }
 }
 
-async function parseEnvelope<T>(response: Response): Promise<ApiEnvelope<T> | null> {
+async function parseEnvelope<T>(
+  response: Response,
+): Promise<ApiEnvelope<T> | null> {
   const text = await response.text();
   if (!text) return null;
   try {
     return JSON.parse(text) as ApiEnvelope<T>;
   } catch {
-    throw new ApiError(response.status, 'Error al interpretar la respuesta del servidor');
+    throw new ApiError(
+      response.status,
+      'Error al interpretar la respuesta del servidor',
+    );
   }
 }
 
@@ -145,9 +168,15 @@ export async function apiFetch<T = null>(
   path: string,
   options: ApiFetchOptions = {},
 ): Promise<ApiEnvelope<T>> {
-  const { public: isPublic = false, skipRefresh = false, ...requestOptions } = options;
+  const {
+    public: isPublic = false,
+    skipRefresh = false,
+    ...requestOptions
+  } = options;
   const headers: Record<string, string> = {
-    ...(requestOptions.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+    ...(requestOptions.body instanceof FormData
+      ? {}
+      : { 'Content-Type': 'application/json' }),
     ...(requestOptions.headers as Record<string, string>),
   };
 
@@ -160,7 +189,12 @@ export async function apiFetch<T = null>(
     headers,
   });
 
-  if (response.status === 401 && !isPublic && !skipRefresh && tokens.refreshToken) {
+  if (
+    response.status === 401 &&
+    !isPublic &&
+    !skipRefresh &&
+    tokens.refreshToken
+  ) {
     const refreshedToken = await refreshAccessToken();
     if (refreshedToken) {
       response = await safeFetch(`${API_BASE_URL}${path}`, {
@@ -172,7 +206,11 @@ export async function apiFetch<T = null>(
 
   const body = await parseEnvelope<T>(response);
   if (!response.ok) {
-    throw new ApiError(response.status, readableError(body, fallbackForStatus(response.status)), body?.errors ?? []);
+    throw new ApiError(
+      response.status,
+      readableError(body, fallbackForStatus(response.status)),
+      body?.errors ?? [],
+    );
   }
 
   return body ?? { data: null, message: '', errors: [] };

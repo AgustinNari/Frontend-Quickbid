@@ -23,15 +23,26 @@ export function createBidIdempotencyKey() {
 
 export const pujasApi = {
   async pujaActual(subastaId: number) {
-    const response = await apiFetch<PujaActualApi>(`/api/subastas/${subastaId}/puja-actual`);
-    return requiredData(response.data, 'El servidor no devolvio la puja actual');
+    const response = await apiFetch<PujaActualApi>(
+      `/api/subastas/${subastaId}/puja-actual`,
+    );
+    return requiredData(
+      response.data,
+      'El servidor no devolvio la puja actual',
+    );
   },
 
   async pujar(subastaId: number, payload: PujarRequestApi) {
-    const response = await apiFetch<PujarResponseApi>(`/api/subastas/${subastaId}/pujar`, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-    return requiredData(response.data, 'El servidor no devolvio el resultado de la puja');
+    const response = await apiFetch<PujarResponseApi>(
+      `/api/subastas/${subastaId}/pujar`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    );
+    return requiredData(
+      response.data,
+      'El servidor no devolvio el resultado de la puja',
+    );
   },
 };

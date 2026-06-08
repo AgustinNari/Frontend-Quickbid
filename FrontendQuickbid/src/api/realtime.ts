@@ -1,4 +1,9 @@
-import { Client, IMessage, IStompSocket, StompSubscription } from '@stomp/stompjs';
+import {
+  Client,
+  IMessage,
+  IStompSocket,
+  StompSubscription,
+} from '@stomp/stompjs';
 import { WS_BASE_URL } from './config';
 import { PujaEventoApi } from '../types/puja';
 
@@ -22,7 +27,9 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
   const destinations = [
     `/topic/subastas/${options.subastaId}/estado`,
     `/topic/subastas/${options.subastaId}/items/${options.itemId}/pujas`,
-    ...(options.includePrivateQueues ? ['/user/queue/pujas', '/user/queue/notificaciones'] : []),
+    ...(options.includePrivateQueues
+      ? ['/user/queue/pujas', '/user/queue/notificaciones']
+      : []),
   ];
 
   const client = new Client({
@@ -48,7 +55,9 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
     },
     onStompError: frame => {
       logRealtime(`broker error: ${frame.headers.message ?? frame.body}`);
-      options.onError?.(frame.body || frame.headers.message || 'Realtime no disponible');
+      options.onError?.(
+        frame.body || frame.headers.message || 'Realtime no disponible',
+      );
     },
     onWebSocketError: event => {
       logRealtime(`websocket error: ${String(event)}`);
@@ -107,6 +116,11 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
 
 function logRealtime(message: string) {
   if (__DEV__) {
-    console.info(`[realtime] ${message.replace(/Authorization:Bearer [^\n]+/, 'Authorization:Bearer [redacted]')}`);
+    console.info(
+      `[realtime] ${message.replace(
+        /Authorization:Bearer [^\n]+/,
+        'Authorization:Bearer [redacted]',
+      )}`,
+    );
   }
 }

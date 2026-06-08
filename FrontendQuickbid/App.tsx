@@ -50,7 +50,9 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   Identity: { email: string };
-  Security: { mode: 'registro'; setupToken: string } | { mode: 'recuperacion'; token: string };
+  Security:
+    | { mode: 'registro'; setupToken: string }
+    | { mode: 'recuperacion'; token: string };
   CambiarClave: undefined;
   Verifying: undefined;
   LimitedAccess: undefined;
@@ -133,14 +135,23 @@ function AppNavigator() {
         screenOptions={{
           headerShown: false,
         }}
-        >
+      >
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="LimitedAccess" component={LimitedAccessScreen} />
         <Stack.Screen name="Security" component={SecurityScreen} />
         <Stack.Screen name="EnlaceRegistro" component={EnlaceRegistroScreen} />
-        <Stack.Screen name="RecuperacionCuenta" component={RecuperacionCuentaScreen} />
-        <Stack.Screen name="CompletarRegistroLink" component={CompletarRegistroLinkScreen} />
-        <Stack.Screen name="RecuperarClaveLink" component={RecuperarClaveLinkScreen} />
+        <Stack.Screen
+          name="RecuperacionCuenta"
+          component={RecuperacionCuentaScreen}
+        />
+        <Stack.Screen
+          name="CompletarRegistroLink"
+          component={CompletarRegistroLinkScreen}
+        />
+        <Stack.Screen
+          name="RecuperarClaveLink"
+          component={RecuperarClaveLinkScreen}
+        />
         {canUseAuthFlows && (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
@@ -152,8 +163,14 @@ function AppNavigator() {
         {canUsePublicExperience && (
           <>
             <Stack.Screen name="Subastas" component={SubastasScreen} />
-            <Stack.Screen name="SubastaDetail" component={SubastaDetailScreen} />
-            <Stack.Screen name="CatalogoSubasta" component={CatalogoSubastaScreen} />
+            <Stack.Screen
+              name="SubastaDetail"
+              component={SubastaDetailScreen}
+            />
+            <Stack.Screen
+              name="CatalogoSubasta"
+              component={CatalogoSubastaScreen}
+            />
             <Stack.Screen name="ItemDetail" component={ItemDetailScreen} />
             <Stack.Screen name="PujaEnVivo" component={PujaEnVivoScreen} />
           </>
@@ -161,33 +178,72 @@ function AppNavigator() {
         {canNavigate && (
           <>
             <Stack.Screen name="MetodosPago" component={MetodosPagoScreen} />
-            <Stack.Screen name="SeleccionTipoPago" component={SeleccionTipoPagoScreen} />
+            <Stack.Screen
+              name="SeleccionTipoPago"
+              component={SeleccionTipoPagoScreen}
+            />
             <Stack.Screen name="NuevaTarjeta" component={NuevaTarjetaScreen} />
-            <Stack.Screen name="CuentaBancaria" component={CuentaBancariaScreen} />
-            <Stack.Screen name="ChequeCertificado" component={ChequeCertificadoScreen} />
-            <Stack.Screen name="ValidandoPago" component={ValidandoPagoScreen} />
-            <Stack.Screen name="InscripcionSubasta" component={InscripcionSubastaScreen} />
-            <Stack.Screen name="InscripcionExito" component={InscripcionExitoScreen} />
+            <Stack.Screen
+              name="CuentaBancaria"
+              component={CuentaBancariaScreen}
+            />
+            <Stack.Screen
+              name="ChequeCertificado"
+              component={ChequeCertificadoScreen}
+            />
+            <Stack.Screen
+              name="ValidandoPago"
+              component={ValidandoPagoScreen}
+            />
+            <Stack.Screen
+              name="InscripcionSubasta"
+              component={InscripcionSubastaScreen}
+            />
+            <Stack.Screen
+              name="InscripcionExito"
+              component={InscripcionExitoScreen}
+            />
             <Stack.Screen name="PujaExito" component={PujaExitoScreen} />
-            <Stack.Screen name="Notificaciones" component={NotificacionesScreen} />
+            <Stack.Screen
+              name="Notificaciones"
+              component={NotificacionesScreen}
+            />
             <Stack.Screen name="Historial" component={HistorialScreen} />
             <Stack.Screen name="Perfil" component={PerfilScreen} />
             <Stack.Screen name="CambiarClave" component={CambiarClaveScreen} />
             <Stack.Screen name="Estadisticas" component={EstadisticasScreen} />
             <Stack.Screen name="Ayuda" component={AyudaScreen} />
-            <Stack.Screen name="DireccionesEnvio" component={DireccionesEnvioScreen} />
-            <Stack.Screen name="Consignaciones" component={ConsignacionesScreen} />
+            <Stack.Screen
+              name="DireccionesEnvio"
+              component={DireccionesEnvioScreen}
+            />
+            <Stack.Screen
+              name="Consignaciones"
+              component={ConsignacionesScreen}
+            />
             <Stack.Screen name="MisCompras" component={MisComprasScreen} />
             <Stack.Screen name="CompraDetail" component={CompraDetailScreen} />
             <Stack.Screen name="ResumenPago" component={ResumenPagoScreen} />
             <Stack.Screen name="CompraExito" component={CompraExitoScreen} />
-            <Stack.Screen name="AltaConsignacion" component={AltaConsignacionScreen} />
-            <Stack.Screen name="ConsignacionExito" component={ConsignacionExitoScreen} />
-            <Stack.Screen name="ConsignacionDetail" component={ConsignacionDetailScreen} />
+            <Stack.Screen
+              name="AltaConsignacion"
+              component={AltaConsignacionScreen}
+            />
+            <Stack.Screen
+              name="ConsignacionExito"
+              component={ConsignacionExitoScreen}
+            />
+            <Stack.Screen
+              name="ConsignacionDetail"
+              component={ConsignacionDetailScreen}
+            />
             <Stack.Screen
               name="MenuLateral"
               component={MenuLateralScreen}
-              options={{ presentation: 'transparentModal', animation: 'slide_from_right' }}
+              options={{
+                presentation: 'transparentModal',
+                animation: 'slide_from_right',
+              }}
             />
           </>
         )}

@@ -47,11 +47,11 @@ export const MOCK_MEDIOS_PAGO: MedioPago[] = [
 ];
 
 export function getMediosPagoUtilizables(moneda?: SubastaMoneda): MedioPago[] {
-  let lista = MOCK_MEDIOS_PAGO.filter((m) => m.estado === 'activo');
-  if (moneda) lista = lista.filter((m) => m.moneda === moneda);
+  let lista = MOCK_MEDIOS_PAGO.filter(m => m.estado === 'activo');
+  if (moneda) lista = lista.filter(m => m.moneda === moneda);
   return lista;
 }
 
 export function getMedioPagoById(id: string): MedioPago | null {
-  return MOCK_MEDIOS_PAGO.find((m) => m.id === id) ?? null;
+  return MOCK_MEDIOS_PAGO.find(m => m.id === id) ?? null;
 }

@@ -25,7 +25,10 @@ export default function CambiarClaveScreen({ navigation }: Props) {
 
   const submit = async () => {
     if (!claveActual.trim() || !claveNueva.trim() || !confirmacion.trim()) {
-      Alert.alert('Campos requeridos', 'Completa los tres campos para continuar.');
+      Alert.alert(
+        'Campos requeridos',
+        'Completa los tres campos para continuar.',
+      );
       return;
     }
     if (!PASSWORD_POLICY.test(claveNueva)) {
@@ -36,21 +39,33 @@ export default function CambiarClaveScreen({ navigation }: Props) {
       return;
     }
     if (claveNueva !== confirmacion) {
-      Alert.alert('Las claves no coinciden', 'Verifica que la nueva contrasena y su confirmacion sean iguales.');
+      Alert.alert(
+        'Las claves no coinciden',
+        'Verifica que la nueva contrasena y su confirmacion sean iguales.',
+      );
       return;
     }
 
     setLoading(true);
     try {
-      await authApi.cambiarClaveAutenticado(claveActual, claveNueva, confirmacion);
+      await authApi.cambiarClaveAutenticado(
+        claveActual,
+        claveNueva,
+        confirmacion,
+      );
       setClaveActual('');
       setClaveNueva('');
       setConfirmacion('');
-      Alert.alert('Clave actualizada', 'Tu contrasena fue cambiada y tu sesion sigue activa.', [
-        { text: 'Aceptar', onPress: () => navigation.goBack() },
-      ]);
+      Alert.alert(
+        'Clave actualizada',
+        'Tu contrasena fue cambiada y tu sesion sigue activa.',
+        [{ text: 'Aceptar', onPress: () => navigation.goBack() }],
+      );
     } catch (error) {
-      const message = error instanceof ApiError ? error.message : 'No se pudo actualizar la contrasena.';
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : 'No se pudo actualizar la contrasena.';
       Alert.alert('No se pudo cambiar la clave', message);
     } finally {
       setLoading(false);
@@ -60,11 +75,18 @@ export default function CambiarClaveScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={() => navigation.goBack()} />
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
           <Heading>Cambiar contrasena</Heading>
           <Body muted style={styles.subtitle}>
-            Ingresa tu clave actual y elegi una nueva. Tu sesion permanecera activa.
+            Ingresa tu clave actual y elegi una nueva. Tu sesion permanecera
+            activa.
           </Body>
 
           <TextField
@@ -114,4 +136,5 @@ const styles = StyleSheet.create({
   },
 });
 
-const PASSWORD_POLICY = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+const PASSWORD_POLICY =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;

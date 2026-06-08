@@ -9,7 +9,9 @@ export function mapPujaActual(
   item: ItemDetalle,
   mediosParaPujar: MedioPagoInscripcionApi[],
 ): PujaActual {
-  const serverNowMs = snapshot.serverNow ? Date.parse(snapshot.serverNow) : Date.now();
+  const serverNowMs = snapshot.serverNow
+    ? Date.parse(snapshot.serverNow)
+    : Date.now();
   return {
     subastaId: String(snapshot.subastaId),
     subastaTitulo: subasta.titulo,
@@ -24,19 +26,24 @@ export function mapPujaActual(
     esGanadorActual: snapshot.miPujaGanadora ?? false,
     loteCerrado: snapshot.adjudicado ?? snapshot.estadoLote === 'cerrado',
     loteGanado: false,
-    historialReciente: snapshot.mejorOfertaActual != null
-      ? [{
-          id: `snapshot-${snapshot.versionEstado}`,
-          postorAlias: 'Mejor postor actual',
-          monto: snapshot.mejorOfertaActual,
-          versionEstado: snapshot.versionEstado,
-          ganadora: true,
-        }]
-      : [],
+    historialReciente:
+      snapshot.mejorOfertaActual != null
+        ? [
+            {
+              id: `snapshot-${snapshot.versionEstado}`,
+              postorAlias: 'Mejor postor actual',
+              monto: snapshot.mejorOfertaActual,
+              versionEstado: snapshot.versionEstado,
+              ganadora: true,
+            },
+          ]
+        : [],
     mediosParaPujar,
     segundosRestantes: snapshot.segundosRestantes ?? undefined,
     retencionHasta: snapshot.retencionHasta ?? undefined,
-    serverTimeOffsetMs: Number.isNaN(serverNowMs) ? 0 : serverNowMs - Date.now(),
+    serverTimeOffsetMs: Number.isNaN(serverNowMs)
+      ? 0
+      : serverNowMs - Date.now(),
   };
 }
 
@@ -66,7 +73,10 @@ export function calcularLimites(
   };
 }
 
-export function applyPujaEvent(current: PujaActual, event: PujaEventoApi): PujaActual {
+export function applyPujaEvent(
+  current: PujaActual,
+  event: PujaEventoApi,
+): PujaActual {
   const nextVersion = event.versionEstado ?? current.versionEstado;
   if (nextVersion < current.versionEstado) return current;
 
@@ -76,29 +86,40 @@ export function applyPujaEvent(current: PujaActual, event: PujaEventoApi): PujaA
     event.tipo === 'PUJA_SUPERADA'
   ) {
     const monto = event.monto ?? event.mejorOfertaActual ?? current.mejorOferta;
-    const postorAlias = event.postorAlias ?? (
-      event.numeroPostor != null ? `Postor #${event.numeroPostor}` : 'Postor'
-    );
+    const postorAlias =
+      event.postorAlias ??
+      (event.numeroPostor != null ? `Postor #${event.numeroPostor}` : 'Postor');
     return {
       ...current,
       mejorOferta: monto,
       versionEstado: nextVersion,
       postorGanadorAlias: postorAlias,
       numeroPostorGanador: event.numeroPostor ?? current.numeroPostorGanador,
-      esGanadorActual: event.tipo === 'PUJA_ACEPTADA' ? true : event.tipo === 'PUJA_SUPERADA' ? false : current.esGanadorActual,
+      esGanadorActual:
+        event.tipo === 'PUJA_ACEPTADA'
+          ? true
+          : event.tipo === 'PUJA_SUPERADA'
+          ? false
+          : current.esGanadorActual,
       retencionHasta: event.retencionHasta ?? current.retencionHasta,
-      historialReciente: monto == null
-        ? current.historialReciente
-        : [
-            {
-              id: `${event.tipo}-${nextVersion}-${event.pujaId ?? Date.now()}`,
-              postorAlias,
-              monto,
-              versionEstado: nextVersion,
-              ganadora: true,
-            },
-            ...current.historialReciente.map(item => ({ ...item, ganadora: false })),
-          ].slice(0, 6),
+      historialReciente:
+        monto == null
+          ? current.historialReciente
+          : [
+              {
+                id: `${event.tipo}-${nextVersion}-${
+                  event.pujaId ?? Date.now()
+                }`,
+                postorAlias,
+                monto,
+                versionEstado: nextVersion,
+                ganadora: true,
+              },
+              ...current.historialReciente.map(item => ({
+                ...item,
+                ganadora: false,
+              })),
+            ].slice(0, 6),
     };
   }
 

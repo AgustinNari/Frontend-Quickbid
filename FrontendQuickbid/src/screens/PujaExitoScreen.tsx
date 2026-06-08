@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
+import { View, SafeAreaView, ScrollView, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import {
@@ -67,7 +62,10 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
     return (
       <SafeAreaView style={styles.safe}>
         <ScreenHeader onBack={volverAlLive} />
-        <Loader fullScreen label="Preparando el resumen de tu adjudicacion..." />
+        <Loader
+          fullScreen
+          label="Preparando el resumen de tu adjudicacion..."
+        />
       </SafeAreaView>
     );
   }
@@ -83,7 +81,9 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
             description="Tu adjudicación quedó registrada. Vas a recibir el detalle en breve."
           />
           <Button onPress={irACompras}>Ir a Compras</Button>
-          <Button variant="secondary" onPress={volverAlLive}>Volver a la subasta</Button>
+          <Button variant="secondary" onPress={volverAlLive}>
+            Volver a la subasta
+          </Button>
         </View>
       </SafeAreaView>
     );
@@ -115,7 +115,9 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
             <View style={[styles.itemHero, { backgroundColor: theme.bg }]}>
               <Icon name={theme.icon} size={64} color={theme.fg} />
               <View style={styles.loteBadge}>
-                <Typography style={styles.loteText}>LOTE {item.lote}</Typography>
+                <Typography style={styles.loteText}>
+                  LOTE {item.lote}
+                </Typography>
               </View>
             </View>
             <View style={styles.itemInfo}>
@@ -170,11 +172,17 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
       <View style={styles.footer}>
         <Button
           onPress={irACompras}
-          rightIcon={<Icon name="arrow-right" color={colors.textInverse} size={18} />}
+          rightIcon={
+            <Icon name="arrow-right" color={colors.textInverse} size={18} />
+          }
         >
           Ir a Compras
         </Button>
-        <Button variant="secondary" onPress={volverAlLive} style={styles.secondaryButton}>
+        <Button
+          variant="secondary"
+          onPress={volverAlLive}
+          style={styles.secondaryButton}
+        >
           Volver a la subasta
         </Button>
       </View>

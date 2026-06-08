@@ -1,7 +1,14 @@
 import React from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { Typography } from './Typography';
-import { colors, radius, spacing, fontSize, fontWeight, letterSpacing } from '../theme';
+import {
+  colors,
+  radius,
+  spacing,
+  fontSize,
+  fontWeight,
+  letterSpacing,
+} from '../theme';
 
 type Tone = 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral';
 type Variant = 'solid' | 'soft';

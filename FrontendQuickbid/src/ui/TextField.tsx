@@ -57,11 +57,11 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(
             {...rest}
             editable={editable}
             placeholderTextColor={colors.textSubtle}
-            onFocus={(e) => {
+            onFocus={e => {
               setFocused(true);
               onFocus?.(e);
             }}
-            onBlur={(e) => {
+            onBlur={e => {
               setFocused(false);
               onBlur?.(e);
             }}

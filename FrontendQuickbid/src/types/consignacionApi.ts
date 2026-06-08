@@ -1,4 +1,8 @@
-export type ConsignacionFiltro = 'activas' | 'rechazadas' | 'vendidas' | 'todas';
+export type ConsignacionFiltro =
+  | 'activas'
+  | 'rechazadas'
+  | 'vendidas'
+  | 'todas';
 
 export type ConsignacionEstadoBackend =
   | 'pendiente_revision'

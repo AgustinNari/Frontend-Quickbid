@@ -1,6 +1,9 @@
 import { apiFetch } from './client';
 
-export type EstadoCuenta = 'activa' | 'restriccion_multa' | 'bloqueada_permanente';
+export type EstadoCuenta =
+  | 'activa'
+  | 'restriccion_multa'
+  | 'bloqueada_permanente';
 
 export interface UsuarioSesion {
   id: number;
@@ -76,7 +79,11 @@ export const authApi = {
       public: true,
     }),
 
-  etapa3: (data: { setupToken: string; claveNueva: string; claveConfirmacion: string }) =>
+  etapa3: (data: {
+    setupToken: string;
+    claveNueva: string;
+    claveConfirmacion: string;
+  }) =>
     apiFetch<LoginResponse>('/api/auth/registro/etapa3', {
       method: 'POST',
       body: JSON.stringify({
@@ -124,14 +131,26 @@ export const authApi = {
       public: true,
     }),
 
-  cambiarClave: (token: string, nuevaClave: string, claveConfirmacion: string) =>
+  cambiarClave: (
+    token: string,
+    nuevaClave: string,
+    claveConfirmacion: string,
+  ) =>
     apiFetch('/api/auth/cambiar-clave', {
       method: 'PUT',
-      body: JSON.stringify({ token, claveNueva: nuevaClave, claveConfirmacion }),
+      body: JSON.stringify({
+        token,
+        claveNueva: nuevaClave,
+        claveConfirmacion,
+      }),
       public: true,
     }),
 
-  cambiarClaveAutenticado: (claveActual: string, claveNueva: string, claveConfirmacion: string) =>
+  cambiarClaveAutenticado: (
+    claveActual: string,
+    claveNueva: string,
+    claveConfirmacion: string,
+  ) =>
     apiFetch('/api/auth/cambiar-clave', {
       method: 'PUT',
       body: JSON.stringify({ claveActual, claveNueva, claveConfirmacion }),

@@ -1,8 +1,11 @@
-
-
 export type SubastaEstado = 'activa' | 'proxima' | 'finalizada';
 
-export type SubastaCategoria = 'comun' | 'especial' | 'plata' | 'oro' | 'platino';
+export type SubastaCategoria =
+  | 'comun'
+  | 'especial'
+  | 'plata'
+  | 'oro'
+  | 'platino';
 
 export type SubastaSegmento =
   | 'arte'
@@ -18,7 +21,12 @@ export type SubastaMoneda = 'ARS' | 'USD';
 
 export type SubastaModalidad = 'virtual' | 'presencial' | 'mixta';
 
-export type ItemEstado = 'pendiente' | 'en_vivo' | 'vendido' | 'no_vendido' | 'sin_estado';
+export type ItemEstado =
+  | 'pendiente'
+  | 'en_vivo'
+  | 'vendido'
+  | 'no_vendido'
+  | 'sin_estado';
 
 export type SubastaResumen = {
   id: string;

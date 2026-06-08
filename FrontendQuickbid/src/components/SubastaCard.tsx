@@ -1,7 +1,14 @@
 import React from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { Card, Typography, Badge, Button, Icon, IconName } from '../ui';
-import { colors, spacing, radius, fontSize, fontWeight, letterSpacing } from '../theme';
+import {
+  colors,
+  spacing,
+  radius,
+  fontSize,
+  fontWeight,
+  letterSpacing,
+} from '../theme';
 import {
   SubastaResumen,
   SubastaSegmento,
@@ -20,11 +27,7 @@ export function SubastaCard({ subasta, onPress, style }: Props) {
   const segmentoTheme = SEGMENTO_THEME[subasta.segmento];
 
   return (
-    <Card
-      variant="elevated"
-      padding="none"
-      style={[styles.card, style]}
-    >
+    <Card variant="elevated" padding="none" style={[styles.card, style]}>
       <View style={[styles.imageArea, { backgroundColor: segmentoTheme.bg }]}>
         <Icon name={segmentoTheme.icon} size={72} color={segmentoTheme.fg} />
 
@@ -37,7 +40,9 @@ export function SubastaCard({ subasta, onPress, style }: Props) {
 
         <View style={styles.imageBottomRight}>
           <View style={styles.currencyBadge}>
-            <Typography style={styles.currencyText}>{subasta.moneda}</Typography>
+            <Typography style={styles.currencyText}>
+              {subasta.moneda}
+            </Typography>
           </View>
         </View>
       </View>
@@ -57,13 +62,23 @@ export function SubastaCard({ subasta, onPress, style }: Props) {
         {subasta.rematador ? (
           <View style={styles.metaRow}>
             <Icon name="bank" size={14} color={colors.textMuted} />
-            <Typography variant="caption" muted numberOfLines={1} style={styles.metaText}>
+            <Typography
+              variant="caption"
+              muted
+              numberOfLines={1}
+              style={styles.metaText}
+            >
               {subasta.rematador}
             </Typography>
           </View>
         ) : null}
 
-        <Button onPress={onPress} rightIcon={<Icon name="arrow-right" color={colors.textInverse} size={18} />}>
+        <Button
+          onPress={onPress}
+          rightIcon={
+            <Icon name="arrow-right" color={colors.textInverse} size={18} />
+          }
+        >
           Entrar
         </Button>
       </View>
@@ -81,11 +96,15 @@ export function SubastaCardCompact({ subasta, onPress, style }: Props) {
       padding="none"
       style={[styles.cardCompact, style]}
     >
-      <View style={[styles.compactImage, { backgroundColor: segmentoTheme.bg }]}>
+      <View
+        style={[styles.compactImage, { backgroundColor: segmentoTheme.bg }]}
+      >
         <Icon name={segmentoTheme.icon} size={36} color={segmentoTheme.fg} />
         <View style={styles.compactCurrencyWrap}>
           <View style={styles.currencyBadgeSmall}>
-            <Typography style={styles.currencyTextSmall}>{subasta.moneda}</Typography>
+            <Typography style={styles.currencyTextSmall}>
+              {subasta.moneda}
+            </Typography>
           </View>
         </View>
       </View>
@@ -95,7 +114,12 @@ export function SubastaCardCompact({ subasta, onPress, style }: Props) {
           <Badge tone={subasta.estado === 'finalizada' ? 'neutral' : 'info'}>
             {ESTADO_LABEL[subasta.estado]}
           </Badge>
-          <Typography variant="caption" muted style={styles.compactSegmento} numberOfLines={1}>
+          <Typography
+            variant="caption"
+            muted
+            style={styles.compactSegmento}
+            numberOfLines={1}
+          >
             Segmento: {SEGMENTO_LABEL[subasta.segmento]}
           </Typography>
         </View>
@@ -113,7 +137,12 @@ export function SubastaCardCompact({ subasta, onPress, style }: Props) {
 
         <View style={styles.metaRow}>
           <Icon name="search" size={14} color={colors.textMuted} />
-          <Typography variant="caption" muted numberOfLines={1} style={styles.metaText}>
+          <Typography
+            variant="caption"
+            muted
+            numberOfLines={1}
+            style={styles.metaText}
+          >
             {subasta.ubicacion}
           </Typography>
         </View>
@@ -142,7 +171,20 @@ export const SEGMENTO_THEME: Record<SubastaSegmento, SegmentoTheme> = {
 function formatFecha(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const meses = [
+    'Ene',
+    'Feb',
+    'Mar',
+    'Abr',
+    'May',
+    'Jun',
+    'Jul',
+    'Ago',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dic',
+  ];
   const dia = d.getDate();
   const mes = meses[d.getMonth()];
   const hora = String(d.getHours()).padStart(2, '0');

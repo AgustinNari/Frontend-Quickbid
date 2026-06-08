@@ -8,7 +8,11 @@ import {
 import { CATEGORIA_ORDER } from '../types/usuario';
 import { MOCK_USUARIO_ACTUAL } from './usuarioActual';
 import { getMedioPagoById } from './mediosPago';
-import { getMockCatalogo, getMockDetalle, getMockItemDetalle } from './subastas';
+import {
+  getMockCatalogo,
+  getMockDetalle,
+  getMockItemDetalle,
+} from './subastas';
 
 export const RETENCION_SEGUNDOS = 60;
 
@@ -25,7 +29,7 @@ type SalaState = {
 const _salas: Record<string, SalaState> = {};
 
 function findItemEnVivo(subastaId: string): ItemDetalle | null {
-  const enVivo = getMockCatalogo(subastaId).find((i) => i.estado === 'en_vivo');
+  const enVivo = getMockCatalogo(subastaId).find(i => i.estado === 'en_vivo');
   if (!enVivo) return null;
   return getMockItemDetalle(enVivo.id);
 }
@@ -43,9 +47,28 @@ function initSala(item: ItemDetalle): SalaState {
     numeroPostorUsuario: null,
     cerrado: false,
     historial: [
-      { id: 'h_1', numeroPostor: 482, postorAlias: 'Postor #482', monto: ofertaGanadora, haceMinutos: 1, ganadora: true },
-      { id: 'h_2', numeroPostor: 201, postorAlias: 'Postor #201', monto: ofertaPrevia, haceMinutos: 2 },
-      { id: 'h_3', numeroPostor: 137, postorAlias: 'Postor #137', monto: ofertaInicial, haceMinutos: 4 },
+      {
+        id: 'h_1',
+        numeroPostor: 482,
+        postorAlias: 'Postor #482',
+        monto: ofertaGanadora,
+        haceMinutos: 1,
+        ganadora: true,
+      },
+      {
+        id: 'h_2',
+        numeroPostor: 201,
+        postorAlias: 'Postor #201',
+        monto: ofertaPrevia,
+        haceMinutos: 2,
+      },
+      {
+        id: 'h_3',
+        numeroPostor: 137,
+        postorAlias: 'Postor #137',
+        monto: ofertaInicial,
+        haceMinutos: 4,
+      },
     ],
   };
 }
@@ -200,7 +223,11 @@ export function pujar(
     };
   }
 
-  const limites = calcularLimites(sala.mejorOferta, sala.precioBase, subasta.categoria);
+  const limites = calcularLimites(
+    sala.mejorOferta,
+    sala.precioBase,
+    subasta.categoria,
+  );
   if (valorOfertado < limites.minimo) {
     return {
       ok: false,
@@ -243,10 +270,14 @@ export function pujar(
       haceMinutos: 0,
       ganadora: true,
     },
-    ...sala.historial.map((h) => ({ ...h, ganadora: false })),
+    ...sala.historial.map(h => ({ ...h, ganadora: false })),
   ];
 
-  const siguiente = calcularLimites(valorOfertado, sala.precioBase, subasta.categoria);
+  const siguiente = calcularLimites(
+    valorOfertado,
+    sala.precioBase,
+    subasta.categoria,
+  );
   return {
     ok: true,
     pujaId: `puja_${subastaId}_${numeroPostor}_${valorOfertado}`,

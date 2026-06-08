@@ -28,7 +28,10 @@ import {
   fontWeight,
   letterSpacing,
 } from '../theme';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import BottomNavBar, {
+  NavTab,
+  BOTTOM_NAV_HEIGHT,
+} from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SubastaInfoRow } from '../components/SubastaInfoRow';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
@@ -72,7 +75,11 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       setItem(mapItemDetalle(itemDto, mapSubastaDetalle(subastaDto)));
     } catch (loadError) {
       setItem(null);
-      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar el lote.');
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : 'No pudimos cargar el lote.',
+      );
     } finally {
       setLoading(false);
     }
@@ -171,12 +178,18 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
           <ItemFooter
             estado={item.estado}
             onPujar={handlePujar}
-            onOpenSubasta={() => navigation.navigate('SubastaDetail', { id: subastaId })}
+            onOpenSubasta={() =>
+              navigation.navigate('SubastaDetail', { id: subastaId })
+            }
           />
         </>
       )}
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }
@@ -254,7 +267,9 @@ function ItemFooter({
       <View style={styles.footer}>
         <Button
           onPress={onPujar}
-          leftIcon={<Icon name="plus-circle" color={colors.textInverse} size={18} />}
+          leftIcon={
+            <Icon name="plus-circle" color={colors.textInverse} size={18} />
+          }
         >
           Pujar ahora
         </Button>
@@ -265,7 +280,9 @@ function ItemFooter({
   return (
     <View style={styles.footer}>
       <View style={styles.footerBadgeWrap}>
-        <Badge tone="info" variant="soft">Lote programado</Badge>
+        <Badge tone="info" variant="soft">
+          Lote programado
+        </Badge>
       </View>
     </View>
   );
@@ -368,8 +385,7 @@ function TabHistoria({ item }: { item: ItemDetalle }) {
 }
 
 function TabDatos({ item }: { item: ItemDetalle }) {
-  const hasContent =
-    item.dimensiones || item.condicion || item.fechaAproximada;
+  const hasContent = item.dimensiones || item.condicion || item.fechaAproximada;
   if (!hasContent) {
     return <TabEmpty mensaje="Sin datos adicionales para este lote." />;
   }

@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform,
-  ActivityIndicator, Alert,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import BottomNavBar, {
+  NavTab,
+  BOTTOM_NAV_HEIGHT,
+} from '../components/BottomNavBar';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { mediosPagoApi } from '../api/mediosPago';
@@ -18,8 +29,21 @@ type Props = NativeStackScreenProps<RootStackParamList, 'NuevaTarjeta'>;
 function MiniCardIcon() {
   return (
     <Svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <Rect x="2" y="5" width="20" height="14" rx="2" stroke={colors.textSubtle} strokeWidth="1.6" />
-      <Path d="M2 10h20" stroke={colors.textSubtle} strokeWidth="1.6" strokeLinecap="round" />
+      <Rect
+        x="2"
+        y="5"
+        width="20"
+        height="14"
+        rx="2"
+        stroke={colors.textSubtle}
+        strokeWidth="1.6"
+      />
+      <Path
+        d="M2 10h20"
+        stroke={colors.textSubtle}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -36,18 +60,25 @@ function formatVencimiento(raw: string) {
 }
 
 export default function NuevaTarjetaScreen({ navigation }: Props) {
-  const [nombre,     setNombre]     = useState('');
-  const [numero,     setNumero]     = useState('');
-  const [vencimiento,setVencimiento]= useState('');
-  const [cvv,        setCvv]        = useState('');
+  const [nombre, setNombre] = useState('');
+  const [numero, setNumero] = useState('');
+  const [vencimiento, setVencimiento] = useState('');
+  const [cvv, setCvv] = useState('');
   const [moneda, setMoneda] = useState<'ARS' | 'USD'>('ARS');
   const [nacional, setNacional] = useState(true);
-  const [tipo,       setTipo]       = useState<'tarjeta_credito' | 'tarjeta_debito'>('tarjeta_credito');
-  const [loading,    setLoading]    = useState(false);
-  const [activeTab,  setActiveTab]  = useState<NavTab>('subastas');
+  const [tipo, setTipo] = useState<'tarjeta_credito' | 'tarjeta_debito'>(
+    'tarjeta_credito',
+  );
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<NavTab>('subastas');
 
   async function handleEnviar() {
-    if (!nombre.trim() || !numero.trim() || !vencimiento.trim() || !cvv.trim()) {
+    if (
+      !nombre.trim() ||
+      !numero.trim() ||
+      !vencimiento.trim() ||
+      !cvv.trim()
+    ) {
       Alert.alert('Campos requeridos', 'Completá todos los campos.');
       return;
     }
@@ -68,7 +99,10 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
       Alert.alert('Vencimiento inválido', 'Usá el formato MM/AA.');
       return;
     }
-    if (anio < hoy.getFullYear() || (anio === hoy.getFullYear() && mes < hoy.getMonth() + 1)) {
+    if (
+      anio < hoy.getFullYear() ||
+      (anio === hoy.getFullYear() && mes < hoy.getMonth() + 1)
+    ) {
       Alert.alert('Tarjeta vencida', 'La fecha de vencimiento ya pasó.');
       return;
     }
@@ -87,7 +121,10 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
       });
       navigation.navigate('ValidandoPago');
     } catch (e) {
-      const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';
+      const msg =
+        e instanceof ApiError
+          ? e.message
+          : 'No se pudo conectar con el servidor.';
       Alert.alert('Error', msg);
     } finally {
       setLoading(false);
@@ -98,11 +135,15 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={() => navigation.goBack()} />
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <ScrollView contentContainerStyle={styles.scroll}>
-
           <Text style={styles.title}>Nueva tarjeta</Text>
-          <Text style={styles.subtitle}>Vincule una tarjeta de crédito o débito.</Text>
+          <Text style={styles.subtitle}>
+            Vincule una tarjeta de crédito o débito.
+          </Text>
 
           <Text style={styles.label}>TIPO</Text>
           <View style={styles.segRow}>
@@ -111,8 +152,11 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
                 key={t}
                 style={[styles.seg, tipo === t && styles.segActive]}
                 onPress={() => setTipo(t)}
-                activeOpacity={0.8}>
-                <Text style={[styles.segText, tipo === t && styles.segTextActive]}>
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[styles.segText, tipo === t && styles.segTextActive]}
+                >
                   {t === 'tarjeta_credito' ? 'Crédito' : 'Débito'}
                 </Text>
               </TouchableOpacity>
@@ -121,11 +165,41 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
 
           <Text style={styles.label}>MONEDA</Text>
           <View style={styles.segRow}>
-            {(['ARS', 'USD'] as const).map(value => <TouchableOpacity key={value} style={[styles.seg, moneda === value && styles.segActive]} onPress={() => setMoneda(value)}><Text style={[styles.segText, moneda === value && styles.segTextActive]}>{value}</Text></TouchableOpacity>)}
+            {(['ARS', 'USD'] as const).map(value => (
+              <TouchableOpacity
+                key={value}
+                style={[styles.seg, moneda === value && styles.segActive]}
+                onPress={() => setMoneda(value)}
+              >
+                <Text
+                  style={[
+                    styles.segText,
+                    moneda === value && styles.segTextActive,
+                  ]}
+                >
+                  {value}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
           <Text style={styles.label}>ORIGEN</Text>
           <View style={styles.segRow}>
-            {[true, false].map(value => <TouchableOpacity key={String(value)} style={[styles.seg, nacional === value && styles.segActive]} onPress={() => setNacional(value)}><Text style={[styles.segText, nacional === value && styles.segTextActive]}>{value ? 'Nacional' : 'Extranjera'}</Text></TouchableOpacity>)}
+            {[true, false].map(value => (
+              <TouchableOpacity
+                key={String(value)}
+                style={[styles.seg, nacional === value && styles.segActive]}
+                onPress={() => setNacional(value)}
+              >
+                <Text
+                  style={[
+                    styles.segText,
+                    nacional === value && styles.segTextActive,
+                  ]}
+                >
+                  {value ? 'Nacional' : 'Extranjera'}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
 
           <Text style={styles.label}>NOMBRE EN LA TARJETA</Text>
@@ -182,64 +256,118 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
 
           <View style={styles.spacer} />
 
-          <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={handleEnviar} disabled={loading}>
-            {loading
-              ? <ActivityIndicator color={colors.textInverse} />
-              : <Text style={styles.btnText}>Enviar para verificación</Text>
-            }
+          <TouchableOpacity
+            style={styles.btn}
+            activeOpacity={0.85}
+            onPress={handleEnviar}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.textInverse} />
+            ) : (
+              <Text style={styles.btnText}>Enviar para verificación</Text>
+            )}
           </TouchableOpacity>
-
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: colors.white },
+  safe: { flex: 1, backgroundColor: colors.white },
   flex: { flex: 1 },
   spacer: { flex: 1, minHeight: 24 },
-  scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingTop: 28, paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg },
+  scroll: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.xl,
+    paddingTop: 28,
+    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
+  },
 
-  title:    { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 6 },
-  subtitle: { fontSize: fontSize.base, color: colors.textMuted, marginBottom: 28 },
+  title: {
+    fontSize: fontSize['4xl'],
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: fontSize.base,
+    color: colors.textMuted,
+    marginBottom: 28,
+  },
 
   label: {
-    fontSize: fontSize.sm, fontWeight: '600', color: colors.textLabel,
-    letterSpacing: 0.5, marginBottom: 6,
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.textLabel,
+    letterSpacing: 0.5,
+    marginBottom: 6,
   },
   input: {
-    backgroundColor: colors.white, borderRadius: radius.md, borderWidth: 1,
-    borderColor: colors.border, paddingHorizontal: 14, height: 48,
-    fontSize: fontSize.md, color: colors.text, marginBottom: 18,
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 14,
+    height: 48,
+    fontSize: fontSize.md,
+    color: colors.text,
+    marginBottom: 18,
   },
   inputRow: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.white, borderRadius: radius.md, borderWidth: 1,
-    borderColor: colors.border, paddingHorizontal: 14, height: 48,
-    marginBottom: 18, gap: spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 14,
+    height: 48,
+    marginBottom: 18,
+    gap: spacing.xs,
   },
   inputFlex: { flex: 1, fontSize: fontSize.md, color: colors.text, padding: 0 },
 
-  row:      { flexDirection: 'row', gap: spacing.md },
+  row: { flexDirection: 'row', gap: spacing.md },
   halfWrap: { flex: 1 },
 
   segRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: 18 },
   seg: {
-    flex: 1, height: 40, borderRadius: radius.md,
-    borderWidth: 1.5, borderColor: colors.borderMuted,
-    alignItems: 'center', justifyContent: 'center',
+    flex: 1,
+    height: 40,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.borderMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.white,
   },
   segActive: { borderColor: colors.primary, backgroundColor: colors.infoSoft },
-  segText: { fontSize: fontSize.sm, fontWeight: '600', color: colors.textMuted },
+  segText: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.textMuted,
+  },
   segTextActive: { color: colors.primary },
 
   btn: {
-    backgroundColor: colors.primary, borderRadius: radius.base, height: controlHeight.base,
-    alignItems: 'center', justifyContent: 'center', marginTop: spacing.xs,
+    backgroundColor: colors.primary,
+    borderRadius: radius.base,
+    height: controlHeight.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.xs,
   },
-  btnText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600' },
+  btnText: {
+    color: colors.textInverse,
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+  },
 });

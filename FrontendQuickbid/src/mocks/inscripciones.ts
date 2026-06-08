@@ -7,8 +7,8 @@ import { MOCK_SUBASTAS, MOCK_SUBASTA_DETALLE } from './subastas';
 
 const _inscriptos = new Set<string>(
   Object.values(MOCK_SUBASTA_DETALLE)
-    .filter((d) => d.inscripto === true)
-    .map((d) => d.id),
+    .filter(d => d.inscripto === true)
+    .map(d => d.id),
 );
 
 export function estaInscripto(subastaId: string): boolean {
@@ -21,7 +21,7 @@ export function inscribir(
 ): ResultadoInscripcion {
   const subasta =
     MOCK_SUBASTA_DETALLE[subastaId] ??
-    MOCK_SUBASTAS.find((s) => s.id === subastaId) ??
+    MOCK_SUBASTAS.find(s => s.id === subastaId) ??
     null;
 
   if (!subasta) {
@@ -77,7 +77,7 @@ export function inscribir(
     };
   }
 
-  const medio = MOCK_MEDIOS_PAGO.find((m) => m.id === idMedioPago);
+  const medio = MOCK_MEDIOS_PAGO.find(m => m.id === idMedioPago);
   if (!medio) {
     return {
       ok: false,
@@ -121,7 +121,10 @@ export function getMotivoBloqueoInscripcion(subasta: {
     };
   }
   if (
-    !puedeInscribirsePorCategoria(MOCK_USUARIO_ACTUAL.categoria, subasta.categoria)
+    !puedeInscribirsePorCategoria(
+      MOCK_USUARIO_ACTUAL.categoria,
+      subasta.categoria,
+    )
   ) {
     return {
       codigo: 403,

@@ -10,7 +10,15 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { Heading, Body, Typography, Button, Card, Icon, Loader } from '../ui';
-import { colors, spacing, radius, layout, fontSize, fontWeight, letterSpacing } from '../theme';
+import {
+  colors,
+  spacing,
+  radius,
+  layout,
+  fontSize,
+  fontWeight,
+  letterSpacing,
+} from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { formatPrecio } from '../utils/format';
 import { comprasApi, createIdempotencyKey } from '../api/compras';
@@ -19,7 +27,11 @@ import { direccionesApi } from '../api/direcciones';
 import { ApiError } from '../api/client';
 import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
 import { DireccionEnvioDto } from '../types/direcciones';
-import { CompraEntregaPreviewDto, ConfigurarEntregaRequest, EntregaTipo } from '../types/compraApi';
+import {
+  CompraEntregaPreviewDto,
+  ConfigurarEntregaRequest,
+  EntregaTipo,
+} from '../types/compraApi';
 import {
   CompraDetalleUi,
   mapCompraDetalle,
@@ -40,8 +52,10 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
   const [medioId, setMedioId] = useState<number | null>(null);
   const [cambiandoMedio, setCambiandoMedio] = useState(false);
   const [configurandoEntrega, setConfigurandoEntrega] = useState(false);
-  const [entregaSeleccionada, setEntregaSeleccionada] = useState<EntregaTipo | null>(null);
-  const [previewEntrega, setPreviewEntrega] = useState<CompraEntregaPreviewDto | null>(null);
+  const [entregaSeleccionada, setEntregaSeleccionada] =
+    useState<EntregaTipo | null>(null);
+  const [previewEntrega, setPreviewEntrega] =
+    useState<CompraEntregaPreviewDto | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +75,8 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
       const compatibles = mediosUsuario.filter(
         medio => isMedioPagoVigente(medio) && medio.moneda === mapped.moneda,
       );
-      const principal = compatibles.find(medio => medio.principal) ?? compatibles[0] ?? null;
+      const principal =
+        compatibles.find(medio => medio.principal) ?? compatibles[0] ?? null;
       setCompra(mapped);
       setMedios(compatibles);
       setDirecciones(direccionesUsuario);
@@ -88,7 +103,10 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
     [medios, medioId],
   );
   const direccionPrincipal = useMemo(
-    () => direcciones.find(direccion => direccion.principal) ?? direcciones[0] ?? null,
+    () =>
+      direcciones.find(direccion => direccion.principal) ??
+      direcciones[0] ??
+      null,
     [direcciones],
   );
   const total = compra
@@ -96,33 +114,42 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
       ? Number(previewEntrega.totalEstimado)
       : totalParaPago(compra, tipo)
     : 0;
-  const costoEnvioActual = tipo === 'comisiones' && !compra?.entrega && previewEntrega
-    ? Number(previewEntrega.costoEnvio)
-    : Number(compra?.entrega?.costoEnvio ?? 0);
+  const costoEnvioActual =
+    tipo === 'comisiones' && !compra?.entrega && previewEntrega
+      ? Number(previewEntrega.costoEnvio)
+      : Number(compra?.entrega?.costoEnvio ?? 0);
 
-  const entregaPayload = useCallback((modo: EntregaTipo): ConfigurarEntregaRequest | null => {
-    if (modo === 'retiro') return { tipo: 'retiro' };
-    if (!direccionPrincipal) return null;
-    return { tipo: 'envio', direccionEnvioId: direccionPrincipal.id };
-  }, [direccionPrincipal]);
+  const entregaPayload = useCallback(
+    (modo: EntregaTipo): ConfigurarEntregaRequest | null => {
+      if (modo === 'retiro') return { tipo: 'retiro' };
+      if (!direccionPrincipal) return null;
+      return { tipo: 'envio', direccionEnvioId: direccionPrincipal.id };
+    },
+    [direccionPrincipal],
+  );
 
-  const cotizarEntrega = useCallback(async (modo: EntregaTipo) => {
-    if (!compra || compra.entrega) return;
-    const payload = entregaPayload(modo);
-    if (!payload) {
-      setPreviewEntrega(null);
-      return;
-    }
-    setPreviewLoading(true);
-    try {
-      setPreviewEntrega(await comprasApi.previewEntrega(compra.numericId, payload));
-    } catch (err) {
-      setPreviewEntrega(null);
-      Alert.alert('No pudimos calcular el envio', readableError(err));
-    } finally {
-      setPreviewLoading(false);
-    }
-  }, [compra, entregaPayload]);
+  const cotizarEntrega = useCallback(
+    async (modo: EntregaTipo) => {
+      if (!compra || compra.entrega) return;
+      const payload = entregaPayload(modo);
+      if (!payload) {
+        setPreviewEntrega(null);
+        return;
+      }
+      setPreviewLoading(true);
+      try {
+        setPreviewEntrega(
+          await comprasApi.previewEntrega(compra.numericId, payload),
+        );
+      } catch (err) {
+        setPreviewEntrega(null);
+        Alert.alert('No pudimos calcular el envio', readableError(err));
+      } finally {
+        setPreviewLoading(false);
+      }
+    },
+    [compra, entregaPayload],
+  );
 
   const persistirEntrega = async (modo: EntregaTipo) => {
     if (!compra) return;
@@ -145,7 +172,12 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
       Alert.alert(
         'Direccion requerida',
         'Agrega una direccion de envio antes de elegir envio a domicilio.',
-        [{ text: 'Ir a direcciones', onPress: () => navigation.navigate('DireccionesEnvio') }],
+        [
+          {
+            text: 'Ir a direcciones',
+            onPress: () => navigation.navigate('DireccionesEnvio'),
+          },
+        ],
       );
       return;
     }
@@ -158,16 +190,26 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
     const direccion = direccionPrincipal
       ? `${direccionPrincipal.calle} ${direccionPrincipal.numero}, ${direccionPrincipal.localidad}`
       : null;
-    const detalleConfirmacion = entregaSeleccionada === 'envio'
-      ? `Modalidad: envio a domicilio\nDireccion: ${direccion}\nCosto de envio: ${formatPrecio(costoEnvioActual, compra.moneda)}\nTotal estimado: ${formatPrecio(total, compra.moneda)}`
-      : `Modalidad: retiro en sede\nCosto de envio: ${formatPrecio(costoEnvioActual, compra.moneda)}\nTotal estimado: ${formatPrecio(total, compra.moneda)}`;
+    const detalleConfirmacion =
+      entregaSeleccionada === 'envio'
+        ? `Modalidad: envio a domicilio\nDireccion: ${direccion}\nCosto de envio: ${formatPrecio(
+            costoEnvioActual,
+            compra.moneda,
+          )}\nTotal estimado: ${formatPrecio(total, compra.moneda)}`
+        : `Modalidad: retiro en sede\nCosto de envio: ${formatPrecio(
+            costoEnvioActual,
+            compra.moneda,
+          )}\nTotal estimado: ${formatPrecio(total, compra.moneda)}`;
 
     Alert.alert(
       'Confirmar entrega',
       `${detalleConfirmacion}\n\nLuego no podras cambiar la modalidad de entrega.`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Confirmar', onPress: () => persistirEntrega(entregaSeleccionada) },
+        {
+          text: 'Confirmar',
+          onPress: () => persistirEntrega(entregaSeleccionada),
+        },
       ],
     );
   };
@@ -176,7 +218,10 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
     if (!compra || !medioSeleccionado) return;
     if (tipo === 'comisiones' && !compra.entrega) {
       if (!entregaSeleccionada || previewLoading || !previewEntrega) {
-        Alert.alert('Elegi entrega', 'Selecciona envio o retiro para ver el total antes de confirmar.');
+        Alert.alert(
+          'Elegi entrega',
+          'Selecciona envio o retiro para ver el total antes de confirmar.',
+        );
         return;
       }
       confirmarEntrega();
@@ -186,15 +231,20 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
     try {
       const payload = {
         medioPagoId: medioSeleccionado.id,
-        idempotencyKey: createIdempotencyKey(tipo === 'multa' ? 'multa' : 'extras'),
+        idempotencyKey: createIdempotencyKey(
+          tipo === 'multa' ? 'multa' : 'extras',
+        ),
       };
-      const response = tipo === 'multa'
-        ? await comprasApi.pagarConMulta(compra.numericId, payload)
-        : await comprasApi.pagar(compra.numericId, payload);
+      const response =
+        tipo === 'multa'
+          ? await comprasApi.pagarConMulta(compra.numericId, payload)
+          : await comprasApi.pagar(compra.numericId, payload);
       const pago = mapPagoCompra(response);
       if (pago.aprobado) {
         if (tipo === 'multa') await refreshSession();
-        const docs = await comprasApi.documentos(compra.numericId).catch(() => []);
+        const docs = await comprasApi
+          .documentos(compra.numericId)
+          .catch(() => []);
         const documento = docs.map(mapDocumentoCompra)[0]?.filename;
         navigation.replace('CompraExito', {
           compraId: compra.id,
@@ -206,7 +256,8 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
       } else {
         Alert.alert(
           'Pago fallido',
-          pago.errorLabel ?? 'No pudimos aprobar el pago. Revisa el medio seleccionado o el limite disponible.',
+          pago.errorLabel ??
+            'No pudimos aprobar el pago. Revisa el medio seleccionado o el limite disponible.',
         );
         await load();
         return;
@@ -245,22 +296,37 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={() => navigation.goBack()} />
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.body}>
           <Heading style={styles.titulo}>Resumen de Pago</Heading>
 
           <Card variant="flat" padding="none" style={styles.itemCard}>
             <View style={styles.itemRow}>
               <View style={styles.thumb}>
-                <Icon name={tipo === 'multa' ? 'alert' : 'bag'} size={32} color={colors.primary} />
+                <Icon
+                  name={tipo === 'multa' ? 'alert' : 'bag'}
+                  size={32}
+                  color={colors.primary}
+                />
               </View>
               <View style={styles.itemInfo}>
-                <Typography style={styles.itemLote}>{compra.loteLabel.toUpperCase()}</Typography>
-                <Typography style={styles.itemTitulo} numberOfLines={1}>{compra.title}</Typography>
-                <Typography style={styles.itemAutor} numberOfLines={1}>{compra.subtitle}</Typography>
+                <Typography style={styles.itemLote}>
+                  {compra.loteLabel.toUpperCase()}
+                </Typography>
+                <Typography style={styles.itemTitulo} numberOfLines={1}>
+                  {compra.title}
+                </Typography>
+                <Typography style={styles.itemAutor} numberOfLines={1}>
+                  {compra.subtitle}
+                </Typography>
                 <View style={styles.verificadoRow}>
                   <Icon name="check-circle" size={14} color={colors.success} />
-                  <Typography style={styles.verificadoText}>Compra autorizada</Typography>
+                  <Typography style={styles.verificadoText}>
+                    Compra autorizada
+                  </Typography>
                 </View>
               </View>
             </View>
@@ -282,43 +348,77 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
             <Typography style={styles.sectionLabel}>METODO DE PAGO</Typography>
             <View style={styles.medioWrap}>
               <View style={styles.medioRow}>
-                <Icon name={medioSeleccionado?.tipo === 'cuenta_bancaria' ? 'bank' : 'card'} size={20} color={colors.textMuted} />
+                <Icon
+                  name={
+                    medioSeleccionado?.tipo === 'cuenta_bancaria'
+                      ? 'bank'
+                      : 'card'
+                  }
+                  size={20}
+                  color={colors.textMuted}
+                />
                 <Typography style={styles.medioValue} numberOfLines={1}>
-                  {medioSeleccionado ? medioLabel(medioSeleccionado) : 'Sin medio verificado compatible'}
+                  {medioSeleccionado
+                    ? medioLabel(medioSeleccionado)
+                    : 'Sin medio verificado compatible'}
                 </Typography>
                 {medios.length > 1 ? (
-                  <TouchableOpacity onPress={() => setCambiandoMedio(v => !v)} hitSlop={hitSlop}>
-                    <Typography style={styles.medioCambiar}>{cambiandoMedio ? 'Cerrar' : 'Cambiar'}</Typography>
+                  <TouchableOpacity
+                    onPress={() => setCambiandoMedio(v => !v)}
+                    hitSlop={hitSlop}
+                  >
+                    <Typography style={styles.medioCambiar}>
+                      {cambiandoMedio ? 'Cerrar' : 'Cambiar'}
+                    </Typography>
                   </TouchableOpacity>
                 ) : null}
               </View>
-              {cambiandoMedio ? medios.map(medio => {
-                const selected = medio.id === medioId;
-                return (
-                  <TouchableOpacity
-                    key={medio.id}
-                    activeOpacity={0.7}
-                    onPress={() => {
-                      setMedioId(medio.id);
-                      setCambiandoMedio(false);
-                    }}
-                    style={[styles.medioOption, selected ? styles.medioOptionSel : null]}
-                  >
-                    <View style={styles.medioOptInfo}>
-                      <Typography style={styles.medioOptEtiqueta}>{medio.aliasVisible}</Typography>
-                      <Typography style={styles.medioOptTipo}>
-                        {medioTipoLabel(medio.tipo)}
-                        {medio.ultimos4 ? ` Â·Â·Â· ${medio.ultimos4}` : ''} Â· {medio.moneda}
-                      </Typography>
-                    </View>
-                    <View style={[styles.radio, selected ? styles.radioSel : null]}>
-                      {selected ? <View style={styles.radioInner} /> : null}
-                    </View>
-                  </TouchableOpacity>
-                );
-              }) : null}
+              {cambiandoMedio
+                ? medios.map(medio => {
+                    const selected = medio.id === medioId;
+                    return (
+                      <TouchableOpacity
+                        key={medio.id}
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          setMedioId(medio.id);
+                          setCambiandoMedio(false);
+                        }}
+                        style={[
+                          styles.medioOption,
+                          selected ? styles.medioOptionSel : null,
+                        ]}
+                      >
+                        <View style={styles.medioOptInfo}>
+                          <Typography style={styles.medioOptEtiqueta}>
+                            {medio.aliasVisible}
+                          </Typography>
+                          <Typography style={styles.medioOptTipo}>
+                            {medioTipoLabel(medio.tipo)}
+                            {medio.ultimos4
+                              ? ` Â·Â·Â· ${medio.ultimos4}`
+                              : ''}{' '}
+                            Â· {medio.moneda}
+                          </Typography>
+                        </View>
+                        <View
+                          style={[
+                            styles.radio,
+                            selected ? styles.radioSel : null,
+                          ]}
+                        >
+                          {selected ? <View style={styles.radioInner} /> : null}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })
+                : null}
               {medios.length === 0 ? (
-                <Button variant="secondary" size="sm" onPress={() => navigation.navigate('MetodosPago')}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onPress={() => navigation.navigate('MetodosPago')}
+                >
                   Agregar medio compatible
                 </Button>
               ) : null}
@@ -326,29 +426,58 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
           </View>
 
           <View style={styles.section}>
-            <Typography style={styles.sectionLabel}>RESUMEN ECONOMICO</Typography>
+            <Typography style={styles.sectionLabel}>
+              RESUMEN ECONOMICO
+            </Typography>
             <View style={styles.econCard}>
               {tipo === 'multa' && compra.multa ? (
                 <>
-                  <Row label="Oferta ganadora" value={formatPrecio(compra.montoAdjudicacion, compra.moneda)} />
-                  <Row label="Multa" value={formatPrecio(compra.multa.monto, compra.moneda)} danger />
+                  <Row
+                    label="Oferta ganadora"
+                    value={formatPrecio(
+                      compra.montoAdjudicacion,
+                      compra.moneda,
+                    )}
+                  />
+                  <Row
+                    label="Multa"
+                    value={formatPrecio(compra.multa.monto, compra.moneda)}
+                    danger
+                  />
                 </>
               ) : (
                 <>
-                  <Row label="Comision comprador" value={formatPrecio(compra.comisionComprador, compra.moneda)} />
-                  <Row label="Envio" value={formatPrecio(costoEnvioActual, compra.moneda)} />
+                  <Row
+                    label="Comision comprador"
+                    value={formatPrecio(
+                      compra.comisionComprador,
+                      compra.moneda,
+                    )}
+                  />
+                  <Row
+                    label="Envio"
+                    value={formatPrecio(costoEnvioActual, compra.moneda)}
+                  />
                   {!compra.entrega && !previewEntrega ? (
-                    <Typography style={styles.helpText}>Elegi envio o retiro para ver el total antes de confirmar.</Typography>
+                    <Typography style={styles.helpText}>
+                      Elegi envio o retiro para ver el total antes de confirmar.
+                    </Typography>
                   ) : null}
                 </>
               )}
               <View style={styles.econDivider} />
               <View style={styles.totalRow}>
                 <View style={styles.totalCopy}>
-                  <Typography style={styles.totalLabel}>Total a pagar</Typography>
-                  <Typography style={styles.totalNota}>Segun el estado actual de la compra</Typography>
+                  <Typography style={styles.totalLabel}>
+                    Total a pagar
+                  </Typography>
+                  <Typography style={styles.totalNota}>
+                    Segun el estado actual de la compra
+                  </Typography>
                 </View>
-                <Typography style={styles.totalValue}>{formatPrecio(total, compra.moneda)}</Typography>
+                <Typography style={styles.totalValue}>
+                  {formatPrecio(total, compra.moneda)}
+                </Typography>
               </View>
             </View>
           </View>
@@ -359,10 +488,19 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
         <Button
           onPress={handleConfirmar}
           loading={procesando}
-          disabled={!medioSeleccionado || (tipo === 'comisiones' && !compra.entrega && (!entregaSeleccionada || !previewEntrega || previewLoading))}
+          disabled={
+            !medioSeleccionado ||
+            (tipo === 'comisiones' &&
+              !compra.entrega &&
+              (!entregaSeleccionada || !previewEntrega || previewLoading))
+          }
           leftIcon={<Icon name="lock" color={colors.textInverse} size={16} />}
         >
-          {procesando ? 'Procesando...' : tipo === 'comisiones' && !compra.entrega ? 'Confirmar entrega' : 'Confirmar y pagar ahora'}
+          {procesando
+            ? 'Procesando...'
+            : tipo === 'comisiones' && !compra.entrega
+            ? 'Confirmar entrega'
+            : 'Confirmar y pagar ahora'}
         </Button>
       </View>
     </SafeAreaView>
@@ -390,30 +528,53 @@ function EntregaPicker({
     <View style={styles.section}>
       <Typography style={styles.sectionLabel}>ENTREGA</Typography>
       <View style={styles.entregaBox}>
-        <Typography style={styles.entregaTitle}>{compra.entregaLabel}</Typography>
-        <Typography style={styles.helpText}>{compra.entregaDescription}</Typography>
+        <Typography style={styles.entregaTitle}>
+          {compra.entregaLabel}
+        </Typography>
+        <Typography style={styles.helpText}>
+          {compra.entregaDescription}
+        </Typography>
         {compra.entrega ? (
           <Typography style={styles.helpText}>
-            {compra.entrega.tipo === 'envio' ? `Direccion ID #${compra.entrega.direccionEnvioId}` : 'Retiro sin direccion de envio'}
+            {compra.entrega.tipo === 'envio'
+              ? `Direccion ID #${compra.entrega.direccionEnvioId}`
+              : 'Retiro sin direccion de envio'}
           </Typography>
         ) : (
           <View style={styles.entregaActions}>
-            <Button variant={selected === 'retiro' ? 'primary' : 'secondary'} size="sm" loading={loading && selected === 'retiro'} onPress={() => onPick('retiro')} fullWidth={false}>
+            <Button
+              variant={selected === 'retiro' ? 'primary' : 'secondary'}
+              size="sm"
+              loading={loading && selected === 'retiro'}
+              onPress={() => onPick('retiro')}
+              fullWidth={false}
+            >
               {selected === 'retiro' ? 'Retiro seleccionado' : 'Retiro en sede'}
             </Button>
-            <Button variant={selected === 'envio' ? 'primary' : 'secondary'} size="sm" loading={loading && selected === 'envio'} onPress={() => onPick('envio')} fullWidth={false}>
+            <Button
+              variant={selected === 'envio' ? 'primary' : 'secondary'}
+              size="sm"
+              loading={loading && selected === 'envio'}
+              onPress={() => onPick('envio')}
+              fullWidth={false}
+            >
               {selected === 'envio' ? 'Envio seleccionado' : 'Enviar'}
             </Button>
           </View>
         )}
         {!compra.entrega && selected ? (
           <Typography style={styles.helpText}>
-            Costo de envio: {preview ? formatPrecio(preview.costoEnvio, preview.moneda) : 'Calculando...'}
+            Costo de envio:{' '}
+            {preview
+              ? formatPrecio(preview.costoEnvio, preview.moneda)
+              : 'Calculando...'}
           </Typography>
         ) : null}
         {direccionPrincipal ? (
           <Typography style={styles.direccionText} numberOfLines={2}>
-            Direccion principal: {direccionPrincipal.alias} Â· {direccionPrincipal.calle} {direccionPrincipal.numero}, {direccionPrincipal.localidad}
+            Direccion principal: {direccionPrincipal.alias} Â·{' '}
+            {direccionPrincipal.calle} {direccionPrincipal.numero},{' '}
+            {direccionPrincipal.localidad}
           </Typography>
         ) : (
           <Button variant="secondary" size="sm" onPress={onManage}>
@@ -425,11 +586,23 @@ function EntregaPicker({
   );
 }
 
-function Row({ label, value, danger }: { label: string; value: string; danger?: boolean }) {
+function Row({
+  label,
+  value,
+  danger,
+}: {
+  label: string;
+  value: string;
+  danger?: boolean;
+}) {
   return (
     <View style={styles.row}>
       <Typography style={styles.rowLabel}>{label}</Typography>
-      <Typography style={[styles.rowValue, danger ? styles.rowValueDanger : null]}>{value}</Typography>
+      <Typography
+        style={[styles.rowValue, danger ? styles.rowValueDanger : null]}
+      >
+        {value}
+      </Typography>
     </View>
   );
 }
@@ -487,10 +660,23 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     letterSpacing: letterSpacing.wider,
   },
-  itemTitulo: { fontSize: fontSize.lg, fontWeight: fontWeight.bold, color: colors.text },
+  itemTitulo: {
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
+    color: colors.text,
+  },
   itemAutor: { fontSize: fontSize.sm, color: colors.textMuted },
-  verificadoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
-  verificadoText: { fontSize: fontSize.xs, color: colors.success, fontWeight: fontWeight.semibold },
+  verificadoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  verificadoText: {
+    fontSize: fontSize.xs,
+    color: colors.success,
+    fontWeight: fontWeight.semibold,
+  },
   section: { gap: spacing.sm },
   sectionLabel: {
     fontSize: fontSize.xs,
@@ -506,10 +692,18 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     backgroundColor: colors.surface,
   },
-  entregaTitle: { fontSize: fontSize.base, fontWeight: fontWeight.bold, color: colors.text },
+  entregaTitle: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.bold,
+    color: colors.text,
+  },
   entregaActions: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
   direccionText: { fontSize: fontSize.sm, color: colors.textMuted },
-  helpText: { fontSize: fontSize.sm, color: colors.textMuted, lineHeight: fontSize.sm * 1.45 },
+  helpText: {
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    lineHeight: fontSize.sm * 1.45,
+  },
   medioWrap: {
     borderWidth: 1,
     borderColor: colors.borderMuted,
@@ -520,8 +714,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   medioRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  medioValue: { flex: 1, fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.text },
-  medioCambiar: { fontSize: fontSize.sm, fontWeight: fontWeight.bold, color: colors.primary },
+  medioValue: {
+    flex: 1,
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.text,
+  },
+  medioCambiar: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.bold,
+    color: colors.primary,
+  },
   medioOption: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -532,9 +735,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderMuted,
   },
-  medioOptionSel: { borderColor: colors.primary, backgroundColor: colors.infoSoft },
+  medioOptionSel: {
+    borderColor: colors.primary,
+    backgroundColor: colors.infoSoft,
+  },
   medioOptInfo: { flex: 1 },
-  medioOptEtiqueta: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.text },
+  medioOptEtiqueta: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.text,
+  },
   medioOptTipo: { fontSize: fontSize.sm, color: colors.textMuted },
   radio: {
     width: 22,
@@ -546,7 +756,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   radioSel: { borderColor: colors.primary },
-  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.primary,
+  },
   econCard: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
@@ -555,14 +770,38 @@ const styles = StyleSheet.create({
     padding: spacing.base,
     gap: spacing.sm,
   },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.base },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.base,
+  },
   rowLabel: { flex: 1, fontSize: fontSize.base, color: colors.textLabel },
-  rowValue: { flex: 1, textAlign: 'right', fontSize: fontSize.base, color: colors.text, fontWeight: fontWeight.semibold },
+  rowValue: {
+    flex: 1,
+    textAlign: 'right',
+    fontSize: fontSize.base,
+    color: colors.text,
+    fontWeight: fontWeight.semibold,
+  },
   rowValueDanger: { color: colors.danger },
-  econDivider: { height: 1, backgroundColor: colors.borderMuted, marginVertical: spacing.xs },
-  totalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.base },
+  econDivider: {
+    height: 1,
+    backgroundColor: colors.borderMuted,
+    marginVertical: spacing.xs,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.base,
+  },
   totalCopy: { flex: 1 },
-  totalLabel: { fontSize: fontSize.lg, fontWeight: fontWeight.bold, color: colors.text },
+  totalLabel: {
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
+    color: colors.text,
+  },
   totalNota: { fontSize: fontSize.xs, color: colors.textMuted },
   totalValue: {
     flex: 1,

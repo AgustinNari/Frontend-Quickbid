@@ -74,7 +74,15 @@ const REGISTRY: Record<IconName, (p: RenderProps) => React.ReactElement> = {
   ),
   lock: ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Rect x="5" y="11" width="14" height="10" rx="2" stroke={color} strokeWidth={strokeWidth} />
+      <Rect
+        x="5"
+        y="11"
+        width="14"
+        height="10"
+        rx="2"
+        stroke={color}
+        strokeWidth={strokeWidth}
+      />
       <Path
         d="M8 11V7a4 4 0 0 1 8 0v4"
         stroke={color}
@@ -85,8 +93,21 @@ const REGISTRY: Record<IconName, (p: RenderProps) => React.ReactElement> = {
   ),
   mail: ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Rect x="3" y="5" width="18" height="14" rx="2" stroke={color} strokeWidth={strokeWidth} />
-      <Path d="M3 7l9 6 9-6" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Rect
+        x="3"
+        y="5"
+        width="18"
+        height="14"
+        rx="2"
+        stroke={color}
+        strokeWidth={strokeWidth}
+      />
+      <Path
+        d="M3 7l9 6 9-6"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   eye: ({ size, color, strokeWidth }) => (
@@ -110,7 +131,15 @@ const REGISTRY: Record<IconName, (p: RenderProps) => React.ReactElement> = {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <Line x1="1" y1="1" x2="23" y2="23" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Line
+        x1="1"
+        y1="1"
+        x2="23"
+        y2="23"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   'arrow-left': ({ size, color, strokeWidth }) => (
@@ -182,23 +211,43 @@ const REGISTRY: Record<IconName, (p: RenderProps) => React.ReactElement> = {
   'x-circle': ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={strokeWidth} />
-      <Path d="M15 9l-6 6M9 9l6 6" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Path
+        d="M15 9l-6 6M9 9l6 6"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   plus: ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 5v14M5 12h14" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Path
+        d="M12 5v14M5 12h14"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   'plus-circle': ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={strokeWidth} />
-      <Path d="M12 8v8M8 12h8" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Path
+        d="M12 8v8M8 12h8"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   minus: ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="M5 12h14" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Path
+        d="M5 12h14"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   star: ({ size, color, strokeWidth }) => (
@@ -247,8 +296,21 @@ const REGISTRY: Record<IconName, (p: RenderProps) => React.ReactElement> = {
   ),
   card: ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Rect x="2" y="5" width="20" height="14" rx="2" stroke={color} strokeWidth={strokeWidth} />
-      <Path d="M2 10h20" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Rect
+        x="2"
+        y="5"
+        width="20"
+        height="14"
+        rx="2"
+        stroke={color}
+        strokeWidth={strokeWidth}
+      />
+      <Path
+        d="M2 10h20"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   bank: ({ size, color, strokeWidth }) => (
@@ -270,7 +332,15 @@ const REGISTRY: Record<IconName, (p: RenderProps) => React.ReactElement> = {
   ),
   'check-doc': ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Rect x="4" y="2" width="16" height="20" rx="2" stroke={color} strokeWidth={strokeWidth} />
+      <Rect
+        x="4"
+        y="2"
+        width="16"
+        height="20"
+        rx="2"
+        stroke={color}
+        strokeWidth={strokeWidth}
+      />
       <Path
         d="M8 10h8M8 14h5M8 6h8"
         stroke={color}
@@ -305,7 +375,12 @@ const REGISTRY: Record<IconName, (p: RenderProps) => React.ReactElement> = {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <Path d="M3 6h18" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Path
+        d="M3 6h18"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
       <Path
         d="M16 10a4 4 0 0 1-8 0"
         stroke={color}
@@ -316,9 +391,33 @@ const REGISTRY: Record<IconName, (p: RenderProps) => React.ReactElement> = {
   ),
   menu: ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Line x1="3" y1="6" x2="21" y2="6" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
-      <Line x1="3" y1="12" x2="21" y2="12" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
-      <Line x1="3" y1="18" x2="21" y2="18" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Line
+        x1="3"
+        y1="6"
+        x2="21"
+        y2="6"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+      <Line
+        x1="3"
+        y1="12"
+        x2="21"
+        y2="12"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+      <Line
+        x1="3"
+        y1="18"
+        x2="21"
+        y2="18"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   'dots-vertical': ({ size, color }) => (
@@ -338,7 +437,12 @@ const REGISTRY: Record<IconName, (p: RenderProps) => React.ReactElement> = {
   search: ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="11" cy="11" r="7" stroke={color} strokeWidth={strokeWidth} />
-      <Path d="M20 20l-3-3" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Path
+        d="M20 20l-3-3"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   filter: ({ size, color, strokeWidth }) => (
@@ -354,20 +458,43 @@ const REGISTRY: Record<IconName, (p: RenderProps) => React.ReactElement> = {
   ),
   calendar: ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Rect x="3" y="5" width="18" height="16" rx="2" stroke={color} strokeWidth={strokeWidth} />
-      <Path d="M3 10h18M8 3v4M16 3v4" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Rect
+        x="3"
+        y="5"
+        width="18"
+        height="16"
+        rx="2"
+        stroke={color}
+        strokeWidth={strokeWidth}
+      />
+      <Path
+        d="M3 10h18M8 3v4M16 3v4"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   clock: ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={strokeWidth} />
-      <Path d="M12 6v6l4 2" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Path
+        d="M12 6v6l4 2"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   info: ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={strokeWidth} />
-      <Path d="M12 16v-4M12 8h.01" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Path
+        d="M12 16v-4M12 8h.01"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   alert: ({ size, color, strokeWidth }) => (
@@ -379,7 +506,12 @@ const REGISTRY: Record<IconName, (p: RenderProps) => React.ReactElement> = {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <Path d="M12 9v5M12 17h.01" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Path
+        d="M12 9v5M12 17h.01"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
     </Svg>
   ),
   inbox: ({ size, color, strokeWidth }) => (
@@ -402,8 +534,22 @@ const REGISTRY: Record<IconName, (p: RenderProps) => React.ReactElement> = {
   ),
   image: ({ size, color, strokeWidth }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Rect x="3" y="3" width="18" height="18" rx="2" stroke={color} strokeWidth={strokeWidth} />
-      <Circle cx="8.5" cy="8.5" r="1.5" stroke={color} strokeWidth={strokeWidth} />
+      <Rect
+        x="3"
+        y="3"
+        width="18"
+        height="18"
+        rx="2"
+        stroke={color}
+        strokeWidth={strokeWidth}
+      />
+      <Circle
+        cx="8.5"
+        cy="8.5"
+        r="1.5"
+        stroke={color}
+        strokeWidth={strokeWidth}
+      />
       <Path
         d="M21 15l-5-5L5 21"
         stroke={color}

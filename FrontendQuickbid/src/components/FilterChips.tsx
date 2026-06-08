@@ -35,14 +35,17 @@ export function FilterChips<T extends string>({
       contentContainerStyle={styles.container}
       style={style}
     >
-      {options.map((opt) => {
+      {options.map(opt => {
         const selected = opt.value === value;
         return (
           <TouchableOpacity
             key={String(opt.value ?? '__all__')}
             onPress={() => onChange(opt.value)}
             activeOpacity={0.7}
-            style={[styles.chip, selected ? styles.chipSelected : styles.chipIdle]}
+            style={[
+              styles.chip,
+              selected ? styles.chipSelected : styles.chipIdle,
+            ]}
           >
             <Typography
               style={[

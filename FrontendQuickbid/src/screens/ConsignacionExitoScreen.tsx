@@ -17,23 +17,36 @@ import { ScreenHeader } from '../components/ScreenHeader';
 type Props = NativeStackScreenProps<RootStackParamList, 'ConsignacionExito'>;
 
 const PROXIMOS_PASOS = [
-  { titulo: 'Validación digital', sub: 'Revisamos la documentación (1-3 días hábiles).' },
-  { titulo: 'Recepción del bien', sub: 'Coordinás el envío o la entrega en sede.' },
+  {
+    titulo: 'Validación digital',
+    sub: 'Revisamos la documentación (1-3 días hábiles).',
+  },
+  {
+    titulo: 'Recepción del bien',
+    sub: 'Coordinás el envío o la entrega en sede.',
+  },
   { titulo: 'Revisión física', sub: 'Inspección presencial del objeto.' },
-  { titulo: 'Propuesta de acuerdo', sub: 'Te proponemos precio base y comisiones.' },
+  {
+    titulo: 'Propuesta de acuerdo',
+    sub: 'Te proponemos precio base y comisiones.',
+  },
 ];
 
 export default function ConsignacionExitoScreen({ navigation, route }: Props) {
   const { id, codigo, titulo } = route.params;
 
-  const verSeguimiento = () => navigation.navigate('ConsignacionDetail', { id });
+  const verSeguimiento = () =>
+    navigation.navigate('ConsignacionDetail', { id });
   const irAConsignaciones = () => navigation.navigate('Consignaciones');
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={irAConsignaciones} />
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.body}>
           <View style={styles.celebracion}>
             <View style={styles.checkCircle}>
@@ -41,15 +54,17 @@ export default function ConsignacionExitoScreen({ navigation, route }: Props) {
             </View>
             <Heading style={styles.titulo}>¡Solicitud enviada!</Heading>
             <Body muted style={styles.subcopy}>
-              Recibimos tu consignación{titulo ? ` de "${titulo}"` : ''}. Vamos a
-              validar el origen y te avisamos por notificación.
+              Recibimos tu consignación{titulo ? ` de "${titulo}"` : ''}. Vamos
+              a validar el origen y te avisamos por notificación.
             </Body>
           </View>
 
           {codigo ? (
             <Card variant="flat" padding="none" style={styles.codigoCard}>
               <View style={styles.codigoInner}>
-                <Typography style={styles.codigoLabel}>CÓDIGO DE SEGUIMIENTO</Typography>
+                <Typography style={styles.codigoLabel}>
+                  CÓDIGO DE SEGUIMIENTO
+                </Typography>
                 <Typography style={styles.codigoValue}>{codigo}</Typography>
               </View>
             </Card>
@@ -64,7 +79,9 @@ export default function ConsignacionExitoScreen({ navigation, route }: Props) {
                     <Typography style={styles.pasoNumText}>{i + 1}</Typography>
                   </View>
                   <View style={styles.pasoInfo}>
-                    <Typography style={styles.pasoTitulo}>{p.titulo}</Typography>
+                    <Typography style={styles.pasoTitulo}>
+                      {p.titulo}
+                    </Typography>
                     <Typography style={styles.pasoSub}>{p.sub}</Typography>
                   </View>
                 </View>
@@ -77,11 +94,17 @@ export default function ConsignacionExitoScreen({ navigation, route }: Props) {
       <View style={styles.footer}>
         <Button
           onPress={verSeguimiento}
-          rightIcon={<Icon name="arrow-right" color={colors.textInverse} size={18} />}
+          rightIcon={
+            <Icon name="arrow-right" color={colors.textInverse} size={18} />
+          }
         >
           Ver el seguimiento
         </Button>
-        <Button variant="secondary" onPress={irAConsignaciones} style={styles.secondaryButton}>
+        <Button
+          variant="secondary"
+          onPress={irAConsignaciones}
+          style={styles.secondaryButton}
+        >
           Volver a mis consignaciones
         </Button>
       </View>
@@ -97,7 +120,11 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     gap: spacing.base,
   },
-  celebracion: { alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.base },
+  celebracion: {
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.base,
+  },
   checkCircle: {
     width: 72,
     height: 72,
@@ -108,7 +135,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   titulo: { fontSize: fontSize['3xl'], textAlign: 'center' },
-  subcopy: { textAlign: 'center', marginTop: spacing.xs, paddingHorizontal: spacing.sm },
+  subcopy: {
+    textAlign: 'center',
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm,
+  },
   codigoCard: { marginTop: spacing.sm },
   codigoInner: { padding: spacing.base, alignItems: 'center', gap: spacing.xs },
   codigoLabel: {
@@ -117,7 +148,11 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     letterSpacing: letterSpacing.wider,
   },
-  codigoValue: { fontSize: fontSize.xl, fontWeight: fontWeight.bold, color: colors.primary },
+  codigoValue: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    color: colors.primary,
+  },
   pasosWrap: { gap: spacing.sm, marginTop: spacing.sm },
   pasosLabel: {
     fontSize: fontSize.xs,
@@ -142,10 +177,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pasoNumText: { fontSize: fontSize.sm, fontWeight: fontWeight.bold, color: colors.primary },
+  pasoNumText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.bold,
+    color: colors.primary,
+  },
   pasoInfo: { flex: 1, gap: 2, paddingTop: 2 },
-  pasoTitulo: { fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.text },
-  pasoSub: { fontSize: fontSize.sm, color: colors.textMuted, lineHeight: fontSize.sm * 1.4 },
+  pasoTitulo: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.text,
+  },
+  pasoSub: {
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    lineHeight: fontSize.sm * 1.4,
+  },
   footer: {
     backgroundColor: colors.surface,
     paddingHorizontal: layout.screenPaddingHorizontal,

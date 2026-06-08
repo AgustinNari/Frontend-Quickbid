@@ -8,7 +8,12 @@ interface FadeInProps {
   style?: object;
 }
 
-export function FadeIn({ children, duration = 300, delay = 0, style }: FadeInProps) {
+export function FadeIn({
+  children,
+  duration = 300,
+  delay = 0,
+  style,
+}: FadeInProps) {
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -20,9 +25,5 @@ export function FadeIn({ children, duration = 300, delay = 0, style }: FadeInPro
     }).start();
   }, [opacity, duration, delay]);
 
-  return (
-    <Animated.View style={[{ opacity }, style]}>
-      {children}
-    </Animated.View>
-  );
+  return <Animated.View style={[{ opacity }, style]}>{children}</Animated.View>;
 }

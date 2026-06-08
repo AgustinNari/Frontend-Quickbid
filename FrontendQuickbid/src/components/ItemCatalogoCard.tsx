@@ -74,7 +74,10 @@ export function ItemCatalogoCard({
   );
 }
 
-type EstadoBadge = { tone: 'success' | 'primary' | 'neutral'; variant: 'solid' | 'soft' };
+type EstadoBadge = {
+  tone: 'success' | 'primary' | 'neutral';
+  variant: 'solid' | 'soft';
+};
 
 const ESTADO_TONE: Record<ItemCatalogo['estado'], EstadoBadge> = {
   en_vivo: { tone: 'primary', variant: 'solid' },

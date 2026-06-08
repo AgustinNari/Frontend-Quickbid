@@ -25,8 +25,21 @@ type Props = NativeStackScreenProps<RootStackParamList, 'EnlaceRegistro'>;
 function MailIcon() {
   return (
     <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <Rect x="3" y="5" width="18" height="14" rx="2" stroke={colors.textSubtle} strokeWidth="1.8" />
-      <Path d="M3 7l9 6 9-6" stroke={colors.textSubtle} strokeWidth="1.8" strokeLinecap="round" />
+      <Rect
+        x="3"
+        y="5"
+        width="18"
+        height="14"
+        rx="2"
+        stroke={colors.textSubtle}
+        strokeWidth="1.8"
+      />
+      <Path
+        d="M3 7l9 6 9-6"
+        stroke={colors.textSubtle}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -34,19 +47,30 @@ function MailIcon() {
 function InfoIcon() {
   return (
     <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="9" stroke={colors.textMuted} strokeWidth="1.8" />
-      <Path d="M12 11v5" stroke={colors.textMuted} strokeWidth="1.8" strokeLinecap="round" />
+      <Circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke={colors.textMuted}
+        strokeWidth="1.8"
+      />
+      <Path
+        d="M12 11v5"
+        stroke={colors.textMuted}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
       <Circle cx="12" cy="7.5" r="1" fill={colors.textMuted} />
     </Svg>
   );
 }
 
 export default function EnlaceRegistroScreen({ navigation }: Props) {
-  const [email,             setEmail]             = useState('');
-  const [tokenInput,        setTokenInput]        = useState('');
-  const [linkEnviado,       setLinkEnviado]       = useState(false);
-  const [loadingLink,       setLoadingLink]       = useState(false);
-  const [loadingVerificar,  setLoadingVerificar]  = useState(false);
+  const [email, setEmail] = useState('');
+  const [tokenInput, setTokenInput] = useState('');
+  const [linkEnviado, setLinkEnviado] = useState(false);
+  const [loadingLink, setLoadingLink] = useState(false);
+  const [loadingVerificar, setLoadingVerificar] = useState(false);
 
   async function handleEnviarLink() {
     if (!email.trim()) {
@@ -57,9 +81,15 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
     try {
       await authApi.reenviarLink(email.trim());
       setLinkEnviado(true);
-      Alert.alert('Enlace enviado', 'Revisá tu correo y pegá el token aquí abajo.');
+      Alert.alert(
+        'Enlace enviado',
+        'Revisá tu correo y pegá el token aquí abajo.',
+      );
     } catch (e) {
-      const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';
+      const msg =
+        e instanceof ApiError
+          ? e.message
+          : 'No se pudo conectar con el servidor.';
       Alert.alert('Error', msg);
     } finally {
       setLoadingLink(false);
@@ -68,15 +98,24 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
 
   async function handleVerificarToken() {
     if (!tokenInput.trim()) {
-      Alert.alert('Campo requerido', 'Ingresá el token que recibiste por email.');
+      Alert.alert(
+        'Campo requerido',
+        'Ingresá el token que recibiste por email.',
+      );
       return;
     }
     setLoadingVerificar(true);
     try {
       await authApi.verificarToken(tokenInput.trim());
-      navigation.navigate('Security', { mode: 'registro', setupToken: tokenInput.trim() });
+      navigation.navigate('Security', {
+        mode: 'registro',
+        setupToken: tokenInput.trim(),
+      });
     } catch (e) {
-      const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';
+      const msg =
+        e instanceof ApiError
+          ? e.message
+          : 'No se pudo conectar con el servidor.';
       Alert.alert('Error', msg);
     } finally {
       setLoadingVerificar(false);
@@ -85,16 +124,21 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-
       <ScreenHeader onBack={() => navigation.goBack()} />
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
           <Text style={styles.title}>Completar Registro</Text>
 
           <Text style={styles.body}>
-            Ingresá el email con el que iniciaste el registro para reenviar el enlace de verificación.
+            Ingresá el email con el que iniciaste el registro para reenviar el
+            enlace de verificación.
           </Text>
 
           <Text style={styles.label}>Correo electrónico registrado</Text>
@@ -117,20 +161,26 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
             style={[styles.btn, linkEnviado && styles.btnDisabled]}
             activeOpacity={0.85}
             onPress={handleEnviarLink}
-            disabled={loadingLink || linkEnviado}>
+            disabled={loadingLink || linkEnviado}
+          >
             {loadingLink ? (
               <ActivityIndicator color={colors.textInverse} />
             ) : (
-              <Text style={styles.btnText}>{linkEnviado ? 'Enlace enviado ✓' : 'Enviar Enlace de Acceso'}</Text>
+              <Text style={styles.btnText}>
+                {linkEnviado ? 'Enlace enviado ✓' : 'Enviar Enlace de Acceso'}
+              </Text>
             )}
           </TouchableOpacity>
 
           {linkEnviado && (
             <>
               <View style={styles.infoBox}>
-                <View style={styles.infoIcon}><InfoIcon /></View>
+                <View style={styles.infoIcon}>
+                  <InfoIcon />
+                </View>
                 <Text style={styles.infoText}>
-                  Revisá tu correo y copiá el token de verificación. En desarrollo lo encontrás en los logs del servidor.
+                  Revisá tu correo y copiá el token de verificación. En
+                  desarrollo lo encontrás en los logs del servidor.
                 </Text>
               </View>
 
@@ -152,7 +202,8 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
                 style={styles.btn}
                 activeOpacity={0.85}
                 onPress={handleVerificarToken}
-                disabled={loadingVerificar}>
+                disabled={loadingVerificar}
+              >
                 {loadingVerificar ? (
                   <ActivityIndicator color={colors.textInverse} />
                 ) : (
@@ -161,7 +212,6 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
               </TouchableOpacity>
             </>
           )}
-
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -171,27 +221,74 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
   flex: { flex: 1, backgroundColor: colors.white },
-  scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingTop: 28, paddingBottom: spacing['2xl'] },
-  title: { fontSize: 26, fontWeight: 'bold', color: colors.text, marginBottom: 14, lineHeight: 34 },
-  body:  { fontSize: fontSize.base, color: colors.textMuted, lineHeight: 22, marginBottom: 28 },
-  label: { fontSize: fontSize.sm, fontWeight: '600', color: colors.text, marginBottom: spacing.xs },
+  scroll: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.xl,
+    paddingTop: 28,
+    paddingBottom: spacing['2xl'],
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 14,
+    lineHeight: 34,
+  },
+  body: {
+    fontSize: fontSize.base,
+    color: colors.textMuted,
+    lineHeight: 22,
+    marginBottom: 28,
+  },
+  label: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
   inputRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background,
-    borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderMuted,
-    paddingHorizontal: 14, height: 48, marginBottom: spacing.lg, gap: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    paddingHorizontal: 14,
+    height: 48,
+    marginBottom: spacing.lg,
+    gap: 10,
   },
   input: { flex: 1, fontSize: fontSize.md, color: colors.text, padding: 0 },
   infoBox: {
-    flexDirection: 'row', backgroundColor: colors.surfaceMuted, borderRadius: radius.base,
-    borderWidth: 1, borderColor: colors.borderMuted, padding: 14, gap: 10,
-    marginBottom: 20, alignItems: 'flex-start',
+    flexDirection: 'row',
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.base,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    padding: 14,
+    gap: 10,
+    marginBottom: 20,
+    alignItems: 'flex-start',
   },
   infoIcon: { marginTop: 1 },
-  infoText: { flex: 1, fontSize: fontSize.sm, color: colors.textMuted, lineHeight: 20 },
+  infoText: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    lineHeight: 20,
+  },
   btn: {
-    backgroundColor: colors.primary, borderRadius: radius.base, height: controlHeight.base,
-    alignItems: 'center', justifyContent: 'center', marginBottom: spacing.lg,
+    backgroundColor: colors.primary,
+    borderRadius: radius.base,
+    height: controlHeight.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
   },
   btnDisabled: { backgroundColor: colors.textSubtle },
-  btnText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600' },
+  btnText: {
+    color: colors.textInverse,
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+  },
 });

@@ -10,7 +10,13 @@ import {
 
 export type ConsignacionTab = 'activas' | 'rechazadas' | 'vendidas';
 
-export type ConsignacionBadgeTone = 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+export type ConsignacionBadgeTone =
+  | 'primary'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info'
+  | 'neutral';
 
 export type ConsignacionResumenUi = {
   id: string;
@@ -89,7 +95,9 @@ export type ConsignacionDetalleUi = ConsignacionResumenUi & {
   proximoPaso: string;
 };
 
-export function mapRequisito(dto: ConsignacionRequisitoDto): ConsignacionRequisitoUi {
+export function mapRequisito(
+  dto: ConsignacionRequisitoDto,
+): ConsignacionRequisitoUi {
   return {
     ...dto,
     label: requisitoLabel(dto.codigo),
@@ -97,7 +105,9 @@ export function mapRequisito(dto: ConsignacionRequisitoDto): ConsignacionRequisi
   };
 }
 
-export function mapConsignacionResumen(dto: ConsignacionResumenDto): ConsignacionResumenUi {
+export function mapConsignacionResumen(
+  dto: ConsignacionResumenDto,
+): ConsignacionResumenUi {
   return {
     id: String(dto.id),
     numericId: dto.id,
@@ -105,15 +115,22 @@ export function mapConsignacionResumen(dto: ConsignacionResumenDto): Consignacio
     estado: dto.estado,
     estadoLabel: estadoLabel(dto.estado),
     badgeTone: estadoTone(dto.estado),
-    valorLabel: dto.valorBase && dto.moneda ? formatMoney(dto.valorBase, dto.moneda) : 'Sin valor base',
-    detalle: dto.accionPendiente ? accionLabel(dto.accionPendiente) : `Actualizada ${formatDate(dto.updatedAt)}`,
+    valorLabel:
+      dto.valorBase && dto.moneda
+        ? formatMoney(dto.valorBase, dto.moneda)
+        : 'Sin valor base',
+    detalle: dto.accionPendiente
+      ? accionLabel(dto.accionPendiente)
+      : `Actualizada ${formatDate(dto.updatedAt)}`,
     accionPendiente: dto.accionPendiente,
     fotoPrincipalArchivoId: dto.fotoPrincipalArchivoId,
     updatedAtLabel: formatDate(dto.updatedAt),
   };
 }
 
-export function mapConsignacionDetalle(dto: ConsignacionDetalleDto): ConsignacionDetalleUi {
+export function mapConsignacionDetalle(
+  dto: ConsignacionDetalleDto,
+): ConsignacionDetalleUi {
   const base = mapConsignacionResumen({
     id: dto.id,
     titulo: dto.titulo,
@@ -149,7 +166,9 @@ export function mapConsignacionDetalle(dto: ConsignacionDetalleDto): Consignacio
     fotos: dto.fotos.map(mapArchivo),
     documentosOrigen: dto.documentosOrigen.map(mapArchivo),
     devolucion: dto.devolucion ? mapDevolucion(dto.devolucion) : null,
-    liquidacion: dto.liquidacion ? mapLiquidacion(dto.liquidacion, dto.moneda ?? 'ARS') : null,
+    liquidacion: dto.liquidacion
+      ? mapLiquidacion(dto.liquidacion, dto.moneda ?? 'ARS')
+      : null,
     createdAtLabel: formatDate(dto.createdAt),
     etapas: buildEtapas(dto.estado, dto.motivoRechazo),
     proximoPaso: nextStep(dto.estado, dto.requiereDocumentacionOrigen),
@@ -164,17 +183,24 @@ function mapArchivo(dto: ConsignacionArchivoDto): ConsignacionArchivoUi {
   };
 }
 
-function mapDevolucion(dto: ConsignacionDevolucionDto): ConsignacionDevolucionUi {
+function mapDevolucion(
+  dto: ConsignacionDevolucionDto,
+): ConsignacionDevolucionUi {
   return {
     ...dto,
-    modalidadLabel: dto.modalidad ? modalidadLabel(dto.modalidad) : 'Pendiente de seleccion',
+    modalidadLabel: dto.modalidad
+      ? modalidadLabel(dto.modalidad)
+      : 'Pendiente de seleccion',
     costoLabel: formatMoney(dto.costo, dto.moneda),
     estadoLabel: humanize(dto.estado),
     comprobanteLabel: dto.pagoId ? `Comprobante de envio #${dto.pagoId}` : null,
   };
 }
 
-function mapLiquidacion(dto: ConsignacionLiquidacionDto, moneda: 'ARS' | 'USD'): ConsignacionLiquidacionUi {
+function mapLiquidacion(
+  dto: ConsignacionLiquidacionDto,
+  moneda: 'ARS' | 'USD',
+): ConsignacionLiquidacionUi {
   return {
     ...dto,
     montoBrutoLabel: formatMoney(dto.montoBruto, moneda),
@@ -210,42 +236,97 @@ export function estadoLabel(estado: ConsignacionEstadoBackend) {
   return labels[estado] ?? humanize(estado);
 }
 
-export function estadoTone(estado: ConsignacionEstadoBackend): ConsignacionBadgeTone {
-  if (['vendida', 'liquidada', 'comprada_por_empresa'].includes(estado)) return 'success';
-  if (['rechazo_inicial', 'rechazo_revision_fisica', 'acuerdo_rechazado', 'devolucion_pendiente', 'devolucion_incompleta'].includes(estado)) return 'danger';
-  if (['documentacion_adicional', 'acuerdo_pendiente'].includes(estado)) return 'warning';
-  if (['publicada', 'en_subasta', 'acuerdo_aceptado'].includes(estado)) return 'primary';
+export function estadoTone(
+  estado: ConsignacionEstadoBackend,
+): ConsignacionBadgeTone {
+  if (['vendida', 'liquidada', 'comprada_por_empresa'].includes(estado))
+    return 'success';
+  if (
+    [
+      'rechazo_inicial',
+      'rechazo_revision_fisica',
+      'acuerdo_rechazado',
+      'devolucion_pendiente',
+      'devolucion_incompleta',
+    ].includes(estado)
+  )
+    return 'danger';
+  if (['documentacion_adicional', 'acuerdo_pendiente'].includes(estado))
+    return 'warning';
+  if (['publicada', 'en_subasta', 'acuerdo_aceptado'].includes(estado))
+    return 'primary';
   return 'info';
 }
 
-function buildEtapas(estado: ConsignacionEstadoBackend, motivo: string | null): ConsignacionEtapaUi[] {
-  const order = ['validacion', 'recepcion', 'revision_fisica', 'acuerdo', 'subasta', 'liquidacion'];
-  const labels = ['Validacion', 'Recepcion', 'Revision fisica', 'Acuerdo', 'En subasta', 'Liquidacion'];
+function buildEtapas(
+  estado: ConsignacionEstadoBackend,
+  motivo: string | null,
+): ConsignacionEtapaUi[] {
+  const order = [
+    'validacion',
+    'recepcion',
+    'revision_fisica',
+    'acuerdo',
+    'subasta',
+    'liquidacion',
+  ];
+  const labels = [
+    'Validacion',
+    'Recepcion',
+    'Revision fisica',
+    'Acuerdo',
+    'En subasta',
+    'Liquidacion',
+  ];
   const currentIndex = progressIndex(estado);
   const rejectedIndex = rejectedStage(estado);
 
   return order.map((id, index) => {
     let etapaEstado: ConsignacionEtapaUi['estado'] = 'pendiente';
     if (rejectedIndex >= 0) {
-      etapaEstado = index < rejectedIndex ? 'completada' : index === rejectedIndex ? 'rechazada' : 'pendiente';
+      etapaEstado =
+        index < rejectedIndex
+          ? 'completada'
+          : index === rejectedIndex
+          ? 'rechazada'
+          : 'pendiente';
     } else {
-      etapaEstado = index < currentIndex ? 'completada' : index === currentIndex ? 'actual' : 'pendiente';
+      etapaEstado =
+        index < currentIndex
+          ? 'completada'
+          : index === currentIndex
+          ? 'actual'
+          : 'pendiente';
     }
     return {
       id,
       label: labels[index],
       estado: etapaEstado,
-      detalle: etapaEstado === 'rechazada' ? motivo ?? estadoLabel(estado) : undefined,
+      detalle:
+        etapaEstado === 'rechazada' ? motivo ?? estadoLabel(estado) : undefined,
     };
   });
 }
 
 function progressIndex(estado: ConsignacionEstadoBackend) {
-  if (['pendiente_revision', 'documentacion_adicional', 'documentacion_recibida'].includes(estado)) return 0;
+  if (
+    [
+      'pendiente_revision',
+      'documentacion_adicional',
+      'documentacion_recibida',
+    ].includes(estado)
+  )
+    return 0;
   if (estado === 'recepcion_pendiente') return 1;
-  if (['revision_fisica', 'revision_fisica_aprobada'].includes(estado)) return 2;
+  if (['revision_fisica', 'revision_fisica_aprobada'].includes(estado))
+    return 2;
   if (['acuerdo_pendiente', 'acuerdo_aceptado'].includes(estado)) return 3;
-  if (['publicada', 'en_subasta', 'vendida', 'comprada_por_empresa'].includes(estado)) return 4;
+  if (
+    ['publicada', 'en_subasta', 'vendida', 'comprada_por_empresa'].includes(
+      estado,
+    )
+  )
+    return 4;
   if (estado === 'liquidada') return 6;
   return 0;
 }
@@ -253,23 +334,42 @@ function progressIndex(estado: ConsignacionEstadoBackend) {
 function rejectedStage(estado: ConsignacionEstadoBackend) {
   if (estado === 'rechazo_inicial') return 0;
   if (estado === 'rechazo_revision_fisica') return 2;
-  if (['acuerdo_rechazado', 'devolucion_pendiente', 'devolucion_incompleta'].includes(estado)) return 3;
+  if (
+    [
+      'acuerdo_rechazado',
+      'devolucion_pendiente',
+      'devolucion_incompleta',
+    ].includes(estado)
+  )
+    return 3;
   return -1;
 }
 
 function nextStep(estado: ConsignacionEstadoBackend, requiresDocs: boolean) {
-  if (estado === 'documentacion_adicional' || requiresDocs) return 'Adjunta documentacion de origen para continuar la revision.';
-  if (estado === 'pendiente_revision') return 'QuickBid esta revisando la solicitud y las fotos.';
-  if (estado === 'recepcion_pendiente') return 'Coordina la entrega fisica del bien con el equipo.';
-  if (estado === 'revision_fisica') return 'El equipo esta verificando el estado fisico del bien.';
-  if (estado === 'acuerdo_pendiente') return 'Hay un acuerdo disponible para aceptar o rechazar.';
-  if (estado === 'acuerdo_aceptado') return 'El bien esta listo para asignarse a una subasta.';
-  if (estado === 'publicada' || estado === 'en_subasta') return 'El bien ya esta publicado o en subasta.';
-  if (estado === 'vendida' || estado === 'comprada_por_empresa') return 'La venta esta registrada. QuickBid emitira la liquidacion cuando corresponda.';
-  if (estado === 'liquidada') return 'La liquidacion fue registrada por QuickBid.';
-  if (estado === 'devolucion_pendiente') return 'Selecciona como queres recuperar el bien.';
-  if (estado === 'devolucion_incompleta') return 'La devolucion quedo marcada como incompleta por vencimiento del plazo.';
-  if (estado.includes('rechazo')) return 'La solicitud fue rechazada. Si corresponde, gestiona la devolucion.';
+  if (estado === 'documentacion_adicional' || requiresDocs)
+    return 'Adjunta documentacion de origen para continuar la revision.';
+  if (estado === 'pendiente_revision')
+    return 'QuickBid esta revisando la solicitud y las fotos.';
+  if (estado === 'recepcion_pendiente')
+    return 'Coordina la entrega fisica del bien con el equipo.';
+  if (estado === 'revision_fisica')
+    return 'El equipo esta verificando el estado fisico del bien.';
+  if (estado === 'acuerdo_pendiente')
+    return 'Hay un acuerdo disponible para aceptar o rechazar.';
+  if (estado === 'acuerdo_aceptado')
+    return 'El bien esta listo para asignarse a una subasta.';
+  if (estado === 'publicada' || estado === 'en_subasta')
+    return 'El bien ya esta publicado o en subasta.';
+  if (estado === 'vendida' || estado === 'comprada_por_empresa')
+    return 'La venta esta registrada. QuickBid emitira la liquidacion cuando corresponda.';
+  if (estado === 'liquidada')
+    return 'La liquidacion fue registrada por QuickBid.';
+  if (estado === 'devolucion_pendiente')
+    return 'Selecciona como queres recuperar el bien.';
+  if (estado === 'devolucion_incompleta')
+    return 'La devolucion quedo marcada como incompleta por vencimiento del plazo.';
+  if (estado.includes('rechazo'))
+    return 'La solicitud fue rechazada. Si corresponde, gestiona la devolucion.';
   return 'Seguimiento actualizado por backend.';
 }
 
@@ -281,7 +381,8 @@ function actionForState(estado: ConsignacionEstadoBackend) {
 }
 
 function accionLabel(action: string) {
-  if (action === 'adjuntar_documentacion') return 'Documentacion adicional requerida';
+  if (action === 'adjuntar_documentacion')
+    return 'Documentacion adicional requerida';
   if (action === 'revisar_acuerdo') return 'Acuerdo pendiente';
   if (action === 'gestionar_devolucion') return 'Devolucion pendiente';
   return humanize(action);
@@ -290,12 +391,15 @@ function accionLabel(action: string) {
 function requisitoLabel(code: string) {
   if (code === 'MEDIO_PAGO_REGISTRADO') return 'Medio de pago registrado';
   if (code === 'CUENTA_COBRO_REGISTRADA') return 'Cuenta bancaria para cobro';
-  if (code === 'MEDIO_PAGO_APTO_PARA_ENVIO_DEVOLUCION') return 'Medio apto para envio de devolucion';
+  if (code === 'MEDIO_PAGO_APTO_PARA_ENVIO_DEVOLUCION')
+    return 'Medio apto para envio de devolucion';
   return humanize(code);
 }
 
 export function formatMoney(value: number, moneda: 'ARS' | 'USD') {
-  const amount = Math.trunc(Math.abs(Number(value))).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const amount = Math.trunc(Math.abs(Number(value)))
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return `${moneda} ${value < 0 ? '-' : ''}${amount}`;
 }
 
@@ -309,7 +413,20 @@ function formatDate(iso: string | null | undefined) {
   if (!iso) return 'Sin fecha';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const meses = [
+    'ene',
+    'feb',
+    'mar',
+    'abr',
+    'may',
+    'jun',
+    'jul',
+    'ago',
+    'sep',
+    'oct',
+    'nov',
+    'dic',
+  ];
   return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
 }
 

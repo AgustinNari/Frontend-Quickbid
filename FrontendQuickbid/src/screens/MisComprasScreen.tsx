@@ -9,9 +9,29 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { Heading, Typography, Button, Card, Badge, Icon, EmptyState, Loader } from '../ui';
-import { colors, spacing, radius, layout, fontSize, fontWeight, letterSpacing } from '../theme';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import {
+  Heading,
+  Typography,
+  Button,
+  Card,
+  Badge,
+  Icon,
+  EmptyState,
+  Loader,
+} from '../ui';
+import {
+  colors,
+  spacing,
+  radius,
+  layout,
+  fontSize,
+  fontWeight,
+  letterSpacing,
+} from '../theme';
+import BottomNavBar, {
+  NavTab,
+  BOTTOM_NAV_HEIGHT,
+} from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { formatPrecio } from '../utils/format';
 import { comprasApi } from '../api/compras';
@@ -35,40 +55,55 @@ export default function MisComprasScreen({ navigation }: Props) {
   const [compras, setCompras] = useState<CompraResumenUi[]>([]);
   const { isGuest, estadoCuenta } = useAuth();
 
-  const load = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
-    if (isGuest) {
-      setLoading(false);
-      return;
-    }
-    if (mode === 'initial') setLoading(true);
-    if (mode === 'refresh') setRefreshing(true);
-    setError(null);
-    try {
-      const page = await comprasApi.listar({ page: 0, size: 50 });
-      setCompras(page.content.map(mapCompraResumen));
-    } catch (err) {
-      setError(readableError(err));
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [isGuest]);
+  const load = useCallback(
+    async (mode: 'initial' | 'refresh' = 'initial') => {
+      if (isGuest) {
+        setLoading(false);
+        return;
+      }
+      if (mode === 'initial') setLoading(true);
+      if (mode === 'refresh') setRefreshing(true);
+      setError(null);
+      try {
+        const page = await comprasApi.listar({ page: 0, size: 50 });
+        setCompras(page.content.map(mapCompraResumen));
+      } catch (err) {
+        setError(readableError(err));
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [isGuest],
+  );
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const visibles = useMemo(() => compras.filter(compra => {
-    if (tab === 'pendientes') {
-      return compra.action === 'pagar_multa' || compra.action === 'pagar_extras';
-    }
-    if (tab === 'pagadas') {
-      return ['pagada', 'entrega_pendiente', 'retiro_pendiente', 'completada'].includes(compra.estado);
-    }
-    return true;
-  }), [compras, tab]);
+  const visibles = useMemo(
+    () =>
+      compras.filter(compra => {
+        if (tab === 'pendientes') {
+          return (
+            compra.action === 'pagar_multa' || compra.action === 'pagar_extras'
+          );
+        }
+        if (tab === 'pagadas') {
+          return [
+            'pagada',
+            'entrega_pendiente',
+            'retiro_pendiente',
+            'completada',
+          ].includes(compra.estado);
+        }
+        return true;
+      }),
+    [compras, tab],
+  );
 
-  const irADetalle = (compraId: string) => navigation.navigate('CompraDetail', { compraId });
+  const irADetalle = (compraId: string) =>
+    navigation.navigate('CompraDetail', { compraId });
 
   const irAPagar = (compra: CompraResumenUi) => {
     const tipo = tipoPagoForCompra(compra);
@@ -92,7 +127,11 @@ export default function MisComprasScreen({ navigation }: Props) {
             onAction={() => navigation.navigate('LimitedAccess')}
           />
         </View>
-        <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+        <BottomNavBar
+          activeTab={activeTab}
+          onTabPress={setActiveTab}
+          navigation={navigation}
+        />
       </SafeAreaView>
     );
   }
@@ -124,14 +163,27 @@ export default function MisComprasScreen({ navigation }: Props) {
           <View style={styles.restrictedBanner}>
             <Icon name="alert" size={18} color={colors.danger} />
             <Typography style={styles.restrictedText}>
-              Tu cuenta tiene una multa activa. Podes regularizarla desde tus compras.
+              Tu cuenta tiene una multa activa. Podes regularizarla desde tus
+              compras.
             </Typography>
           </View>
         ) : null}
         <View style={styles.tabBar}>
-          <TabButton label="Todas" active={tab === 'todas'} onPress={() => setTab('todas')} />
-          <TabButton label="Pendientes" active={tab === 'pendientes'} onPress={() => setTab('pendientes')} />
-          <TabButton label="Pagadas" active={tab === 'pagadas'} onPress={() => setTab('pagadas')} />
+          <TabButton
+            label="Todas"
+            active={tab === 'todas'}
+            onPress={() => setTab('todas')}
+          />
+          <TabButton
+            label="Pendientes"
+            active={tab === 'pendientes'}
+            onPress={() => setTab('pendientes')}
+          />
+          <TabButton
+            label="Pagadas"
+            active={tab === 'pagadas'}
+            onPress={() => setTab('pagadas')}
+          />
         </View>
       </View>
 
@@ -161,10 +213,15 @@ export default function MisComprasScreen({ navigation }: Props) {
         <ScrollView
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load('refresh')} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => load('refresh')}
+            />
+          }
         >
           <View style={styles.body}>
-            {visibles.map((compra) => (
+            {visibles.map(compra => (
               <CompraCard
                 key={compra.id}
                 compra={compra}
@@ -176,7 +233,11 @@ export default function MisComprasScreen({ navigation }: Props) {
         </ScrollView>
       )}
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }
@@ -190,13 +251,22 @@ function CompraCard({
   onOpen: () => void;
   onAction: () => void;
 }) {
-  const actionVariant = compra.action === 'pagar_multa' ? 'danger' : compra.action === 'pagar_extras' ? 'primary' : 'secondary';
+  const actionVariant =
+    compra.action === 'pagar_multa'
+      ? 'danger'
+      : compra.action === 'pagar_extras'
+      ? 'primary'
+      : 'secondary';
 
   return (
     <Card variant="flat" padding="none" onPress={onOpen} style={styles.card}>
       <View style={styles.cardRow}>
         <View style={styles.thumb}>
-          <Icon name={compra.action === 'pagar_multa' ? 'alert' : 'bag'} size={32} color={colors.primary} />
+          <Icon
+            name={compra.action === 'pagar_multa' ? 'alert' : 'bag'}
+            size={32}
+            color={colors.primary}
+          />
         </View>
         <View style={styles.cardInfo}>
           <View style={styles.badgeRow}>
@@ -217,21 +287,37 @@ function CompraCard({
         </View>
       </View>
 
-      <Button variant={actionVariant} size="sm" onPress={onAction} style={styles.cardCta}>
+      <Button
+        variant={actionVariant}
+        size="sm"
+        onPress={onAction}
+        style={styles.cardCta}
+      >
         {compra.actionLabel}
       </Button>
     </Card>
   );
 }
 
-function TabButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+function TabButton({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
       style={[styles.tab, active ? styles.tabActive : null]}
     >
-      <Typography style={[styles.tabLabel, active ? styles.tabLabelActive : null]} numberOfLines={1}>
+      <Typography
+        style={[styles.tabLabel, active ? styles.tabLabelActive : null]}
+        numberOfLines={1}
+      >
         {label}
       </Typography>
     </TouchableOpacity>

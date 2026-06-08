@@ -1,5 +1,12 @@
 import React, { useEffect } from 'react';
-import { ActivityIndicator, Alert, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { colors, fontSize, spacing } from '../theme';
@@ -17,7 +24,12 @@ export default function RecuperarClaveLinkScreen({ route, navigation }: Props) {
     Alert.alert(
       'Enlace incompleto',
       'El enlace de recuperacion no incluye un token valido. Podes pedir un nuevo enlace o pegar el token manualmente.',
-      [{ text: 'Continuar', onPress: () => navigation.replace('RecuperacionCuenta') }],
+      [
+        {
+          text: 'Continuar',
+          onPress: () => navigation.replace('RecuperacionCuenta'),
+        },
+      ],
     );
   }, [navigation, route.params?.token]);
 
@@ -33,6 +45,15 @@ export default function RecuperarClaveLinkScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  content: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
-  text: { marginTop: spacing.base, color: colors.textMuted, fontSize: fontSize.base },
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  text: {
+    marginTop: spacing.base,
+    color: colors.textMuted,
+    fontSize: fontSize.base,
+  },
 });

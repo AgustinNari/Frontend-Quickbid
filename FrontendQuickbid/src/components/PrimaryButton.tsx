@@ -14,7 +14,11 @@ type Props = {
 
 export default function PrimaryButton({ title, onPress }: Props) {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress} activeOpacity={0.85}>
+    <TouchableOpacity
+      style={styles.button}
+      onPress={onPress}
+      activeOpacity={0.85}
+    >
       <Text style={styles.text}>{title}</Text>
     </TouchableOpacity>
   );

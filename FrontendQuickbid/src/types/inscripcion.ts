@@ -1,4 +1,3 @@
-
 export type InscripcionErrorCodigo = 400 | 403 | 409 | 422;
 
 export type InscripcionError = {

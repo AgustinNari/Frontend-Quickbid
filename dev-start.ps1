@@ -80,7 +80,11 @@ Write-Step "Levantando backend Spring Boot..."
 
 $backendLog = "$env:TEMP\quickbid-backend.log"
 $psExeForBackend = (Get-Process -Id $PID).MainModule.FileName
-Start-Process $psExeForBackend -ArgumentList "-NoExit", "-Command", "Set-Location '$BACKEND_DIR'; .\mvnw.cmd spring-boot:run *> '$backendLog'; Read-Host 'Press Enter to close'"  -WindowStyle Minimized
+$backendCommand = "Set-Location '$BACKEND_DIR'; " +
+    ".\mvnw.cmd spring-boot:run *> '$backendLog'; " +
+    "Read-Host 'Press Enter to close'"
+$backendArgs = @("-NoExit", "-Command", $backendCommand)
+Start-Process $psExeForBackend -ArgumentList $backendArgs -WindowStyle Minimized
 
 Write-Host "     Esperando que el backend arranque (hasta 60s)..." -ForegroundColor DarkGray
 
@@ -96,7 +100,14 @@ if ($ready) {
     exit 1
 }
 
-$localIP = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notmatch "^127\." -and $_.PrefixOrigin -eq "Dhcp" } | Select-Object -First 1).IPAddress
+$localIP = (
+    Get-NetIPAddress -AddressFamily IPv4 |
+    Where-Object {
+        $_.IPAddress -notmatch "^127\." -and
+        $_.PrefixOrigin -eq "Dhcp"
+    } |
+    Select-Object -First 1
+).IPAddress
 if (-not $localIP) {
     $localIP = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notmatch "^127\." } | Select-Object -First 1).IPAddress
 }
@@ -157,7 +168,11 @@ Write-Step "Levantando Metro bundler..."
 $metroLog = "$env:TEMP\quickbid-metro.log"
 
 $psExe = (Get-Process -Id $PID).MainModule.FileName
-Start-Process $psExe -ArgumentList "-NoExit", "-Command", "Set-Location '$FRONTEND_DIR'; npx react-native start --reset-cache 2>&1 | Tee-Object -FilePath '$metroLog'"
+$metroCommand = "Set-Location '$FRONTEND_DIR'; " +
+    "npx react-native start --reset-cache 2>&1 | " +
+    "Tee-Object -FilePath '$metroLog'"
+$metroArgs = @("-NoExit", "-Command", $metroCommand)
+Start-Process $psExe -ArgumentList $metroArgs
 
 Start-Sleep -Seconds 3
 Write-OK "Metro iniciado (puerto $METRO_PORT) — ventana separada abierta"

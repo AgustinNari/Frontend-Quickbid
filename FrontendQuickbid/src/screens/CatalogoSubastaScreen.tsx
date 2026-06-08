@@ -8,14 +8,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import {
-  Heading,
-  Body,
-  Typography,
-  Icon,
-  EmptyState,
-  Loader,
-} from '../ui';
+import { Heading, Body, Typography, Icon, EmptyState, Loader } from '../ui';
 import {
   colors,
   spacing,
@@ -25,7 +18,10 @@ import {
   fontWeight,
   letterSpacing,
 } from '../theme';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import BottomNavBar, {
+  NavTab,
+  BOTTOM_NAV_HEIGHT,
+} from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { ItemCatalogoCard } from '../components/ItemCatalogoCard';
 import { subastasApi } from '../api/subastas';
@@ -44,7 +40,9 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
   const [tituloResolved, setTituloResolved] = useState<string | undefined>(
     tituloParam,
   );
-  const [subastaEstado, setSubastaEstado] = useState<SubastaEstado | null>(null);
+  const [subastaEstado, setSubastaEstado] = useState<SubastaEstado | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -66,7 +64,11 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
       setSubastaEstado(detalle.estado);
     } catch (loadError) {
       setItems([]);
-      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar el catalogo.');
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : 'No pudimos cargar el catalogo.',
+      );
     } finally {
       setLoading(false);
     }
@@ -102,31 +104,35 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
           <View style={styles.tabs}>
             <CatalogoTab label="Catálogo completo" active />
             <CatalogoTab
-              label={subastaEstado === 'activa' ? 'Ver en puja actual' : 'Live no iniciado'}
+              label={
+                subastaEstado === 'activa'
+                  ? 'Ver en puja actual'
+                  : 'Live no iniciado'
+              }
               comingSoon={subastaEstado !== 'activa'}
-              onPress={subastaEstado === 'activa'
-                ? () => navigation.navigate('PujaEnVivo', { subastaId })
-                : undefined}
+              onPress={
+                subastaEstado === 'activa'
+                  ? () => navigation.navigate('PujaEnVivo', { subastaId })
+                  : undefined
+              }
             />
           </View>
 
           <View style={styles.titleBlock}>
-            <Heading numberOfLines={2}>
-              {tituloResolved ?? 'Catálogo'}
-            </Heading>
+            <Heading numberOfLines={2}>{tituloResolved ?? 'Catálogo'}</Heading>
             <Body muted style={styles.subtitle}>
               {items.length === 0
                 ? 'Sin lotes cargados todavía'
-                : `${items.length} ${items.length === 1 ? 'lote' : 'lotes'} en catálogo`}
+                : `${items.length} ${
+                    items.length === 1 ? 'lote' : 'lotes'
+                  } en catálogo`}
             </Body>
           </View>
 
           {items.length === 0 ? (
             <View style={styles.emptyWrap}>
               <EmptyState
-                icon={
-                  <Icon name="inbox" size={48} color={colors.textSubtle} />
-                }
+                icon={<Icon name="inbox" size={48} color={colors.textSubtle} />}
                 title="El catálogo está vacío"
                 description="Esta subasta todavía no publicó los lotes. Volvé a chequear más cerca de la fecha de inicio."
                 actionLabel="Volver al detalle"
@@ -136,7 +142,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
           ) : (
             <FlatList
               data={items}
-              keyExtractor={(it) => it.id}
+              keyExtractor={it => it.id}
               contentContainerStyle={styles.list}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => (
@@ -152,7 +158,11 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
         </>
       )}
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }

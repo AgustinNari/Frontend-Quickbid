@@ -12,19 +12,27 @@ export const catalogosApi = {
       q.trim() ? `q=${encodeURIComponent(q.trim())}` : null,
       `page=${page}`,
       `size=${size}`,
-    ].filter(Boolean).join('&');
+    ]
+      .filter(Boolean)
+      .join('&');
 
     const response = await apiFetch<CatalogoPage<PaisCatalogo>>(
       `/api/catalogos/paises?${query}`,
       { public: true },
     );
-    return required(response.data, 'El servidor no devolvio el catalogo de paises');
+    return required(
+      response.data,
+      'El servidor no devolvio el catalogo de paises',
+    );
   },
 
   async obtenerPais(id: number) {
-    const response = await apiFetch<PaisCatalogo>(`/api/catalogos/paises/${id}`, {
-      public: true,
-    });
+    const response = await apiFetch<PaisCatalogo>(
+      `/api/catalogos/paises/${id}`,
+      {
+        public: true,
+      },
+    );
     return required(response.data, 'El servidor no devolvio el pais');
   },
 };
