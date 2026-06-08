@@ -4,25 +4,10 @@ import { Subheading, Body } from './Typography';
 import { Button } from './Button';
 import { spacing } from '../theme';
 
-/**
- * Estado vacío para listados sin datos o cargas fallidas.
- *
- * Uso:
- *   <EmptyState
- *     icon={<InboxIcon />}
- *     title="No hay subastas todavía"
- *     description="Vuelve más tarde para descubrir nuevas oportunidades."
- *     actionLabel="Recargar"
- *     onAction={() => refetch()}
- *   />
- */
-
 type EmptyStateProps = {
-  /** Icono / ilustración (opcional) */
   icon?: React.ReactNode;
   title: string;
   description?: string;
-  /** Si se proveen, se renderiza un Button al final */
   actionLabel?: string;
   onAction?: () => void;
   style?: StyleProp<ViewStyle>;

@@ -5,14 +5,6 @@ import {
   SubastaResumen,
 } from '../types/subasta';
 
-/**
- * Mock de subastas para desarrollo / demo sin backend.
- *
- * Cuando el backend esté listo, este archivo desaparece y los datos vienen de
- * `GET /api/subastas`, `GET /api/subastas/{id}` y `GET /api/subastas/{id}/catalogo`
- * vía TanStack Query.
- */
-
 export const MOCK_SUBASTAS: SubastaResumen[] = [
   {
     id: 'sub_001',
@@ -110,10 +102,6 @@ export const MOCK_SUBASTAS: SubastaResumen[] = [
     rematador: 'Lucía Arruti',
     cantidadItems: 22,
   },
-  // ── Subastas en curso (activas) — fechaInicio en el pasado proximo.
-  // El carousel "Subastas Activas" del listado se llena con estas dos.
-  // Conceptualmente: ya empezaron, cerraron inscripcion 30 min antes del
-  // inicio, los usuarios con medio validado pueden pujar en vivo (tarea #14).
   {
     id: 'sub_009',
     titulo: 'Subasta de Arte Moderno',
@@ -139,12 +127,6 @@ export const MOCK_SUBASTAS: SubastaResumen[] = [
     cantidadItems: 12,
   },
 ];
-
-// ── Detalle por id ──────────────────────────────────────────────────────────
-//
-// Tarea #11: detalle de subasta. Mockeamos los primeros 3 ids del listado.
-// Cuando una subasta no tiene detalle todavía, las pantallas caen en un
-// fallback construido a partir del `SubastaResumen` (ver `getMockDetalle`).
 
 export const MOCK_SUBASTA_DETALLE: Record<string, SubastaDetalle> = {
   sub_001: {
@@ -176,13 +158,6 @@ export const MOCK_SUBASTA_DETALLE: Record<string, SubastaDetalle> = {
   },
 };
 
-/**
- * Devuelve el detalle de una subasta a partir del id.
- *
- * Si no tenemos un detalle específico mockeado, construye uno mínimo a partir
- * del resumen para que la pantalla pueda renderizarse igual sin romperse.
- * Esto desaparece cuando el backend exponga `GET /api/subastas/{id}` real.
- */
 export function getMockDetalle(id: string): SubastaDetalle | null {
   const explicit = MOCK_SUBASTA_DETALLE[id];
   if (explicit) return explicit;
@@ -197,12 +172,6 @@ export function getMockDetalle(id: string): SubastaDetalle | null {
     inscripto: false,
   };
 }
-
-// ── Catálogo por id ─────────────────────────────────────────────────────────
-//
-// Mockeamos un catálogo "estrella" para sub_001 (10 lotes variados con
-// distintos estados) y catálogos compactos para sub_002 y sub_003. Las demás
-// subastas caen en un fallback vacío que activa el empty state del catálogo.
 
 export const MOCK_CATALOGO: Record<string, ItemCatalogo[]> = {
   sub_001: [
@@ -411,8 +380,6 @@ export const MOCK_CATALOGO: Record<string, ItemCatalogo[]> = {
       segmento: 'vehiculos',
     },
   ],
-  // sub_009 (activa): catalogo de la "Subasta de Arte Moderno". Tiene un item
-  // `en_vivo` (lot_902) que es el que alimenta la sala de puja en vivo (#14).
   sub_009: [
     {
       id: 'lot_901',
@@ -461,23 +428,9 @@ export const MOCK_CATALOGO: Record<string, ItemCatalogo[]> = {
   ],
 };
 
-/**
- * Devuelve el catálogo de una subasta a partir del id.
- *
- * Si no hay catálogo mockeado, devolvemos un array vacío para que la pantalla
- * muestre el empty state — esto refleja también lo que sería un 200 OK con
- * lista vacía del backend real.
- */
 export function getMockCatalogo(subastaId: string): ItemCatalogo[] {
   return MOCK_CATALOGO[subastaId] ?? [];
 }
-
-// ── Detalle por item ────────────────────────────────────────────────────────
-//
-// Tarea #12: detalle de ítem. Mockeamos algunos lotes representativos (uno
-// vendido, uno en vivo, uno pendiente, uno de cada subasta principal). El
-// resto cae al fallback `getMockItemDetalle` que devuelve sólo lo que ya
-// está en el listado del catálogo.
 
 export const MOCK_ITEM_DETALLE: Record<string, ItemDetalle> = {
   lot_001: {
@@ -530,13 +483,6 @@ export const MOCK_ITEM_DETALLE: Record<string, ItemDetalle> = {
   },
 };
 
-/**
- * Devuelve el detalle de un ítem buscando primero en `MOCK_ITEM_DETALLE` y
- * cayendo al `ItemCatalogo` del listado si no hay un detalle explícito.
- *
- * Cuando el backend exponga `GET /api/subastas/{subastaId}/catalogo/{itemId}`
- * este helper desaparece y se reemplaza por la query real.
- */
 export function getMockItemDetalle(itemId: string): ItemDetalle | null {
   const explicit = MOCK_ITEM_DETALLE[itemId];
   if (explicit) return explicit;

@@ -10,25 +10,6 @@ import {
 import { Typography } from '../ui';
 import { colors, radius, spacing, fontSize, fontWeight } from '../theme';
 
-/**
- * Chips horizontales scrolleables para filtrar listados.
- *
- * Patrón controlado: el padre maneja el valor seleccionado.
- * Si `value` es `null`, se entiende que está seleccionado "Todos".
- *
- * Uso:
- *   const [segmento, setSegmento] = useState<SubastaSegmento | null>(null);
- *   <FilterChips
- *     options={[
- *       { value: null, label: 'Todos' },
- *       { value: 'arte', label: 'Arte' },
- *       { value: 'joyas', label: 'Joyas' },
- *     ]}
- *     value={segmento}
- *     onChange={setSegmento}
- *   />
- */
-
 export type FilterOption<T> = {
   value: T | null;
   label: string;
@@ -74,7 +55,6 @@ export function FilterChips<T extends string>({
           </TouchableOpacity>
         );
       })}
-      {/* spacer derecho para que el último chip no quede pegado al borde */}
       <View style={{ width: spacing.base }} />
     </ScrollView>
   );

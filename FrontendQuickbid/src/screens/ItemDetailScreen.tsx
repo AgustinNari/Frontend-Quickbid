@@ -45,26 +45,6 @@ import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ItemDetail'>;
 
-/**
- * Pantalla de detalle de un ítem (lote) del catálogo (tarea #12 del Trello).
- *
- * Sin frame de Figma asignado todavía — alineamos al lenguaje visual ya
- * establecido por `SubastaDetailScreen`:
- *  - Header compartido (`ScreenHeader`) con back.
- *  - Hero tematizado por segmento + badge de estado top-left + badge de
- *    moneda bottom-right.
- *  - Body con overline "LOTE #XXX", título grande, autor, card de precio
- *    base y lista de info rows (segmento, moneda, dimensiones, procedencia,
- *    condición).
- *  - Descripción larga.
- *  - Footer con CTA que cambia según el estado del lote:
- *      • `en_vivo`     → "Pujar ahora".
- *      • `pendiente`   → estado informativo, sin simular una suscripcion.
- *      • `vendido`     → Badge "Adjudicado" (sin CTA).
- *      • `no_vendido`  → Badge "No vendido" (sin CTA).
- *
- * Consume `GET /api/items/{id}` y oculta datos economicos en modo invitado.
- */
 type ItemTab = 'detalles' | 'historia' | 'datos';
 
 export default function ItemDetailScreen({ navigation, route }: Props) {
@@ -160,7 +140,6 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
                 </Card>
               ) : null}
 
-              {/* Tab bar — Detalles / Historia / Datos de interes (wireframe textual) */}
               <View style={styles.tabBar}>
                 <ItemTabButton
                   label="Detalles"
@@ -201,8 +180,6 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     </SafeAreaView>
   );
 }
-
-// ── Sub-componentes ────────────────────────────────────────────────────────
 
 function Hero({ item }: { item: ItemDetalle }) {
   const theme = SEGMENTO_THEME[item.segmento];
@@ -298,8 +275,6 @@ function Divider() {
   return <View style={styles.divider} />;
 }
 
-// ── Tab system del item (wireframe textual: Detalles / Historia / Datos) ─────
-
 function ItemTabButton({
   label,
   active,
@@ -325,11 +300,6 @@ function ItemTabButton({
   );
 }
 
-/**
- * Tab "Detalles" — info estructural del item: segmento, moneda y, si esta
- * disponible, cantidad de pujas. Es el tab default por ser el mas informativo
- * para alguien que recien abre el item.
- */
 function TabDetalles({ item }: { item: ItemDetalle }) {
   return (
     <View style={styles.infoList}>
@@ -361,10 +331,6 @@ function TabDetalles({ item }: { item: ItemDetalle }) {
   );
 }
 
-/**
- * Tab "Historia" — narrativa del item: descripcion larga, autor y procedencia.
- * Si el item no tiene descripcion, muestra mensaje vacio.
- */
 function TabHistoria({ item }: { item: ItemDetalle }) {
   const hasContent = item.descripcion || item.autor || item.procedencia;
   if (!hasContent) {
@@ -401,10 +367,6 @@ function TabHistoria({ item }: { item: ItemDetalle }) {
   );
 }
 
-/**
- * Tab "Datos de interes" — informacion fisica / fechas / condicion del item.
- * Si nada de eso esta disponible, muestra mensaje vacio.
- */
 function TabDatos({ item }: { item: ItemDetalle }) {
   const hasContent =
     item.dimensiones || item.condicion || item.fechaAproximada;
@@ -453,8 +415,6 @@ function TabEmpty({ mensaje }: { mensaje: string }) {
   );
 }
 
-// ── Mapeos de presentación ─────────────────────────────────────────────────
-
 type HeroBadgeTone = {
   tone: 'primary' | 'success' | 'neutral' | 'info';
   variant: 'solid' | 'soft';
@@ -467,8 +427,6 @@ const HERO_ESTADO_TONE: Record<ItemEstado, HeroBadgeTone> = {
   no_vendido: { tone: 'neutral', variant: 'soft' },
   sin_estado: { tone: 'neutral', variant: 'soft' },
 };
-
-// ── Estilos ────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: {

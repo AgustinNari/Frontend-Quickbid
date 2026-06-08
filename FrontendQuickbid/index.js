@@ -1,6 +1,3 @@
-/**
- * @format
- */
 
 import 'fast-text-encoding';
 import { AppRegistry } from 'react-native';

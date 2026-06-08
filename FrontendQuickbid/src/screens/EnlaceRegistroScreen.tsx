@@ -97,7 +97,6 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
             Ingresá el email con el que iniciaste el registro para reenviar el enlace de verificación.
           </Text>
 
-          {/* Email */}
           <Text style={styles.label}>Correo electrónico registrado</Text>
           <View style={styles.inputRow}>
             <MailIcon />
@@ -126,7 +125,6 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
             )}
           </TouchableOpacity>
 
-          {/* Token — aparece después de enviar el link */}
           {linkEnviado && (
             <>
               <View style={styles.infoBox}>

@@ -45,24 +45,6 @@ import { VerificacionSubastaApi } from '../types/subastaApi';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SubastaDetail'>;
 
-/**
- * Pantalla de detalle de una subasta (tarea #11 del Trello).
- *
- * Alineada al frame `236:2658` (Colecciones Detalle) del Figma:
- *  - Header con back y brand QuickBid.
- *  - Hero: placeholder tematizado por segmento + badge de estado.
- *  - Título grande + subtítulo (tagline).
- *  - Card con fecha y hora (2 columnas).
- *  - Lista de info rows: ubicación, rematador, categoría, segmento, moneda,
- *    cantidad de items.
- *  - Descripción larga (si la subasta la tiene).
- *  - CTAs:
- *      • Primario: "Entrar al catálogo" → navega a `CatalogoSubasta`.
- *      • Secundario: "Inscribirme" (placeholder — la inscripción es otra tarea).
- *
- * Consume `GET /api/subastas/{id}` y mantiene las acciones economicas como
- * placeholders hasta que sus flujos sean implementados.
- */
 export default function SubastaDetailScreen({ navigation, route }: Props) {
   const { canPerformEconomicActions, isAuthenticated, isGuest, estadoCuenta } = useAuth();
   const { id } = route.params;
@@ -310,20 +292,6 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
   );
 }
 
-// ── Sub-componentes ────────────────────────────────────────────────────────
-
-/**
- * Botón secundario "Inscribirme" / "Ya estás inscripto" / variantes bloqueadas.
- *
- * La lógica vive acá adentro para no inflar el componente principal. Estados:
- *  - Inscripto         → "Ya estás inscripto"            (disabled)
- *  - Categoría insuf.  → "Categoría insuficiente"        (disabled)
- *  - Multa activa      → "Regularizá tu multa"           (disabled)
- *  - OK                → "Inscribirme"                    (activo, navega)
- *
- * Las dos primeras se chequean en orden de prioridad: si el usuario está
- * inscripto, ese estado gana sobre cualquier otro bloqueo.
- */
 function InscribirmeButton({
   canPerformEconomicActions,
   isGuest,
@@ -417,8 +385,6 @@ function motivoInscripcion(value: VerificacionSubastaApi) {
   return 'La inscripcion no esta disponible actualmente.';
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-
 const MESES = [
   'Ene',
   'Feb',
@@ -449,8 +415,6 @@ function formatFechaPartes(iso: string): { fecha: string; hora: string } {
     hora: `${hora}:${min}`,
   };
 }
-
-// ── Estilos ────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: {

@@ -1,6 +1,5 @@
 import { SubastaCategoria } from './subasta';
 
-// Compatibilidad con flujos mock de inscripcion/puja fuera de este bloque.
 export type Categoria = SubastaCategoria;
 export const CATEGORIA_ORDER: Record<Categoria, number> = {
   comun: 0,

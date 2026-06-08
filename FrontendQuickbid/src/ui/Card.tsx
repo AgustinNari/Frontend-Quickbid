@@ -9,45 +9,17 @@ import {
 } from 'react-native';
 import { colors, radius, spacing, shadow } from '../theme';
 
-/**
- * Tarjeta / superficie contenedora.
- *
- * Variants:
- *  - `flat`: solo bordered, sin shadow (default — matchea el `listCard` actual).
- *  - `elevated`: con shadow.
- *  - `outlined`: borde sin background (transparente).
- *
- * Padding:
- *  - `none`, `sm`, `md`, `lg` (default `md`).
- *
- * Si se pasa `onPress`, se renderiza como `TouchableOpacity` y la card es tappeable.
- *
- * Uso:
- *   <Card>
- *     <Body>Contenido</Body>
- *   </Card>
- *
- *   <Card variant="elevated" onPress={() => navigation.navigate('Detalle')}>
- *     ...
- *   </Card>
- */
-
 type Variant = 'flat' | 'elevated' | 'outlined';
 type Padding = 'none' | 'sm' | 'md' | 'lg';
 
 type CommonProps = {
   variant?: Variant;
   padding?: Padding;
-  /** Override de estilos */
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
 };
 
 type CardProps = CommonProps & {
-  /**
-   * Si se pasa, la card se renderiza como `TouchableOpacity` y queda tappeable.
-   * Si se omite (o es `undefined`), se renderiza como `View` estática.
-   */
   onPress?: () => void;
   testID?: string;
   accessibilityLabel?: string;
@@ -96,8 +68,6 @@ export function Card({
     </View>
   );
 }
-
-// ── Estilos ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   base: {

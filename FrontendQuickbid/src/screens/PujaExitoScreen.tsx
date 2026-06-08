@@ -36,16 +36,6 @@ import { ItemDetalle, SubastaDetalle } from '../types/subasta';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PujaExito'>;
 
-/**
- * Pantalla "Felicidades / Has ganado la puja" (tarea #14 del Trello).
- *
- * Replica el frame "Exito: Puja Ganada" del Figma (image7). Se llega via
- * `navigation.replace` desde `PujaEnVivoScreen` al confirmarse una puja
- * ganadora, para que el back vuelva a la subasta y no a la sala de puja.
- *
- * Completa el resumen con datos reales del item y remite al modulo de Compras
- * para continuar el seguimiento.
- */
 export default function PujaExitoScreen({ navigation, route }: Props) {
   const { subastaId, itemId, montoFinal, numeroPostor } = route.params;
   const [item, setItem] = useState<ItemDetalle | null>(null);
@@ -110,7 +100,6 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.body}>
-          {/* Encabezado de celebracion */}
           <View style={styles.celebracion}>
             <View style={styles.checkCircle}>
               <Icon name="check" size={34} color={colors.textInverse} />
@@ -122,7 +111,6 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
             </Body>
           </View>
 
-          {/* Card del item adjudicado */}
           <Card variant="flat" padding="none" style={styles.itemCard}>
             <View style={[styles.itemHero, { backgroundColor: theme.bg }]}>
               <Icon name={theme.icon} size={64} color={theme.fg} />
@@ -143,7 +131,6 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
             </View>
           </Card>
 
-          {/* Monto final + estado */}
           <View style={styles.resumenRow}>
             <View style={styles.resumenCol}>
               <Typography style={styles.resumenLabel}>MONTO FINAL</Typography>
@@ -168,7 +155,6 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
             </Typography>
           ) : null}
 
-          {/* Banner informativo sobre Compras */}
           <View style={styles.infoBanner}>
             <Icon name="info" size={18} color={colors.info} />
             <Body style={styles.infoText}>
@@ -195,8 +181,6 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
     </SafeAreaView>
   );
 }
-
-// ── Estilos ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: {

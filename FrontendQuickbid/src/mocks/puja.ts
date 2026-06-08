@@ -10,54 +10,26 @@ import { MOCK_USUARIO_ACTUAL } from './usuarioActual';
 import { getMedioPagoById } from './mediosPago';
 import { getMockCatalogo, getMockDetalle, getMockItemDetalle } from './subastas';
 
-/**
- * Mock de la puja en vivo (tarea #14).
- *
- * Replica el comportamiento de:
- *  - `GET  /api/subastas/{id}/puja-actual` -> `getPujaActual()`
- *  - `POST /api/subastas/{id}/pujar`        -> `pujar()`
- *
- * El "WebSocket" se simula en la pantalla con un contador. Acá vive solo el
- * estado de cada sala (mejor oferta, postor ganador, historial) y la logica de
- * validacion de una puja, con los codigos HTTP exactos del contrato.
- *
- * El estado es module-scope y se reinicia con cada reload — esta bien para
- * demo. Cuando exista backend, esto se reemplaza por la conexion real.
- */
-
-/** Retencion de la puja ganadora antes de adjudicar (consigna: 60s). */
 export const RETENCION_SEGUNDOS = 60;
 
-/**
- * Estado mutable de una sala de subasta (un item en vivo). Se crea la primera
- * vez que alguien consulta o puja en esa subasta.
- */
 type SalaState = {
   precioBase: number;
   mejorOferta: number;
   numeroPostorGanador: number;
-  /** True si la mejor oferta vigente es del usuario actual. */
   esGanadorActual: boolean;
   historial: PujaHistorial[];
-  /** Numero de postor del usuario en esta subasta. Se asigna en su 1ra puja. */
   numeroPostorUsuario: number | null;
-  /** True si el item ya fue adjudicado. */
   cerrado: boolean;
 };
 
 const _salas: Record<string, SalaState> = {};
 
-/** Busca el item `en_vivo` del catalogo de una subasta. `null` si no hay. */
 function findItemEnVivo(subastaId: string): ItemDetalle | null {
   const enVivo = getMockCatalogo(subastaId).find((i) => i.estado === 'en_vivo');
   if (!enVivo) return null;
   return getMockItemDetalle(enVivo.id);
 }
 
-/**
- * Inicializa la sala con una oferta de apertura scripteada, como si ya hubiera
- * habido un par de rondas de pujas de otros postores anonimos.
- */
 function initSala(item: ItemDetalle): SalaState {
   const precioBase = item.precioBase ?? 0;
   const ofertaGanadora = precioBase + Math.round(precioBase * 0.21);
@@ -83,13 +55,6 @@ function getSala(subastaId: string, item: ItemDetalle): SalaState {
   return _salas[subastaId];
 }
 
-/**
- * Calcula los limites de la proxima puja (Consignas + EXTRAS 10):
- *  - `minimo` = mejor oferta + 1% del precio base.
- *  - `maximo` = mejor oferta + 20% del precio base.
- *  - oro / platino: sin maximo, minimo = superar la mejor oferta por 1 unidad.
- *  - primera puja (sin ofertas): puede igualar el precio base.
- */
 export function calcularLimites(
   mejorOferta: number | null,
   precioBase: number,
@@ -116,18 +81,10 @@ export function calcularLimites(
   };
 }
 
-/** Incremento sugerido para el stepper del monto (1% del precio base). */
 export function getIncrementoPuja(precioBase: number): number {
   return Math.max(1, Math.round(precioBase * 0.01));
 }
 
-/**
- * Estado vivo de la sala — equivalente a `GET /api/subastas/{id}/puja-actual`.
- *
- * Devuelve `null` cuando la subasta no existe o no tiene un item activo (el
- * backend responde 404 "Subasta finalizada o sin ítem activo"). La pantalla lo
- * traduce a un empty state.
- */
 export function getPujaActual(subastaId: string): PujaActual | null {
   const subasta = getMockDetalle(subastaId);
   if (!subasta) return null;
@@ -159,24 +116,6 @@ export function getPujaActual(subastaId: string): PujaActual | null {
   };
 }
 
-/**
- * Registra una puja — equivalente a `POST /api/subastas/{id}/pujar`.
- *
- * Valida en este orden (codigos del contrato Endpoints.docx):
- *  1. 409 ITEM_SUBASTADO        — el item ya fue adjudicado.
- *  2. 403 CATEGORIA_INSUFICIENTE — categoria del usuario < categoria subasta.
- *  3. 403 MULTA_ACTIVA           — el usuario tiene una multa pendiente.
- *  4. 403 PUJA_ACTIVA_OTRA_SUBASTA — ya es ganador en otra sala.
- *  5. 422 MEDIO_NO_VERIFICADO    — medio inexistente / no validado / otra moneda.
- *  6. 400 MONTO_MENOR_MINIMO | MONTO_MAYOR_MAXIMO — monto fuera de rango.
- *
- * (MONTO_EXCEDE_LIMITE_CATEGORIA y MONTO_EXCEDE_LIMITE_MEDIO_PAGO son topes de
- * gasto que valida el backend con datos que el mock todavia no modela — quedan
- * documentados en el contrato y se agregan cuando exista esa info.)
- *
- * En exito actualiza la sala: el usuario pasa a ser el ganador vigente y se le
- * asigna su numero de postor (EXTRAS 22.11: la 1ra puja confirma asistencia).
- */
 export function pujar(
   subastaId: string,
   _idItem: string,
@@ -283,7 +222,6 @@ export function pujar(
     };
   }
 
-  // Exito — asignar numero de postor en la primera puja del usuario.
   if (sala.numeroPostorUsuario == null) {
     const maxPostor = sala.historial.reduce(
       (m, h) => Math.max(m, h.numeroPostor ?? 0),

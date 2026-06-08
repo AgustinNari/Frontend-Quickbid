@@ -2,19 +2,6 @@ import React from 'react';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { colors } from '../theme';
 
-/**
- * Sistema centralizado de iconos.
- *
- * Reemplaza los SVG inline duplicados en cada pantalla por un único componente
- * con un set de iconos comunes. Cuando se agregue uno nuevo, se hace acá una
- * sola vez y se reutiliza.
- *
- * Uso:
- *   <Icon name="user" />                  // 20px, color del texto
- *   <Icon name="lock" size={24} />        // tamaño custom
- *   <Icon name="trash" color="#EF4444" /> // color custom
- */
-
 export type IconName =
   | 'user'
   | 'lock'
@@ -58,7 +45,6 @@ type IconProps = {
   name: IconName;
   size?: number;
   color?: string;
-  /** Grosor del trazo para iconos outline. Default 1.8 */
   strokeWidth?: number;
 };
 

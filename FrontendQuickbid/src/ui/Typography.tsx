@@ -2,18 +2,6 @@ import React from 'react';
 import { Text, TextProps, StyleSheet, StyleProp, TextStyle } from 'react-native';
 import { colors, fontSize, fontWeight, letterSpacing } from '../theme';
 
-/**
- * Sistema tipográfico de QuickBid.
- *
- * Reemplaza el uso directo de <Text> con estilos hardcodeados en cada pantalla.
- * Cada variant codifica las decisiones de tamaño + peso + color del diseño.
- *
- * Uso:
- *   <Heading>Entrar a QuickBid</Heading>
- *   <Body muted>Ingresa tus credenciales.</Body>
- *   <Label>CORREO ELECTRÓNICO</Label>
- */
-
 type Variant =
   | 'displayLg'
   | 'display'
@@ -28,23 +16,14 @@ type Variant =
 
 type TypographyProps = TextProps & {
   variant?: Variant;
-  /** Color secundario (`colors.textMuted`) */
   muted?: boolean;
-  /** Color sutil (`colors.textSubtle`) */
   subtle?: boolean;
-  /** Color primario (`colors.primary`) */
   primary?: boolean;
-  /** Color de error (`colors.danger`) */
   danger?: boolean;
-  /** Color blanco (sobre fondos oscuros / primarios) */
   inverse?: boolean;
-  /** Color custom — gana sobre los flags */
   color?: string;
-  /** Forzar peso del texto */
   weight?: keyof typeof fontWeight;
-  /** Alineación */
   align?: TextStyle['textAlign'];
-  /** Estilos adicionales (siempre como override) */
   style?: StyleProp<TextStyle>;
 };
 
@@ -89,8 +68,6 @@ export function Typography({
   );
 }
 
-// ── Aliases convenientes ─────────────────────────────────────────────────────
-
 export const Heading = (props: Omit<TypographyProps, 'variant'>) => (
   <Typography variant="h1" {...props} />
 );
@@ -114,8 +91,6 @@ export const Caption = (props: Omit<TypographyProps, 'variant'>) => (
 export const Overline = (props: Omit<TypographyProps, 'variant'>) => (
   <Typography variant="overline" {...props} />
 );
-
-// ── Estilos por variante ─────────────────────────────────────────────────────
 
 const variantStyles = StyleSheet.create({
   displayLg: {

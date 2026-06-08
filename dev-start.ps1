@@ -1,33 +1,15 @@
-﻿# ============================================================
-#  QuickBid — Script de arranque para desarrollo
-#  Levanta backend + Metro + conecta el celu en un solo paso.
-#
-#  Uso:
-#    1. Abrir PowerShell en esta carpeta
-#    2. Set-ExecutionPolicy -Scope CurrentUser RemoteSigned  (solo la primera vez)
-#    3. .\dev-start.ps1
-#
-#  Flags opcionales:
-#    -SkipDevice   No intenta conectar el celular por ADB
-#    -WifiOnly     Usa IP de red en lugar de ADB reverse (celu sin cable)
-# ============================================================
-
 param(
     [switch]$SkipDevice,
     [switch]$WifiOnly
 )
-
-# -- Configuración ------------------------------------------------------------
 
 $BACKEND_DIR  = "$PSScriptRoot\BackendQuickbid\quickbid"
 $FRONTEND_DIR = "$PSScriptRoot\FrontendQuickbid"
 $BACKEND_PORT = 8080
 $METRO_PORT   = 8081
 
-# -- Detectar ADB -------------------------------------------------------------
-# Busca en las ubicaciones más comunes; si no lo encuentra, intenta el PATH.
 $adbCandidates = @(
-    "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe",   # Android Studio default (Windows)
+    "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe",
     "$env:USERPROFILE\AppData\Local\Android\Sdk\platform-tools\adb.exe",
     "C:\Android\Sdk\platform-tools\adb.exe",
     "D:\Android\Sdk\platform-tools\adb.exe",
@@ -38,8 +20,6 @@ if (-not $ADB) {
     $inPath = Get-Command adb -ErrorAction SilentlyContinue
     if ($inPath) { $ADB = $inPath.Source }
 }
-
-# -- Helpers ------------------------------------------------------------------
 
 function Write-Step($msg) {
     Write-Host ""
@@ -68,11 +48,8 @@ function Wait-Port($port, $timeoutSec = 30) {
     return $false
 }
 
-# -- 1. Verificar que no hay instancias previas --------------------------------
-
 Write-Step "Limpiando procesos previos..."
 
-# Matar procesos en los puertos que necesitamos
 $backendPid = (Get-NetTCPConnection -LocalPort $BACKEND_PORT -ErrorAction SilentlyContinue).OwningProcess | Select-Object -First 1
 if ($backendPid) {
     Stop-Process -Id $backendPid -Force -ErrorAction SilentlyContinue
@@ -84,8 +61,6 @@ if ($metroPid) {
     Stop-Process -Id $metroPid -Force -ErrorAction SilentlyContinue
     Write-Warn "Proceso anterior en puerto $METRO_PORT terminado (PID $metroPid)"
 }
-
-# -- 2. Firewall ---------------------------------------------------------------
 
 Write-Step "Verificando regla de firewall para puerto $BACKEND_PORT..."
 
@@ -100,8 +75,6 @@ if (-not $fwRule) {
 } else {
     Write-OK "Regla de firewall ya existe"
 }
-
-# -- 3. Backend ----------------------------------------------------------------
 
 Write-Step "Levantando backend Spring Boot..."
 
@@ -123,8 +96,6 @@ if ($ready) {
     exit 1
 }
 
-# -- 4. IP local ---------------------------------------------------------------
-
 $localIP = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notmatch "^127\." -and $_.PrefixOrigin -eq "Dhcp" } | Select-Object -First 1).IPAddress
 if (-not $localIP) {
     $localIP = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notmatch "^127\." } | Select-Object -First 1).IPAddress
@@ -132,7 +103,6 @@ if (-not $localIP) {
 
 Write-OK "IP local: $localIP"
 
-# Actualizar config.ts según el modo
 $configFile = "$FRONTEND_DIR\src\api\config.ts"
 if ($WifiOnly) {
     $configContent = @"
@@ -158,8 +128,6 @@ export const BASE_URL = 'http://localhost:$BACKEND_PORT';
     Write-OK "config.ts configurado para ADB reverse (localhost)"
 }
 
-# -- 5. ADB / Celular ---------------------------------------------------------
-
 if (-not $SkipDevice -and -not $WifiOnly) {
     Write-Step "Conectando celular via ADB..."
 
@@ -175,7 +143,6 @@ if (-not $SkipDevice -and -not $WifiOnly) {
             & $ADB reverse tcp:$BACKEND_PORT tcp:$BACKEND_PORT | Out-Null
             Write-OK "ADB reverse configurado (puertos $BACKEND_PORT y $METRO_PORT)"
 
-            # Lanzar la app
             & $ADB shell am start -n com.frontendquickbid/.MainActivity | Out-Null
             Write-OK "App lanzada en el celu"
         } else {
@@ -185,21 +152,15 @@ if (-not $SkipDevice -and -not $WifiOnly) {
     }
 }
 
-# -- 6. Metro bundler ---------------------------------------------------------
-
 Write-Step "Levantando Metro bundler..."
 
 $metroLog = "$env:TEMP\quickbid-metro.log"
 
-# Abrir Metro en una nueva ventana de PowerShell para que sea visible
-# Usa el ejecutable actual (pwsh en PS7, powershell en PS5)
 $psExe = (Get-Process -Id $PID).MainModule.FileName
 Start-Process $psExe -ArgumentList "-NoExit", "-Command", "Set-Location '$FRONTEND_DIR'; npx react-native start --reset-cache 2>&1 | Tee-Object -FilePath '$metroLog'"
 
 Start-Sleep -Seconds 3
 Write-OK "Metro iniciado (puerto $METRO_PORT) — ventana separada abierta"
-
-# -- 7. Resumen ----------------------------------------------------------------
 
 Write-Host ""
 Write-Host "  +======================================================+" -ForegroundColor Green

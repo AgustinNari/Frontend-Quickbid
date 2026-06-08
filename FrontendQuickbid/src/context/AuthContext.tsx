@@ -134,7 +134,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       if (refreshToken) await authApi.logout({ refreshToken });
     } catch {
-      // Local logout must always succeed.
     } finally {
       await clearSession();
     }

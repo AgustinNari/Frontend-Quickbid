@@ -52,7 +52,6 @@ export default function VerifyingScreen({ navigation }: Props) {
 
       <View style={styles.container}>
 
-        {/* Ícono + barra animada */}
         <View style={styles.iconWrap}>
           <IdVerifyIcon />
           <View style={styles.progressTrack}>
@@ -61,7 +60,6 @@ export default function VerifyingScreen({ navigation }: Props) {
           <Text style={styles.verifyingText}>Verificando...</Text>
         </View>
 
-        {/* Textos */}
         <Text style={styles.title}>Estamos validando{'\n'}tus datos</Text>
 
         <Text style={styles.body}>
@@ -81,7 +79,6 @@ export default function VerifyingScreen({ navigation }: Props) {
           No olvides revisar tu carpeta de correo no deseado.
         </Text>
 
-        {/* Botón */}
         <TouchableOpacity
           style={styles.btn}
           activeOpacity={0.85}
@@ -97,7 +94,6 @@ export default function VerifyingScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
 
-  // Contenido
   container: {
     flex: 1,
     paddingHorizontal: 28,
@@ -106,7 +102,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Icono
   iconWrap: {
     alignItems: 'center',
     backgroundColor: colors.surfaceMuted,
@@ -135,7 +130,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Textos
   title: {
     fontSize: 26,
     fontWeight: 'bold',
@@ -166,7 +160,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
 
-  // Botón
   btn: {
     flexDirection: 'row',
     backgroundColor: colors.primary,

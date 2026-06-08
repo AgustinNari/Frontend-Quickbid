@@ -41,7 +41,6 @@ function formatFecha(raw: string) {
   return digits;
 }
 
-/** dd/mm/aaaa → aaaa-mm-dd */
 function fechaParaApi(display: string): string {
   const [dd, mm, aaaa] = display.split('/');
   return `${aaaa}-${mm}-${dd}`;

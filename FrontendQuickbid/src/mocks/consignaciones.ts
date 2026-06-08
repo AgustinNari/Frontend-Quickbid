@@ -6,7 +6,7 @@ export type Consignacion = {
   precio: string;
   detalle: string;
   estado: EstadoConsignacion;
-  badge?: number;       // notificación sin leer
+  badge?: number;
   diasRestantes?: string;
 };
 

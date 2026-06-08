@@ -2,15 +2,15 @@ export type PeriodoStats = 'mes' | 'trimestre' | 'año' | 'total';
 
 export type EstadisticasPeriodo = {
   totalInvertido: string;
-  variacion: string;       // "+18,4%"
+  variacion: string;
   variacionPos: boolean;
-  tasaVictorias: number;   // 83
-  tasaVictoriasVar: string; // "+4"
+  tasaVictorias: number;
+  tasaVictoriasVar: string;
   tasaVictoriasPos: boolean;
-  pujaPromedio: string;    // "$ 6,1M"
-  pujaPromedioVar: string; // "+12%"
+  pujaPromedio: string;
+  pujaPromedioVar: string;
   pujaPromedioPos: boolean;
-  gastosPorMes: number[];  // 12 valores normalizados 0-1
+  gastosPorMes: number[];
   segmentoTop: {
     nombre: string;
     detalle: string;

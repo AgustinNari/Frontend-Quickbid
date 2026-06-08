@@ -10,40 +10,12 @@ import {
 import { Typography, Label } from './Typography';
 import { colors, radius, spacing, controlHeight, fontSize } from '../theme';
 
-/**
- * Input de texto estándar de QuickBid.
- *
- * Encapsula el patrón: <Label> + <Container con icon prefix + TextInput> + <Helper/Error>.
- *
- * Uso:
- *   <TextField
- *     label="CORREO ELECTRÓNICO"
- *     placeholder="nombre@ejemplo.com"
- *     leftIcon={<UserIcon />}
- *     value={email}
- *     onChangeText={setEmail}
- *   />
- *
- *   <TextField
- *     label="CONTRASEÑA"
- *     secureTextEntry
- *     leftIcon={<LockIcon />}
- *     error="La contraseña es muy corta"
- *   />
- */
-
 type TextFieldProps = Omit<TextInputProps, 'style'> & {
-  /** Label en mayúsculas que va arriba del input */
   label?: string;
-  /** Texto de ayuda debajo del input */
   helperText?: string;
-  /** Mensaje de error — gana sobre helperText y pinta el borde de rojo */
   error?: string;
-  /** Icono a la izquierda dentro del input */
   leftIcon?: React.ReactNode;
-  /** Icono / botón a la derecha (ej: toggle de password) */
   rightIcon?: React.ReactNode;
-  /** Override de estilo del wrapper externo */
   containerStyle?: StyleProp<ViewStyle>;
 };
 
@@ -115,15 +87,13 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(
 
 TextField.displayName = 'TextField';
 
-// ── Estilos ──────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
   container: {
     marginBottom: spacing.lg,
     alignSelf: 'stretch',
   },
   label: {
-    marginBottom: spacing.xs + 2, // 6
+    marginBottom: spacing.xs + 2,
   },
   inputRow: {
     flexDirection: 'row',
@@ -132,9 +102,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.base,
     borderWidth: 1,
     borderColor: colors.border,
-    paddingHorizontal: spacing.base - 2, // 14
+    paddingHorizontal: spacing.base - 2,
     height: controlHeight.base,
-    gap: spacing.sm + 2, // 10
+    gap: spacing.sm + 2,
   },
   inputRowFocused: {
     borderColor: colors.primary,
@@ -157,6 +127,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   helper: {
-    marginTop: spacing.xs + 2, // 6
+    marginTop: spacing.xs + 2,
   },
 });

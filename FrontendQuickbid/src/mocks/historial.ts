@@ -3,12 +3,12 @@ export type HistorialEstado = 'ganada' | 'superada' | 'adjudicado' | 'perdida';
 
 export type HistorialItem = {
   id: string;
-  fecha: string;          // "28 MAR 2026"
+  fecha: string;
   tipo: HistorialTipo;
   estado: HistorialEstado;
   itemNombre: string;
   subastaNombre: string;
-  monto: string;          // "$ 43,1M"
+  monto: string;
 };
 
 export const MOCK_HISTORIAL: HistorialItem[] = [

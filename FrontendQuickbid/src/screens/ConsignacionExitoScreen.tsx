@@ -23,12 +23,6 @@ const PROXIMOS_PASOS = [
   { titulo: 'Propuesta de acuerdo', sub: 'Te proponemos precio base y comisiones.' },
 ];
 
-/**
- * "¡Solicitud enviada!" — confirmacion del alta de consignacion (image5).
- *
- * Se llega via `navigation.replace` desde `AltaConsignacionScreen`. Muestra el
- * codigo asignado y los proximos pasos del workflow, con CTA al seguimiento.
- */
 export default function ConsignacionExitoScreen({ navigation, route }: Props) {
   const { id, codigo, titulo } = route.params;
 

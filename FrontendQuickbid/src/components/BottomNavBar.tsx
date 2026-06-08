@@ -17,12 +17,9 @@ const WHITE = colors.white;
 
 const BAR_HEIGHT    = 68;
 const LOGO_SIZE     = 64;
-const LOGO_OVERHANG = 26; // cuánto sobresale el logo por encima de la barra
+const LOGO_OVERHANG = 26;
 
-/** Altura total que ocupa el BottomNavBar en el layout (bar + overhang del logo). */
-export const BOTTOM_NAV_HEIGHT = LOGO_OVERHANG + BAR_HEIGHT; // 94px
-
-// ── Iconos ────────────────────────────────────────────────────────────────────
+export const BOTTOM_NAV_HEIGHT = LOGO_OVERHANG + BAR_HEIGHT;
 
 function BellIcon({ active }: { active: boolean }) {
   const c = active ? BLUE : GRAY;
@@ -66,8 +63,6 @@ function MenuIcon({ active }: { active: boolean }) {
   );
 }
 
-// ── Tipos ─────────────────────────────────────────────────────────────────────
-
 export type NavTab = 'notif' | 'consignar' | 'subastas' | 'compras' | 'menu';
 
 type NavItemProps = {
@@ -85,8 +80,6 @@ function NavItem({ icon, label, active, onPress }: NavItemProps) {
     </TouchableOpacity>
   );
 }
-
-// ── Componente ────────────────────────────────────────────────────────────────
 
 type Props = {
   activeTab?: NavTab;
@@ -127,11 +120,8 @@ export default function BottomNavBar({
   };
 
   return (
-    // El wrapper ocupa espacio en el layout (no es absolute)
-    // Su altura = LOGO_OVERHANG + BAR_HEIGHT
     <View style={styles.wrapper} pointerEvents="box-none">
 
-      {/* Logo central — posicionado absolute dentro del wrapper, sobresale hacia arriba */}
       <View style={styles.centerElevated} pointerEvents="box-none">
         <TouchableOpacity
           style={styles.centerCircle}
@@ -146,12 +136,10 @@ export default function BottomNavBar({
         </TouchableOpacity>
       </View>
 
-      {/* Barra blanca */}
       <View style={styles.bar}>
         <NavItem icon={<BellIcon       active={activeTab === 'notif'}     />} label="NOTIF."    active={activeTab === 'notif'}     onPress={() => press('notif')}     />
         <NavItem icon={<PlusCircleIcon active={activeTab === 'consignar'} />} label="CONSIGNAR" active={activeTab === 'consignar'} onPress={() => press('consignar')} />
 
-        {/* Espacio central con el label */}
         <TouchableOpacity style={styles.centerSpace} onPress={() => press('subastas')} activeOpacity={0.7}>
           <Text style={[styles.label, activeTab === 'subastas' && styles.labelActive]}>SUBASTAS</Text>
         </TouchableOpacity>
@@ -163,10 +151,7 @@ export default function BottomNavBar({
   );
 }
 
-// ── Estilos ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-  // Wrapper absolute — flota sobre el contenido, no empuja el layout
   wrapper: {
     position: 'absolute',
     bottom: 0,
@@ -176,7 +161,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  // Logo: absolute dentro del wrapper, centrado, zIndex alto
   centerElevated: {
     position: 'absolute',
     top: 0,
@@ -201,7 +185,6 @@ const styles = StyleSheet.create({
     borderRadius: 28,
   },
 
-  // Barra blanca — empieza después del overhang
   bar: {
     position: 'absolute',
     bottom: 0,

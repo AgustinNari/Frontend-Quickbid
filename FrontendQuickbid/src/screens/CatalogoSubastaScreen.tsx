@@ -35,18 +35,6 @@ import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CatalogoSubasta'>;
 
-/**
- * Pantalla del catálogo de una subasta (tarea #11 del Trello).
- *
- * Alineada al frame `178:1666` (Catálogo de Subasta Secuencial):
- *  - Header con back y brand QuickBid.
- *  - Switch de pestañas: "Catálogo completo" / "Ver en puja actual" (la 2da
- *    queda deshabilitada porque la puja en vivo es de otra tarea).
- *  - Subtítulo: nombre de la subasta + cantidad de lotes.
- *  - Lista vertical con `<ItemCatalogoCard>` (10–12 lotes).
- *  - Empty state si el catálogo está vacío.
- * Consume el catalogo real y oculta precios en modo invitado.
- */
 export default function CatalogoSubastaScreen({ navigation, route }: Props) {
   const { isAuthenticated } = useAuth();
   const { subastaId, titulo: tituloParam } = route.params;
@@ -169,8 +157,6 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
   );
 }
 
-// ── Sub-componentes ────────────────────────────────────────────────────────
-
 function CatalogoTab({
   label,
   active = false,
@@ -179,10 +165,6 @@ function CatalogoTab({
 }: {
   label: string;
   active?: boolean;
-  /**
-   * Estilo "no disponible" pero el tap sigue funcionando si hay `onPress`
-   * (típicamente para Alert placeholder de tarea futura).
-   */
   comingSoon?: boolean;
   onPress?: () => void;
 }) {
@@ -213,8 +195,6 @@ function CatalogoTab({
 function VerticalSeparator() {
   return <View style={styles.verticalSeparator} />;
 }
-
-// ── Estilos ────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: {

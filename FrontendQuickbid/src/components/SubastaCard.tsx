@@ -10,25 +10,6 @@ import {
   ESTADO_LABEL,
 } from '../types/subasta';
 
-/**
- * Tarjeta GRANDE para subastas activas — usada en carrusel horizontal.
- *
- * Layout (alineado al Figma):
- *   ┌─────────────────────────────────┐
- *   │  [imagen grande del producto]   │
- *   │  [● ACTIVA]            [MONEDA] │
- *   ├─────────────────────────────────┤
- *   │  SEGMENTO                       │
- *   │  Categoría: X                   │
- *   │  Título grande                  │
- *   │  🏛 Rematador                   │
- *   │  [    Entrar →    ]             │
- *   └─────────────────────────────────┘
- *
- * Como todavía no hay imágenes reales del backend, usamos un placeholder
- * tematizado por segmento (color soft de fondo + icono grande).
- */
-
 type Props = {
   subasta: SubastaResumen;
   onPress?: () => void;
@@ -44,11 +25,9 @@ export function SubastaCard({ subasta, onPress, style }: Props) {
       padding="none"
       style={[styles.card, style]}
     >
-      {/* Placeholder de imagen (mientras no haya foto real) */}
       <View style={[styles.imageArea, { backgroundColor: segmentoTheme.bg }]}>
         <Icon name={segmentoTheme.icon} size={72} color={segmentoTheme.fg} />
 
-        {/* Badge "ACTIVA" top-left */}
         <View style={styles.imageTopLeft}>
           <Badge tone={subasta.estado === 'activa' ? 'primary' : 'info'}>
             {subasta.estado === 'activa' ? '● ' : ''}
@@ -56,7 +35,6 @@ export function SubastaCard({ subasta, onPress, style }: Props) {
           </Badge>
         </View>
 
-        {/* Badge de moneda bottom-right */}
         <View style={styles.imageBottomRight}>
           <View style={styles.currencyBadge}>
             <Typography style={styles.currencyText}>{subasta.moneda}</Typography>
@@ -64,7 +42,6 @@ export function SubastaCard({ subasta, onPress, style }: Props) {
         </View>
       </View>
 
-      {/* Body */}
       <View style={styles.body}>
         <Typography style={styles.segmentoLabel}>
           {SEGMENTO_LABEL[subasta.segmento].toUpperCase()}
@@ -94,18 +71,6 @@ export function SubastaCard({ subasta, onPress, style }: Props) {
   );
 }
 
-/**
- * Tarjeta COMPACTA horizontal — usada en lista de subastas próximas.
- *
- * Layout (alineado al Figma):
- *   ┌──────┬───────────────────────────────┐
- *   │      │ [PRÓXIMA]  Segmento: X        │
- *   │ IMG  │ Título                        │
- *   │ [$$] │ 📅 Fecha                      │
- *   │      │ 📍 Ubicación                  │
- *   │      │ Categoría: X                  │
- *   └──────┴───────────────────────────────┘
- */
 export function SubastaCardCompact({ subasta, onPress, style }: Props) {
   const segmentoTheme = SEGMENTO_THEME[subasta.segmento];
 
@@ -116,7 +81,6 @@ export function SubastaCardCompact({ subasta, onPress, style }: Props) {
       padding="none"
       style={[styles.cardCompact, style]}
     >
-      {/* Imagen cuadrada izquierda */}
       <View style={[styles.compactImage, { backgroundColor: segmentoTheme.bg }]}>
         <Icon name={segmentoTheme.icon} size={36} color={segmentoTheme.fg} />
         <View style={styles.compactCurrencyWrap}>
@@ -126,7 +90,6 @@ export function SubastaCardCompact({ subasta, onPress, style }: Props) {
         </View>
       </View>
 
-      {/* Body derecho */}
       <View style={styles.compactBody}>
         <View style={styles.compactHeaderRow}>
           <Badge tone={subasta.estado === 'finalizada' ? 'neutral' : 'info'}>
@@ -163,15 +126,8 @@ export function SubastaCardCompact({ subasta, onPress, style }: Props) {
   );
 }
 
-// ── Mapeo segmento → tema visual del placeholder ─────────────────────────────
-
 export type SegmentoTheme = { bg: string; fg: string; icon: IconName };
 
-/**
- * Tema visual por segmento usado cuando no hay imagen real del item/subasta.
- * Exportado para que otros componentes (ItemCatalogoCard, SubastaDetailScreen)
- * mantengan la misma identidad visual por segmento.
- */
 export const SEGMENTO_THEME: Record<SubastaSegmento, SegmentoTheme> = {
   arte: { bg: '#F5E6F8', fg: '#9333EA', icon: 'image' },
   joyas: { bg: colors.warningSoft, fg: colors.warning, icon: 'star' },
@@ -182,8 +138,6 @@ export const SEGMENTO_THEME: Record<SubastaSegmento, SegmentoTheme> = {
   coleccion: { bg: '#F3E8FF', fg: '#6D28D9', icon: 'bag' },
   otro: { bg: colors.borderMuted, fg: colors.textMuted, icon: 'inbox' },
 };
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatFecha(iso: string): string {
   const d = new Date(iso);
@@ -196,12 +150,9 @@ function formatFecha(iso: string): string {
   return `${dia} ${mes} - ${hora}:${min}`;
 }
 
-// ── Estilos ──────────────────────────────────────────────────────────────────
-
 const CARD_WIDTH = 280;
 
 const styles = StyleSheet.create({
-  // ── Card grande (activa) ──
   card: {
     width: CARD_WIDTH,
     overflow: 'hidden',
@@ -261,7 +212,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
 
-  // ── Card compacta (próxima) ──
   cardCompact: {
     flexDirection: 'row',
     overflow: 'hidden',

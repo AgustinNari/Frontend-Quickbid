@@ -15,9 +15,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ValidandoPago'>;
 function PaymentCheckIcon() {
   return (
     <Svg width="80" height="60" viewBox="0 0 80 60" fill="none">
-      {/* Tarjeta */}
       <Rect x="2" y="8" width="76" height="44" rx="5" stroke={colors.border} strokeWidth="2" fill={colors.surfaceMuted} />
-      {/* Círculo con check */}
       <Circle cx="40" cy="30" r="13" stroke={colors.primary} strokeWidth="1.8" fill="none" />
       <Path d="M34 30l4 4 8-8" stroke={colors.primary} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
@@ -46,7 +44,6 @@ export default function ValidandoPagoScreen({ navigation }: Props) {
 
       <View style={styles.container}>
 
-        {/* Ícono + barra */}
         <View style={styles.iconCard}>
           <PaymentCheckIcon />
           <View style={styles.progressTrack}>
@@ -60,7 +57,6 @@ export default function ValidandoPagoScreen({ navigation }: Props) {
           Nuestro equipo está revisando la validez de la información proporcionada.
         </Text>
 
-        {/* Caja info */}
         <View style={styles.infoBox}>
           <Text style={styles.infoTitle}>¿Qué sigue ahora?</Text>
           <Text style={styles.infoBody}>

@@ -27,21 +27,6 @@ import {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Subastas'>;
 
-/**
- * Pantalla principal de subastas (tarea #10 del Trello).
- *
- * Alineada al Figma (frame "Subastas Activas", 178:1469):
- *  - Header con brand QuickBid.
- *  - Sección "Subastas Activas":
- *      • Título + toggle de moneda (Todas / ARS / USD) a la derecha.
- *      • Carrusel horizontal con cards grandes (imagen + body + botón Entrar).
- *  - Filtros de segmento (Todo, Joyas, Arte, Vehículos, ...).
- *  - Filtros de categoría (Todo, Plata, Oro, Platino, ...).
- *  - Sección "Próximas Subastas" con cards horizontales compactas.
- *  - BottomNavBar al fondo con tab "subastas" activo.
- *
- * Consume el listado real y aplica los filtros visuales en cliente.
- */
 export default function SubastasScreen({ navigation }: Props) {
   const scrollRef = useRef<ScrollView>(null);
   const [segmento, setSegmento] = useState<SubastaSegmento | null>(null);
@@ -76,10 +61,8 @@ export default function SubastasScreen({ navigation }: Props) {
     if (tab === 'subastas') {
       scrollRef.current?.scrollTo({ y: 0, animated: true });
     }
-    // Agregar navegación a otras tabs cuando existan esas pantallas
   };
 
-  // Opciones de filtros
   const segmentoOptions = useMemo<FilterOption<SubastaSegmento>[]>(
     () => [
       { value: null, label: 'Todo' },
@@ -100,7 +83,6 @@ export default function SubastasScreen({ navigation }: Props) {
     [],
   );
 
-  // Filtrado client-side
   const filtered = useMemo(() => {
     return subastas.filter((s) => {
       if (segmento && s.segmento !== segmento) return false;
@@ -120,7 +102,6 @@ export default function SubastasScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       <View style={styles.header}>
         <Typography variant="h2" primary>
           QuickBid
@@ -149,7 +130,6 @@ export default function SubastasScreen({ navigation }: Props) {
           </View>
         ) : (
           <>
-        {/* Sección Activas: título + toggle de moneda */}
         <View style={styles.activasHeader}>
           <View style={styles.activasTitleRow}>
             <View style={styles.livePulse} />
@@ -170,7 +150,6 @@ export default function SubastasScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Carrusel horizontal de activas */}
         {activas.length > 0 ? (
           <FlatList
             data={activas}
@@ -189,7 +168,6 @@ export default function SubastasScreen({ navigation }: Props) {
           </View>
         )}
 
-        {/* Filtros */}
         <View style={styles.filtersWrap}>
           <FilterChips
             options={segmentoOptions}
@@ -204,7 +182,6 @@ export default function SubastasScreen({ navigation }: Props) {
           />
         </View>
 
-        {/* Próximas */}
         <View style={styles.proximasWrap}>
           <Heading style={styles.proximasTitle}>Próximas Subastas</Heading>
 
@@ -250,8 +227,6 @@ export default function SubastasScreen({ navigation }: Props) {
   );
 }
 
-// ── Chip de moneda (toggle compacto) ─────────────────────────────────────────
-
 function CurrencyChip({
   label,
   selected,
@@ -277,8 +252,6 @@ function CurrencyChip({
 function HorizontalSeparator() {
   return <View style={styles.horizontalSeparator} />;
 }
-
-// ── Estilos ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: {

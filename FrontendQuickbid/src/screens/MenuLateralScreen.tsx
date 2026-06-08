@@ -17,8 +17,6 @@ import { usuarioApi } from '../api/usuario';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MenuLateral'>;
 
-// ── Iconos ────────────────────────────────────────────────────────────────────
-
 function AvatarIcon() {
   return (
     <Svg width="44" height="44" viewBox="0 0 44 44" fill="none">
@@ -93,8 +91,6 @@ function LogoutIcon() {
   );
 }
 
-// ── Item de menú ──────────────────────────────────────────────────────────────
-
 type MenuItemProps = {
   icon: React.ReactNode;
   label: string;
@@ -122,8 +118,6 @@ function MenuItem({ icon, label, active, badge, onPress }: MenuItemProps) {
     </TouchableOpacity>
   );
 }
-
-// ── Pantalla ──────────────────────────────────────────────────────────────────
 
 export default function MenuLateralScreen({ navigation }: Props) {
   const { user, logout } = useAuth();
@@ -154,16 +148,13 @@ export default function MenuLateralScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
-      {/* Overlay oscuro — toca para cerrar */}
       <Pressable style={styles.overlay} onPress={close} />
 
-      {/* Panel lateral */}
       <SafeAreaView style={styles.panel}>
         <Text style={styles.panelTitle}>Menú Lateral</Text>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-          {/* Perfil del usuario */}
           <View style={styles.profileSection}>
             <View style={styles.avatarWrap}>
               <AvatarIcon />
@@ -191,7 +182,6 @@ export default function MenuLateralScreen({ navigation }: Props) {
 
           <View style={styles.divider} />
 
-          {/* Items */}
           <MenuItem
             icon={<SubastasIcon color={currentRoute === 'Subastas' ? colors.primary : colors.textMuted} />}
             label="Subastas"
@@ -257,7 +247,6 @@ export default function MenuLateralScreen({ navigation }: Props) {
           />
         </ScrollView>
 
-        {/* Footer */}
         <View style={styles.footer}>
           <TouchableOpacity
             style={styles.logoutButton}
@@ -280,8 +269,6 @@ export default function MenuLateralScreen({ navigation }: Props) {
     </View>
   );
 }
-
-// ── Estilos ───────────────────────────────────────────────────────────────────
 
 const PANEL_WIDTH = 290;
 
@@ -317,7 +304,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
 
-  // Perfil
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -355,7 +341,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // ID row
   idRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -388,7 +373,6 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.sm,
   },
 
-  // Menu items
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -430,7 +414,6 @@ const styles = StyleSheet.create({
     fontWeight: fontWeight.bold,
   },
 
-  // Footer
   footer: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xl,

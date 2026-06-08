@@ -3,23 +3,11 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Icon, Typography } from '../ui';
 import { colors, layout, spacing } from '../theme';
 
-/**
- * Header estándar para pantallas secundarias de QuickBid.
- *
- * Layout: back (izquierda, oculto si no hay `onBack`) + brand "QuickBid"
- * centrado + spacer fantasma del mismo ancho que el back para mantener el
- * brand visualmente centrado en cualquier caso.
- *
- * Reemplaza la duplicación que había entre `DetailHeader` y `CatalogoHeader`
- * de las pantallas de subastas. Se mantiene exactamente el mismo look & feel.
- */
-
 type Props = {
-  /** Si se omite, no se renderiza el botón de back y el espacio queda balanceado. */
   onBack?: () => void;
 };
 
-const BACK_SIZE = 24; // tamaño del área táctil del botón back
+const BACK_SIZE = 24;
 
 export function ScreenHeader({ onBack }: Props) {
   return (

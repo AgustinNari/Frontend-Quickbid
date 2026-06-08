@@ -104,7 +104,6 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
           <Text style={styles.title}>Nueva tarjeta</Text>
           <Text style={styles.subtitle}>Vincule una tarjeta de crédito o débito.</Text>
 
-          {/* Tipo */}
           <Text style={styles.label}>TIPO</Text>
           <View style={styles.segRow}>
             {(['tarjeta_credito', 'tarjeta_debito'] as const).map(t => (

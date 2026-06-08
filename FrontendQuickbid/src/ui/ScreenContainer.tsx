@@ -11,44 +11,13 @@ import {
 } from 'react-native';
 import { colors, layout } from '../theme';
 
-/**
- * Contenedor estándar de pantalla.
- *
- * Encapsula el patrón repetido en todas las pantallas: SafeArea + KeyboardAvoiding
- * + ScrollView + padding horizontal estandarizado.
- *
- * Uso:
- *   <ScreenContainer>
- *     <Heading>Título</Heading>
- *     <TextField ... />
- *     <Button>Aceptar</Button>
- *   </ScreenContainer>
- *
- *   // Sin scroll (pantallas con altura fija):
- *   <ScreenContainer scrollable={false}>
- *     ...
- *   </ScreenContainer>
- *
- *   // Sin padding (cuando hay header full-bleed):
- *   <ScreenContainer padded={false}>
- *     <CustomHeader />
- *     <View style={{ padding: 24 }}>...</View>
- *   </ScreenContainer>
- */
-
 type ScreenContainerProps = {
   children: React.ReactNode;
-  /** Color de fondo del SafeArea. Default: `colors.background` */
   background?: string;
-  /** Si true (default), envuelve con ScrollView */
   scrollable?: boolean;
-  /** Si true (default), aplica padding horizontal estandarizado */
   padded?: boolean;
-  /** Si false, omite KeyboardAvoidingView (útil para pantallas sin inputs) */
   avoidKeyboard?: boolean;
-  /** Override de estilo del contenedor de contenido */
   contentContainerStyle?: StyleProp<ViewStyle>;
-  /** Override de estilo del SafeArea raíz */
   style?: StyleProp<ViewStyle>;
 };
 
@@ -98,8 +67,6 @@ export function ScreenContainer({
     </SafeAreaView>
   );
 }
-
-// ── Estilos ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: {

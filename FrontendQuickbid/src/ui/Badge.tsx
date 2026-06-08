@@ -3,26 +3,6 @@ import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { Typography } from './Typography';
 import { colors, radius, spacing, fontSize, fontWeight, letterSpacing } from '../theme';
 
-/**
- * Badge / etiqueta de estado.
- *
- * Tones:
- *  - `primary` (default — azul, ej: "PRINCIPAL")
- *  - `success` (verde, ej: "VERIFICADO")
- *  - `warning` (amarillo, ej: "PENDIENTE")
- *  - `danger` (rojo, ej: "BLOQUEADO")
- *  - `info` (azul claro)
- *  - `neutral` (gris)
- *
- * Variants:
- *  - `solid` (default — fondo lleno, texto blanco)
- *  - `soft` (fondo suave, texto del color del tone)
- *
- * Uso:
- *   <Badge>PRINCIPAL</Badge>
- *   <Badge tone="success" variant="soft">VERIFICADO</Badge>
- */
-
 type Tone = 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral';
 type Variant = 'solid' | 'soft';
 
@@ -63,7 +43,7 @@ const styles = StyleSheet.create({
   base: {
     alignSelf: 'flex-start',
     borderRadius: radius.xs,
-    paddingHorizontal: spacing.xs + 2, // 6
+    paddingHorizontal: spacing.xs + 2,
     paddingVertical: 2,
   },
   text: {

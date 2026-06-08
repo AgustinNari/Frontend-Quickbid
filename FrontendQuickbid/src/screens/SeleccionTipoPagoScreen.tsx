@@ -16,8 +16,6 @@ import { ScreenHeader } from '../components/ScreenHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeleccionTipoPago'>;
 
-// ── Iconos ────────────────────────────────────────────────────────────────────
-
 function CardIcon({ active }: { active: boolean }) {
   const c = active ? colors.primary : colors.textMuted;
   return (
@@ -57,8 +55,6 @@ function RadioIcon({ active }: { active: boolean }) {
   );
 }
 
-// ── Opciones ──────────────────────────────────────────────────────────────────
-
 type PaymentType = 'card' | 'bank' | 'check';
 
 const OPTIONS: { id: PaymentType; name: string; desc: string }[] = [
@@ -72,8 +68,6 @@ const ICONS: Record<PaymentType, (active: boolean) => React.ReactNode> = {
   bank:  (a) => <BankIcon     active={a} />,
   check: (a) => <CheckDocIcon active={a} />,
 };
-
-// ── Pantalla ──────────────────────────────────────────────────────────────────
 
 export default function SeleccionTipoPagoScreen({ navigation }: Props) {
   const [selected, setSelected] = useState<PaymentType>('card');
@@ -114,7 +108,6 @@ export default function SeleccionTipoPagoScreen({ navigation }: Props) {
 
       </ScrollView>
 
-      {/* Botón fijo antes de la navbar */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.btn}
@@ -134,8 +127,6 @@ export default function SeleccionTipoPagoScreen({ navigation }: Props) {
   );
 }
 
-// ── Estilos ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
 
@@ -149,7 +140,6 @@ const styles = StyleSheet.create({
   title:    { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 6 },
   subtitle: { fontSize: fontSize.base, color: colors.textMuted, marginBottom: 28 },
 
-  // Opciones
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -193,7 +183,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 
-  // Footer con botón
   footer: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.base,
