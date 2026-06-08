@@ -92,12 +92,24 @@ type Props = {
   activeTab?: NavTab;
   onTabPress?: (tab: NavTab) => void;
   navigation?: NavigationProp<any>;
+  locked?: boolean;
+  onLockedPress?: () => void;
 };
 
-export default function BottomNavBar({ activeTab = 'subastas', onTabPress, navigation }: Props) {
+export default function BottomNavBar({
+  activeTab = 'subastas',
+  onTabPress,
+  navigation,
+  locked = false,
+  onLockedPress,
+}: Props) {
   const { canNavigate } = useAuth();
 
   const press = (tab: NavTab) => {
+    if (locked) {
+      onLockedPress?.();
+      return;
+    }
     onTabPress?.(tab);
     if (tab === 'subastas') {
       navigation?.navigate('Subastas' as never);

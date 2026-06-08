@@ -155,6 +155,7 @@ export function getPujaActual(subastaId: string): PujaActual | null {
     loteCerrado: false,
     loteGanado: false,
     mediosParaPujar: [],
+    serverTimeOffsetMs: 0,
   };
 }
 

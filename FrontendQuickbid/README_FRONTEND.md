@@ -477,6 +477,19 @@ ESM. No cambiar configuracion de Jest dentro de una tarea no relacionada.
   `PROXIMO_LOTE_PROGRAMADO` y `SUBASTA_FINALIZADA`, documentados como parciales.
   Mientras no esten disponibles, la sala conserva snapshot/refresco HTTP.
 
+## Countdown y devoluciones con dirección guardada
+
+- El snapshot live consume `serverNow`, `retencionHasta`, `segundosRestantes` y
+  `miPujaGanadora`. El countdown se basa en hora servidor y al llegar a cero
+  refresca HTTP; nunca adjudica desde frontend.
+- Mientras `miPujaGanadora` y la retención estén activos, PujaEnVivo bloquea
+  back, detalle y catálogo con un mensaje explicativo.
+- Eventos `LOTE_ACTIVADO` refrescan el lote activo y `SUBASTA_FINALIZADA`
+  deshabilita nuevas pujas.
+- La devolución por envío carga `/api/usuario/direcciones-envio`, permite elegir
+  una dirección guardada y envía `direccionEnvioId` a
+  `POST /api/consignaciones/{id}/devolucion`.
+
 ## Hallazgos de medios de pago y entrega
 
 - `GET /api/usuario/medios-pago` expone `id`, `tipo`, `moneda`, `estado`,

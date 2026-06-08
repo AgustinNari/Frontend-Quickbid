@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  BackHandler,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -74,6 +75,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>('idle');
+  const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
   const pujaRef = useRef<PujaActual | null>(null);
 
   const liveId = Number(subastaId);
@@ -126,7 +128,53 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
     pujaRef.current = puja;
   }, [puja]);
 
+  const winningRetentionActive = Boolean(
+    puja?.esGanadorActual && puja.retencionHasta && (secondsRemaining ?? 0) > 0,
+  );
+
+  const explainNavigationLock = useCallback(() => {
+    setFeedback({
+      tone: 'info',
+      title: 'Debes permanecer en la sala',
+      message: 'Tenes la mejor oferta. Debes permanecer en la sala hasta que te superen o finalice la retencion.',
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!winningRetentionActive) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      explainNavigationLock();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [explainNavigationLock, winningRetentionActive]);
+
+  useEffect(() => {
+    if (!puja?.retencionHasta) {
+      setSecondsRemaining(null);
+      return;
+    }
+    let refreshed = false;
+    const tick = () => {
+      const until = Date.parse(puja.retencionHasta as string);
+      const serverNow = Date.now() + puja.serverTimeOffsetMs;
+      const remaining = Number.isNaN(until) ? 0 : Math.max(0, Math.ceil((until - serverNow) / 1000));
+      setSecondsRemaining(remaining);
+      if (remaining === 0 && !refreshed) {
+        refreshed = true;
+        loadLive();
+      }
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [loadLive, puja?.retencionHasta, puja?.serverTimeOffsetMs]);
+
   const handleRealtimeEvent = useCallback((event: PujaEventoApi) => {
+    if (event.tipo === 'LOTE_ACTIVADO') {
+      loadLive();
+      return;
+    }
     setPuja(current => {
       if (!current) return current;
       if (event.subastaId && String(event.subastaId) !== current.subastaId) return current;
@@ -174,7 +222,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
     ) {
       console.warn('Evento live no reconocido', event);
     }
-  }, [navigation]);
+  }, [loadLive, navigation]);
 
   useEffect(() => {
     if (
@@ -277,6 +325,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
             versionEstado: response.versionEstado,
             numeroPostor: response.numeroPostor,
             postorAlias: response.numeroPostor != null ? `Postor #${response.numeroPostor}` : 'Tu oferta',
+            retencionHasta: response.retencionHasta,
           })
         : current);
       setFeedback({
@@ -313,7 +362,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScreenHeader onBack={() => navigation.goBack()} />
+      <ScreenHeader onBack={winningRetentionActive ? explainNavigationLock : () => navigation.goBack()} />
 
       {loading ? (
         <Loader fullScreen label="Entrando a la sala..." />
@@ -355,14 +404,22 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
                   text={puja.motivoNoPuedePujar ?? bloqueoPujaMessage(puja)}
                 />
               ) : null}
+              {winningRetentionActive ? (
+                <StatusBanner
+                  tone="info"
+                  icon="info"
+                  text="Tenes la mejor oferta. Debes permanecer en la sala hasta que te superen o finalice la retencion."
+                />
+              ) : null}
               <ItemEnVivoCard puja={puja} />
-              <MejorOfertaBlock puja={puja} />
+              <MejorOfertaBlock puja={puja} secondsRemaining={secondsRemaining} />
               <PujarButton puja={puja} submitting={submitting} onPress={handleOpenBid} />
               <HistorialReciente puja={puja} />
               <View style={styles.liveNavigationActions}>
                 <Button
                   variant="secondary"
-                  onPress={() => navigation.navigate('ItemDetail', {
+                  disabled={winningRetentionActive}
+                  onPress={winningRetentionActive ? explainNavigationLock : () => navigation.navigate('ItemDetail', {
                     itemId: puja.item.id,
                     subastaId: puja.subastaId,
                   })}
@@ -371,7 +428,8 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
                 </Button>
                 <Button
                   variant="secondary"
-                  onPress={() => navigation.navigate('CatalogoSubasta', {
+                  disabled={winningRetentionActive}
+                  onPress={winningRetentionActive ? explainNavigationLock : () => navigation.navigate('CatalogoSubasta', {
                     subastaId: puja.subastaId,
                     titulo: puja.subastaTitulo,
                   })}
@@ -394,7 +452,13 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       )}
 
       <FeedbackModal feedback={feedback} onClose={() => setFeedback(null)} />
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        navigation={navigation}
+        locked={winningRetentionActive}
+        onLockedPress={explainNavigationLock}
+      />
     </SafeAreaView>
   );
 }
@@ -496,7 +560,7 @@ function ItemEnVivoCard({ puja }: { puja: PujaActual }) {
   );
 }
 
-function MejorOfertaBlock({ puja }: { puja: PujaActual }) {
+function MejorOfertaBlock({ puja, secondsRemaining }: { puja: PujaActual; secondsRemaining: number | null }) {
   const hayOferta = puja.mejorOferta != null;
   return (
     <View style={styles.mejorOfertaWrap}>
@@ -520,6 +584,14 @@ function MejorOfertaBlock({ puja }: { puja: PujaActual }) {
         </>
       )}
       <Typography style={styles.versionText}>Version estado {puja.versionEstado}</Typography>
+      {secondsRemaining != null ? (
+        <View style={styles.countdownRow}>
+          <Icon name="clock" size={18} color={colors.warning} />
+          <Typography style={styles.countdownText}>
+            Retencion: {formatCountdown(secondsRemaining)}
+          </Typography>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -795,6 +867,11 @@ function parseAmount(value: string): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function formatCountdown(seconds: number) {
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
 function readableError(error: unknown, fallback: string) {
   if (error instanceof ApiError) return error.message || fallback;
   if (error instanceof Error) return error.message || fallback;
@@ -977,6 +1054,17 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: fontSize.xs,
     color: colors.textSubtle,
+  },
+  countdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  countdownText: {
+    color: colors.warning,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
   },
   historialWrap: {
     gap: spacing.sm,

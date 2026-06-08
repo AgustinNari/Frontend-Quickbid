@@ -9,6 +9,15 @@ export type PujaActualApi = {
   versionEstado: number;
   puedePujar: boolean;
   motivo: string | null;
+  precioBase?: number | null;
+  incrementoMinimo?: number | null;
+  serverNow?: string | null;
+  retencionHasta?: string | null;
+  segundosRestantes?: number | null;
+  miPujaGanadora?: boolean;
+  estadoLote?: string;
+  adjudicado?: boolean;
+  siguienteAccion?: string | null;
 };
 
 export type PujarRequestApi = {
@@ -31,6 +40,7 @@ export type PujarResponseApi = {
   mejorOfertaActual: number | null;
   numeroPostor: number | null;
   idempotentReplay?: boolean;
+  retencionHasta?: string | null;
 };
 
 export type PujaEventoTipo =
@@ -40,7 +50,9 @@ export type PujaEventoTipo =
   | 'PUJA_SUPERADA'
   | 'PUJA_RECHAZADA'
   | 'LOTE_CERRADO'
-  | 'LOTE_GANADO';
+  | 'LOTE_GANADO'
+  | 'LOTE_ACTIVADO'
+  | 'SUBASTA_FINALIZADA';
 
 export type PujaEventoApi = {
   tipo: PujaEventoTipo | string;
@@ -61,6 +73,7 @@ export type PujaEventoApi = {
   pujaGanadoraId?: number;
   montoAdjudicacion?: number;
   compradorEmpresa?: boolean;
+  retencionHasta?: string | null;
 };
 
 export type LiveQueueName =
@@ -104,6 +117,8 @@ export type PujaActual = {
   historialReciente: PujaHistorial[];
   mediosParaPujar: MedioPagoInscripcionApi[];
   segundosRestantes?: number;
+  retencionHasta?: string;
+  serverTimeOffsetMs: number;
 };
 
 export type PujaErrorTipo =

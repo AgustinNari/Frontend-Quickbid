@@ -67,6 +67,8 @@ export type ConsignacionDevolucionDto = {
   moneda: 'ARS' | 'USD';
   estado: string;
   pagoId: number | null;
+  direccionEnvioId: number | null;
+  direccionResumen: string | null;
 };
 
 export type ConsignacionPagoDevolucionDto = {
@@ -164,6 +166,7 @@ export type AceptarAcuerdoRequest = {
 
 export type SeleccionarDevolucionRequest = {
   modalidad: 'retiro' | 'envio';
+  direccionEnvioId?: number;
   direccion?: string;
   piso?: string;
   codigoPostal?: string;

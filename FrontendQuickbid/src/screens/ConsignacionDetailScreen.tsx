@@ -7,7 +7,6 @@ import {
   Alert,
   Modal,
   TouchableOpacity,
-  TextInput,
 } from 'react-native';
 import { launchImageLibrary, Asset } from 'react-native-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -18,6 +17,7 @@ import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNav
 import { ScreenHeader } from '../components/ScreenHeader';
 import { consignacionesApi, createConsignacionIdempotencyKey } from '../api/consignaciones';
 import { mediosPagoApi } from '../api/mediosPago';
+import { direccionesApi } from '../api/direcciones';
 import { ApiError } from '../api/client';
 import {
   ConsignacionArchivoUi,
@@ -28,6 +28,7 @@ import {
 } from '../mappers/consignaciones';
 import { ConsignacionFileInput } from '../types/consignacionApi';
 import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
+import { DireccionEnvioDto } from '../types/direcciones';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConsignacionDetail'>;
 
@@ -45,11 +46,8 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
   const [leyoContrato, setLeyoContrato] = useState(false);
   const [aceptaClausulas, setAceptaClausulas] = useState(false);
   const [modalidadDevolucion, setModalidadDevolucion] = useState<'retiro' | 'envio'>('retiro');
-  const [direccion, setDireccion] = useState('');
-  const [codigoPostal, setCodigoPostal] = useState('');
-  const [localidad, setLocalidad] = useState('');
-  const [provincia, setProvincia] = useState('');
-  const [telefonoContacto, setTelefonoContacto] = useState('');
+  const [direcciones, setDirecciones] = useState<DireccionEnvioDto[]>([]);
+  const [direccionEnvioId, setDireccionEnvioId] = useState<number | null>(null);
   const [mediosPago, setMediosPago] = useState<MedioPagoDto[]>([]);
   const [medioPagoId, setMedioPagoId] = useState<number | null>(null);
 
@@ -155,21 +153,27 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
     );
   };
 
-  const gestionarDevolucion = async () => {
-    if (!detalle) return;
-    if (modalidadDevolucion === 'envio' && (!direccion.trim() || !codigoPostal.trim() || !localidad.trim() || !provincia.trim() || !telefonoContacto.trim())) {
-      Alert.alert('Datos requeridos', 'Completa direccion, codigo postal, localidad, provincia y telefono para envio.');
-      return;
+  const abrirDevolucion = async () => {
+    setActionLoading(true);
+    try {
+      const values = await direccionesApi.listar();
+      setDirecciones(values);
+      setDireccionEnvioId(values.find(value => value.principal)?.id ?? values[0]?.id ?? null);
+      setReturnModal(true);
+    } catch (err) {
+      Alert.alert('No se pudieron cargar direcciones', readableError(err));
+    } finally {
+      setActionLoading(false);
     }
+  };
+
+  const persistirDevolucion = async () => {
+    if (!detalle) return;
     setActionLoading(true);
     try {
       await consignacionesApi.seleccionarDevolucion(detalle.numericId, {
         modalidad: modalidadDevolucion,
-        direccion: direccion.trim() || undefined,
-        codigoPostal: codigoPostal.trim() || undefined,
-        localidad: localidad.trim() || undefined,
-        provincia: provincia.trim() || undefined,
-        telefonoContacto: telefonoContacto.trim() || undefined,
+        direccionEnvioId: modalidadDevolucion === 'envio' ? direccionEnvioId ?? undefined : undefined,
       });
       await refreshDetalle();
       setReturnModal(false);
@@ -179,6 +183,24 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const gestionarDevolucion = () => {
+    if (modalidadDevolucion === 'envio' && !direccionEnvioId) {
+      Alert.alert('Direccion requerida', 'Agrega o selecciona una direccion guardada para continuar.');
+      return;
+    }
+    const selected = direcciones.find(value => value.id === direccionEnvioId);
+    Alert.alert(
+      'Confirmar devolucion',
+      modalidadDevolucion === 'envio'
+        ? `Se usara ${selected ? direccionLabel(selected) : 'la direccion seleccionada'} para la devolucion.`
+        : 'La devolucion quedara configurada para retiro en sucursal.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Confirmar', onPress: persistirDevolucion },
+      ],
+    );
   };
 
   const abrirPagoDevolucion = async () => {
@@ -356,9 +378,10 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                 <InfoRow label="Estado" value={detalle.devolucion.estadoLabel} />
                 <InfoRow label="Modalidad" value={detalle.devolucion.modalidadLabel} />
                 <InfoRow label="Costo envio" value={detalle.devolucion.costoLabel} />
+                {detalle.devolucion.direccionResumen ? <InfoRow label="Direccion" value={detalle.devolucion.direccionResumen} /> : null}
                 {detalle.devolucion.comprobanteLabel ? <InfoRow label="Comprobante" value={detalle.devolucion.comprobanteLabel} /> : null}
                 {detalle.estado === 'devolucion_pendiente' && !detalle.devolucion.modalidad ? (
-                  <Button size="sm" onPress={() => setReturnModal(true)} loading={actionLoading}>
+                  <Button size="sm" onPress={abrirDevolucion} loading={actionLoading}>
                     Gestionar devolucion
                   </Button>
                 ) : null}
@@ -406,20 +429,17 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
           <ReturnModal
             visible={returnModal}
             modalidad={modalidadDevolucion}
-            direccion={direccion}
-            codigoPostal={codigoPostal}
-            localidad={localidad}
-            provincia={provincia}
-            telefonoContacto={telefonoContacto}
+            direcciones={direcciones}
+            direccionEnvioId={direccionEnvioId}
             loading={actionLoading}
             onModalidad={setModalidadDevolucion}
-            onDireccion={setDireccion}
-            onCodigoPostal={setCodigoPostal}
-            onLocalidad={setLocalidad}
-            onProvincia={setProvincia}
-            onTelefono={setTelefonoContacto}
+            onDireccion={setDireccionEnvioId}
             onConfirm={gestionarDevolucion}
             onClose={() => setReturnModal(false)}
+            onManage={() => {
+              setReturnModal(false);
+              navigation.navigate('DireccionesEnvio');
+            }}
           />
           <PaymentModal
             visible={paymentModal}
@@ -569,37 +589,25 @@ function AgreementModal({
 function ReturnModal({
   visible,
   modalidad,
-  direccion,
-  codigoPostal,
-  localidad,
-  provincia,
-  telefonoContacto,
+  direcciones,
+  direccionEnvioId,
   loading,
   onModalidad,
   onDireccion,
-  onCodigoPostal,
-  onLocalidad,
-  onProvincia,
-  onTelefono,
   onConfirm,
   onClose,
+  onManage,
 }: {
   visible: boolean;
   modalidad: 'retiro' | 'envio';
-  direccion: string;
-  codigoPostal: string;
-  localidad: string;
-  provincia: string;
-  telefonoContacto: string;
+  direcciones: DireccionEnvioDto[];
+  direccionEnvioId: number | null;
   loading: boolean;
   onModalidad: (value: 'retiro' | 'envio') => void;
-  onDireccion: (value: string) => void;
-  onCodigoPostal: (value: string) => void;
-  onLocalidad: (value: string) => void;
-  onProvincia: (value: string) => void;
-  onTelefono: (value: string) => void;
+  onDireccion: (value: number) => void;
   onConfirm: () => void;
   onClose: () => void;
+  onManage: () => void;
 }) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -614,11 +622,31 @@ function ReturnModal({
           </View>
           {modalidad === 'envio' ? (
             <View style={styles.formBlock}>
-              <Input value={direccion} onChangeText={onDireccion} placeholder="Direccion" />
-              <Input value={codigoPostal} onChangeText={onCodigoPostal} placeholder="Codigo postal" />
-              <Input value={localidad} onChangeText={onLocalidad} placeholder="Localidad" />
-              <Input value={provincia} onChangeText={onProvincia} placeholder="Provincia" />
-              <Input value={telefonoContacto} onChangeText={onTelefono} placeholder="Telefono de contacto" keyboardType="phone-pad" />
+              {direcciones.length === 0 ? (
+                <View style={styles.infoSoftBox}>
+                  <Icon name="alert" size={18} color={colors.warning} />
+                  <Typography style={styles.infoSoftText}>No tenes direcciones guardadas para recibir la devolucion.</Typography>
+                </View>
+              ) : direcciones.map(direccion => {
+                const selected = direccion.id === direccionEnvioId;
+                return (
+                  <TouchableOpacity
+                    key={direccion.id}
+                    onPress={() => onDireccion(direccion.id)}
+                    style={[styles.paymentOption, selected ? styles.paymentOptionSelected : null]}
+                  >
+                    <Icon name="bag" size={20} color={colors.textMuted} />
+                    <View style={styles.paymentInfo}>
+                      <Typography style={styles.paymentTitle}>{direccion.alias}</Typography>
+                      <Typography style={styles.paymentMeta}>{direccionLabel(direccion)}</Typography>
+                    </View>
+                    <View style={[styles.radio, selected ? styles.radioSelected : null]}>
+                      {selected ? <View style={styles.radioInner} /> : null}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+              <Button variant="secondary" size="sm" onPress={onManage}>Gestionar direcciones</Button>
             </View>
           ) : (
             <View style={styles.infoSoftBox}>
@@ -627,7 +655,7 @@ function ReturnModal({
             </View>
           )}
           <View style={styles.modalActions}>
-            <Button onPress={onConfirm} loading={loading}>
+            <Button onPress={onConfirm} loading={loading} disabled={modalidad === 'envio' && !direccionEnvioId}>
               Confirmar devolucion
             </Button>
             <Button variant="ghost" onPress={onClose} disabled={loading}>
@@ -735,16 +763,6 @@ function SegmentButton({ label, selected, onPress }: { label: string; selected: 
   );
 }
 
-function Input(props: React.ComponentProps<typeof TextInput>) {
-  return (
-    <TextInput
-      {...props}
-      placeholderTextColor={colors.textSubtle}
-      style={styles.input}
-    />
-  );
-}
-
 function assetToFile(asset?: Asset): ConsignacionFileInput | null {
   if (!asset?.uri) return null;
   return {
@@ -771,6 +789,10 @@ function humanize(value: string) {
     .replace(/_/g, ' ')
     .toLowerCase()
     .replace(/^\w|\s\w/g, match => match.toUpperCase());
+}
+
+function direccionLabel(direccion: DireccionEnvioDto) {
+  return `${direccion.calle} ${direccion.numero}, ${direccion.localidad}, ${direccion.provincia}`;
 }
 
 const ETAPA_VISUAL: Record<ConsignacionEtapaUi['estado'], {

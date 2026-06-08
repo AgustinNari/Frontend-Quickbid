@@ -9,19 +9,20 @@ export function mapPujaActual(
   item: ItemDetalle,
   mediosParaPujar: MedioPagoInscripcionApi[],
 ): PujaActual {
+  const serverNowMs = snapshot.serverNow ? Date.parse(snapshot.serverNow) : Date.now();
   return {
     subastaId: String(snapshot.subastaId),
     subastaTitulo: subasta.titulo,
     item: { ...item, estado: 'en_vivo' },
     moneda: snapshot.moneda === 'USD' ? 'USD' : 'ARS',
     categoria: subasta.categoria,
-    precioBase: item.precioBase ?? 0,
+    precioBase: snapshot.precioBase ?? item.precioBase ?? 0,
     mejorOferta: snapshot.mejorOfertaActual,
     versionEstado: snapshot.versionEstado,
     puedePujar: snapshot.puedePujar,
     motivoNoPuedePujar: snapshot.motivo ?? undefined,
-    esGanadorActual: false,
-    loteCerrado: false,
+    esGanadorActual: snapshot.miPujaGanadora ?? false,
+    loteCerrado: snapshot.adjudicado ?? snapshot.estadoLote === 'cerrado',
     loteGanado: false,
     historialReciente: snapshot.mejorOfertaActual != null
       ? [{
@@ -33,6 +34,9 @@ export function mapPujaActual(
         }]
       : [],
     mediosParaPujar,
+    segundosRestantes: snapshot.segundosRestantes ?? undefined,
+    retencionHasta: snapshot.retencionHasta ?? undefined,
+    serverTimeOffsetMs: Number.isNaN(serverNowMs) ? 0 : serverNowMs - Date.now(),
   };
 }
 
@@ -82,6 +86,7 @@ export function applyPujaEvent(current: PujaActual, event: PujaEventoApi): PujaA
       postorGanadorAlias: postorAlias,
       numeroPostorGanador: event.numeroPostor ?? current.numeroPostorGanador,
       esGanadorActual: event.tipo === 'PUJA_ACEPTADA' ? true : event.tipo === 'PUJA_SUPERADA' ? false : current.esGanadorActual,
+      retencionHasta: event.retencionHasta ?? current.retencionHasta,
       historialReciente: monto == null
         ? current.historialReciente
         : [
@@ -102,6 +107,7 @@ export function applyPujaEvent(current: PujaActual, event: PujaEventoApi): PujaA
       ...current,
       mejorOferta: event.mejorOfertaActual ?? current.mejorOferta,
       versionEstado: nextVersion,
+      retencionHasta: event.retencionHasta ?? current.retencionHasta,
     };
   }
 
@@ -111,6 +117,21 @@ export function applyPujaEvent(current: PujaActual, event: PujaEventoApi): PujaA
       loteCerrado: true,
       loteGanado: event.tipo === 'LOTE_GANADO' ? true : current.loteGanado,
       puedePujar: false,
+      esGanadorActual: false,
+      retencionHasta: undefined,
+      segundosRestantes: 0,
+      versionEstado: nextVersion,
+    };
+  }
+
+  if (event.tipo === 'SUBASTA_FINALIZADA') {
+    return {
+      ...current,
+      loteCerrado: true,
+      puedePujar: false,
+      esGanadorActual: false,
+      retencionHasta: undefined,
+      segundosRestantes: 0,
       versionEstado: nextVersion,
     };
   }
