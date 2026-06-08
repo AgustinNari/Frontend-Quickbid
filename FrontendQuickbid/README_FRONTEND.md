@@ -116,6 +116,7 @@ Aplicar reverse para Metro y backend:
 ```powershell
 adb reverse tcp:8081 tcp:8081
 adb reverse tcp:8080 tcp:8080
+adb reverse --list
 ```
 
 En otra terminal:
@@ -136,6 +137,41 @@ alineados.
 El error `Unable to load script` se evita manteniendo Metro activo y aplicando
 `adb reverse tcp:8081 tcp:8081` antes de abrir o recargar la app.
 
+### Como conectar Android con backend local
+
+**Escenario A - Emulador o dispositivo con `adb reverse` (recomendado para pruebas locales)**
+
+- HTTP: `http://localhost:8080`
+- WebSocket: `ws://localhost:8080/ws`
+- Es la configuracion activa por defecto.
+
+```powershell
+adb devices
+adb reverse tcp:8081 tcp:8081
+adb reverse tcp:8080 tcp:8080
+adb reverse --list
+```
+
+**Escenario B - Emulador Android Studio sin `adb reverse`**
+
+- HTTP: `http://10.0.2.2:8080`
+- WebSocket: `ws://10.0.2.2:8080/ws`
+- Requiere seleccionar explicitamente las constantes alternativas de
+  `src/api/config.ts` para mantener HTTP y WebSocket alineados.
+
+**Escenario C - Celular fisico por Wi-Fi**
+
+- HTTP: `http://IP_DE_LA_PC:8080`
+- WebSocket: `ws://IP_DE_LA_PC:8080/ws`
+- El celular y la PC deben estar en la misma red.
+- El firewall de Windows debe permitir conexiones entrantes al puerto `8080`.
+- Antes de abrir la app, probar desde el navegador del celular:
+  `http://IP_DE_LA_PC:8080/actuator/health`.
+
+El backend debe estar escuchando en `8080`. Despues de cambiar la API base URL,
+reiniciar o recargar la app; si Metro conserva una version anterior, usar
+`npm start -- --reset-cache`.
+
 ## 8. Configuracion HTTP y WebSocket
 
 La configuracion central vive en `src/api/config.ts`.
@@ -146,6 +182,9 @@ La configuracion central vive en `src/api/config.ts`.
 - STOMP envia `Authorization: Bearer <accessToken>` en el frame `CONNECT`.
 - Las pujas se envian por HTTP.
 - STOMP se usa solo para actualizaciones realtime.
+- El snapshot inicial live se obtiene por HTTP con
+  `GET /api/subastas/{id}/puja-actual`.
+- Las pujas se envian por HTTP con `POST /api/subastas/{id}/pujar`.
 - Cada puja HTTP debe incluir `idempotencyKey`.
 - No usar SockJS.
 
@@ -333,6 +372,10 @@ independientes.
   productivo final.
 - Sin `adb reverse`, el emulador puede requerir `10.0.2.2`.
 - No ejecutar `npm audit fix` sin revisar.
+- Los archivos de `src/mocks` quedan como fixtures visuales, datos demo
+  aislados y compatibilidad historica de tipos. Ninguna pantalla, API o mapper
+  del flujo productivo los importa actualmente; no bloquean la integracion real
+  y pueden retirarse en una limpieza separada.
 
 ## 14. Checklist final antes de entregar
 

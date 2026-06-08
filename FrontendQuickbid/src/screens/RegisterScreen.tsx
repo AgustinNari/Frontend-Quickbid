@@ -11,6 +11,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  BackHandler,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -20,6 +21,7 @@ import { authApi } from '../api/auth';
 import { ApiError } from '../api/client';
 import { catalogosApi } from '../api/catalogos';
 import { PaisCatalogo } from '../types/catalogos';
+import { safeGoBack } from '../navigation/navigationUtils';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -36,6 +38,12 @@ export default function RegisterScreen({ navigation }: Props) {
   const [errorPaises, setErrorPaises] = useState<string | null>(null);
   const [dropdownPaisAbierto, setDropdownPaisAbierto] = useState(false);
   const [reintentoPaises, setReintentoPaises] = useState(0);
+
+  const volverAlLogin = useCallback(() => {
+    safeGoBack(navigation, () => {
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    });
+  }, [navigation]);
 
   const seleccionarPais = useCallback((pais: PaisCatalogo) => {
     setPaisSeleccionado(pais);
@@ -75,6 +83,15 @@ export default function RegisterScreen({ navigation }: Props) {
     };
   }, [busquedaPais, reintentoPaises]);
 
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      volverAlLogin();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [volverAlLogin]);
+
   async function handleContinuar() {
     if (!email.trim() || !nombre.trim() || !apellido.trim() || !domicilio.trim()) {
       Alert.alert('Campos requeridos', 'Completa todos los campos para continuar.');
@@ -104,7 +121,7 @@ export default function RegisterScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScreenHeader onBack={() => navigation.goBack()} />
+      <ScreenHeader onBack={volverAlLogin} />
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">

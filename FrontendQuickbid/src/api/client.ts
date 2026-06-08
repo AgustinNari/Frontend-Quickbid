@@ -83,7 +83,15 @@ function fallbackForStatus(status: number) {
 async function safeFetch(input: RequestInfo, init?: RequestInit) {
   try {
     return await fetch(input, init);
-  } catch {
+  } catch (error) {
+    if (__DEV__) {
+      console.warn('[QuickBid API] Error de red', {
+        baseUrl: API_BASE_URL,
+        endpoint: String(input),
+        error,
+        suggestion: 'Verificar backend, adb reverse o API base URL.',
+      });
+    }
     throw new ApiError(0, 'No se pudo conectar con QuickBid. Verifica tu conexion o intenta nuevamente en unos minutos.');
   }
 }

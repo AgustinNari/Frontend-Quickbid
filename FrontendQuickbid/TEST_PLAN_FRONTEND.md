@@ -75,6 +75,7 @@ Aplicar reverse para Metro y backend:
 ```powershell
 adb reverse tcp:8081 tcp:8081
 adb reverse tcp:8080 tcp:8080
+adb reverse --list
 ```
 
 Levantar app:
@@ -87,6 +88,20 @@ npm run android
 Si Android no llega al backend, confirmar `adb reverse tcp:8080 tcp:8080`. En
 emulador sin reverse, usar el host `10.0.2.2` en la configuracion centralizada
 de HTTP y WebSocket, manteniendo ambos alineados.
+
+Escenarios soportados:
+
+- Con `adb reverse` (recomendado): HTTP `http://localhost:8080` y WebSocket
+  `ws://localhost:8080/ws`.
+- Emulador sin reverse: configurar explicitamente HTTP
+  `http://10.0.2.2:8080` y WebSocket `ws://10.0.2.2:8080/ws` en
+  `src/api/config.ts`.
+- Celular fisico por Wi-Fi: configurar `http://IP_DE_LA_PC:8080` y
+  `ws://IP_DE_LA_PC:8080/ws`, usar la misma red, permitir `8080` en el firewall
+  y comprobar `http://IP_DE_LA_PC:8080/actuator/health` desde el celular.
+
+Al cambiar la base URL, recargar la app y reiniciar Metro con
+`npm start -- --reset-cache` si conserva configuracion anterior.
 
 ### 1.4 Verificaciones de repositorio
 
@@ -181,6 +196,7 @@ consumir seeds ni disparar transiciones reales.
 | SMK-22 | Bloqueada - login limitado | `bloqueado@quickbid.demo` | Usuario seed disponible | Login | Se muestra pantalla informativa de bloqueo | No | No | `01_auth_registro_medios.http` |
 | SMK-23 | Bloqueada - navegacion principal | `bloqueado@quickbid.demo` | Login bloqueado | Intentar navegar a secciones principales | No accede a navegacion real | No | No | `App.tsx` |
 | SMK-24 | Bloqueada - logout | `bloqueado@quickbid.demo` | Login bloqueado | Cerrar sesion | Sesion limpiada | No relevante | No | `README_FRONTEND.md` |
+| SMK-25 | Registro - back seguro | Invitado/anonimo | Abrir Registro desde Login o como raiz | Usar flecha y gesto/back Android | Vuelve a Login sin warning `GO_BACK` no manejado | No | No | `RegisterScreen.tsx` |
 
 ## 4. Pruebas controladas no destructivas
 
@@ -383,6 +399,11 @@ reseteada o seed seguro preparado para consumirse.
   dev/test/demo y deben permanecer protegidos segun configuracion backend.
 - La validacion final de pujas, pagos y transiciones ocurre en backend; el
   frontend solo debe guiar y bloquear cuando corresponde.
+- `src/mocks` conserva fixtures historicos de subastas, pujas, compras,
+  consignaciones, medios, usuario, historial, estadisticas y notificaciones.
+  No hay imports desde pantallas, APIs ni mappers productivos, por lo que no
+  bloquean las pruebas contra backend real. Evaluar su remocion en una tarea
+  separada.
 
 ## 12. Matriz breve de riesgo
 
