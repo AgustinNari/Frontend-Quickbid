@@ -240,8 +240,9 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
         setFeedback({
           tone: 'info',
           title: 'Lote cerrado',
-          message:
-            'Este lote ya cerro. Las compras se conectaran en un bloque posterior.',
+          message: event.proximoLoteProgramadoAt
+            ? 'Este lote ya cerro. El proximo lote comienza en instantes.'
+            : 'Este lote ya cerro. La subasta esta por finalizar.',
         });
       } else if (event.tipo === 'LOTE_GANADO') {
         const current = pujaRef.current;
@@ -250,6 +251,18 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
           itemId: String(event.itemCatalogoId ?? current?.item.id),
           montoFinal: event.montoAdjudicacion ?? current?.mejorOferta ?? 0,
           numeroPostor: current?.numeroPostorGanador ?? undefined,
+        });
+      } else if (event.tipo === 'SUBASTA_INICIADA') {
+        setFeedback({
+          tone: 'info',
+          title: 'Subasta en vivo',
+          message: 'La subasta acaba de comenzar.',
+        });
+      } else if (event.tipo === 'SUBASTA_FINALIZADA') {
+        setFeedback({
+          tone: 'info',
+          title: 'Subasta finalizada',
+          message: 'La subasta termino. Gracias por participar.',
         });
       } else if (
         event.tipo !== 'MEJOR_OFERTA_ACTUALIZADA' &&
@@ -731,10 +744,13 @@ function PujarButton({
   submitting: boolean;
   onPress: () => void;
 }) {
+  if (puja.subastaFinalizada) {
+    return <Button variant="secondary" disabled>Subasta finalizada</Button>;
+  }
   if (puja.loteCerrado) {
     return (
       <Button variant="secondary" disabled>
-        Lote cerrado
+        {puja.proximoLoteAt ? 'Lote cerrado - esperando proximo lote' : 'Lote cerrado'}
       </Button>
     );
   }
@@ -1112,7 +1128,12 @@ function readableError(error: unknown, fallback: string) {
 }
 
 function bloqueoPujaMessage(puja: PujaActual) {
-  if (puja.loteCerrado) return 'El lote ya esta cerrado.';
+  if (puja.subastaFinalizada) return 'La subasta ya finalizo.';
+  if (puja.loteCerrado) {
+    return puja.proximoLoteAt
+      ? 'El lote ya esta cerrado. El proximo lote comienza en instantes.'
+      : 'El lote ya esta cerrado.';
+  }
   if (puja.mediosParaPujar.length === 0)
     return 'Necesitas un medio de pago verificado vigente compatible para pujar.';
   return 'No cumplis las condiciones para pujar en este momento.';

@@ -142,17 +142,22 @@ export function applyPujaEvent(
       retencionHasta: undefined,
       segundosRestantes: 0,
       versionEstado: nextVersion,
+      // El backend informa que sigue despues del cierre: proximo lote programado
+      // o cierre de la subasta. Permite mostrar la espera sin reconsultar.
+      proximoLoteAt: event.proximoLoteProgramadoAt ?? null,
     };
   }
 
   if (event.tipo === 'SUBASTA_FINALIZADA') {
     return {
       ...current,
+      subastaFinalizada: true,
       loteCerrado: true,
       puedePujar: false,
       esGanadorActual: false,
       retencionHasta: undefined,
       segundosRestantes: 0,
+      proximoLoteAt: null,
       versionEstado: nextVersion,
     };
   }

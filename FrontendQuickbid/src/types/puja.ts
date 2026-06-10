@@ -51,6 +51,7 @@ export type PujaEventoTipo =
   | 'PUJA_RECHAZADA'
   | 'LOTE_CERRADO'
   | 'LOTE_GANADO'
+  | 'SUBASTA_INICIADA'
   | 'LOTE_ACTIVADO'
   | 'SUBASTA_FINALIZADA';
 
@@ -74,6 +75,9 @@ export type PujaEventoApi = {
   montoAdjudicacion?: number;
   compradorEmpresa?: boolean;
   retencionHasta?: string | null;
+  loteFinalizaEstimadoAt?: string | null;
+  proximoLoteProgramadoAt?: string | null;
+  subastaFinalizaProgramadoAt?: string | null;
 };
 
 export type LiveQueueName =
@@ -114,6 +118,8 @@ export type PujaActual = {
   esGanadorActual: boolean;
   loteCerrado: boolean;
   loteGanado: boolean;
+  subastaFinalizada?: boolean;
+  proximoLoteAt?: string | null;
   historialReciente: PujaHistorial[];
   mediosParaPujar: MedioPagoInscripcionApi[];
   segundosRestantes?: number;
