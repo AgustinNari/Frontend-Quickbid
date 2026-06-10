@@ -10,8 +10,18 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import { colors, spacing, radius, fontSize, fontWeight, layout } from '../theme';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import {
+  colors,
+  spacing,
+  radius,
+  fontSize,
+  fontWeight,
+  layout,
+} from '../theme';
+import BottomNavBar, {
+  NavTab,
+  BOTTOM_NAV_HEIGHT,
+} from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { EmptyState, Icon, Loader, Badge, Typography } from '../ui';
 import { consignacionesApi } from '../api/consignaciones';
@@ -40,35 +50,45 @@ export default function ConsignacionesScreen({ navigation }: Props) {
   const [items, setItems] = useState<ConsignacionResumenUi[]>([]);
   const { isGuest, estadoCuenta } = useAuth();
 
-  const load = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
-    if (isGuest) {
-      setLoading(false);
-      return;
-    }
-    if (mode === 'initial') setLoading(true);
-    if (mode === 'refresh') setRefreshing(true);
-    setError(null);
-    try {
-      const page = await consignacionesApi.listar({ filtro: tab, page: 0, size: 30 });
-      setItems(page.content.map(mapConsignacionResumen));
-    } catch (err) {
-      setError(readableError(err));
-      setItems([]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [isGuest, tab]);
+  const load = useCallback(
+    async (mode: 'initial' | 'refresh' = 'initial') => {
+      if (isGuest) {
+        setLoading(false);
+        return;
+      }
+      if (mode === 'initial') setLoading(true);
+      if (mode === 'refresh') setRefreshing(true);
+      setError(null);
+      try {
+        const page = await consignacionesApi.listar({
+          filtro: tab,
+          page: 0,
+          size: 30,
+        });
+        setItems(page.content.map(mapConsignacionResumen));
+      } catch (err) {
+        setError(readableError(err));
+        setItems([]);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [isGuest, tab],
+  );
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const counts = useMemo(() => ({
-    activas: tab === 'activas' ? items.length : undefined,
-    rechazadas: tab === 'rechazadas' ? items.length : undefined,
-    vendidas: tab === 'vendidas' ? items.length : undefined,
-  }), [items.length, tab]);
+  const counts = useMemo(
+    () => ({
+      activas: tab === 'activas' ? items.length : undefined,
+      rechazadas: tab === 'rechazadas' ? items.length : undefined,
+      vendidas: tab === 'vendidas' ? items.length : undefined,
+    }),
+    [items.length, tab],
+  );
 
   if (isGuest) {
     return (
@@ -83,7 +103,11 @@ export default function ConsignacionesScreen({ navigation }: Props) {
             onAction={() => navigation.navigate('LimitedAccess')}
           />
         </View>
-        <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+        <BottomNavBar
+          activeTab={activeTab}
+          onTabPress={setActiveTab}
+          navigation={navigation}
+        />
       </SafeAreaView>
     );
   }
@@ -118,7 +142,8 @@ export default function ConsignacionesScreen({ navigation }: Props) {
           <View style={styles.warningBox}>
             <Icon name="info" size={17} color={colors.warning} />
             <Typography style={styles.warningText}>
-              Tu cuenta tiene restriccion por multa, pero el backend permite consultar y crear consignaciones.
+              Tu cuenta tiene restriccion por multa, pero podes consultar y
+              crear consignaciones.
             </Typography>
           </View>
         ) : null}
@@ -131,8 +156,11 @@ export default function ConsignacionesScreen({ navigation }: Props) {
               onPress={() => setTab(t.id)}
               activeOpacity={0.7}
             >
-              <Text style={[styles.tabLabel, tab === t.id && styles.tabLabelActive]}>
-                {t.label}{counts[t.id] != null ? ` (${counts[t.id]})` : ''}
+              <Text
+                style={[styles.tabLabel, tab === t.id && styles.tabLabelActive]}
+              >
+                {t.label}
+                {counts[t.id] != null ? ` (${counts[t.id]})` : ''}
               </Text>
             </TouchableOpacity>
           ))}
@@ -165,28 +193,49 @@ export default function ConsignacionesScreen({ navigation }: Props) {
         <ScrollView
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load('refresh')} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => load('refresh')}
+            />
+          }
         >
           {items.map(item => (
             <ConsignacionItem
               key={item.id}
               item={item}
-              onVerDetalle={() => navigation.navigate('ConsignacionDetail', { id: item.id })}
+              onVerDetalle={() =>
+                navigation.navigate('ConsignacionDetail', { id: item.id })
+              }
             />
           ))}
         </ScrollView>
       )}
 
-      <TouchableOpacity style={styles.fab} activeOpacity={0.85} onPress={() => navigation.navigate('AltaConsignacion')}>
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('AltaConsignacion')}
+      >
         <Icon name="plus" size={28} color={colors.white} />
       </TouchableOpacity>
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }
 
-function ConsignacionItem({ item, onVerDetalle }: { item: ConsignacionResumenUi; onVerDetalle: () => void }) {
+function ConsignacionItem({
+  item,
+  onVerDetalle,
+}: {
+  item: ConsignacionResumenUi;
+  onVerDetalle: () => void;
+}) {
   return (
     <View style={itemStyles.card}>
       <View style={itemStyles.thumb}>
@@ -194,8 +243,12 @@ function ConsignacionItem({ item, onVerDetalle }: { item: ConsignacionResumenUi;
       </View>
       <View style={itemStyles.info}>
         <View style={itemStyles.titleRow}>
-          <Text style={itemStyles.nombre} numberOfLines={1}>{item.titulo}</Text>
-          <Badge tone={item.badgeTone} variant="soft">{item.estadoLabel.toUpperCase()}</Badge>
+          <Text style={itemStyles.nombre} numberOfLines={1}>
+            {item.titulo}
+          </Text>
+          <Badge tone={item.badgeTone} variant="soft">
+            {item.estadoLabel.toUpperCase()}
+          </Badge>
         </View>
         <Text style={itemStyles.precio}>{item.valorLabel}</Text>
         <Text style={itemStyles.detalle}>{item.detalle}</Text>
@@ -210,7 +263,7 @@ function ConsignacionItem({ item, onVerDetalle }: { item: ConsignacionResumenUi;
 function readableError(err: unknown) {
   if (err instanceof ApiError) return err.message;
   if (err instanceof Error) return err.message;
-  return 'El backend no esta disponible. Probalo de nuevo en unos minutos.';
+  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
 }
 
 const itemStyles = StyleSheet.create({
@@ -237,10 +290,24 @@ const itemStyles = StyleSheet.create({
   },
   info: { flex: 1, gap: 3 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  nombre: { flex: 1, fontSize: fontSize.base, fontWeight: fontWeight.semibold, color: colors.text },
-  precio: { fontSize: fontSize.md, fontWeight: fontWeight.bold, color: colors.primary },
+  nombre: {
+    flex: 1,
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    color: colors.text,
+  },
+  precio: {
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.bold,
+    color: colors.primary,
+  },
   detalle: { fontSize: fontSize.sm, color: colors.textMuted },
-  verDetalle: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: colors.primary, marginTop: 2 },
+  verDetalle: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.primary,
+    marginTop: 2,
+  },
 });
 
 const styles = StyleSheet.create({
@@ -256,7 +323,11 @@ const styles = StyleSheet.create({
     paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
   },
   errorWrap: { flex: 1, paddingHorizontal: layout.screenPaddingHorizontal },
-  titulo: { fontSize: fontSize['4xl'], fontWeight: fontWeight.bold, color: colors.text },
+  titulo: {
+    fontSize: fontSize['4xl'],
+    fontWeight: fontWeight.bold,
+    color: colors.text,
+  },
   subtitulo: { fontSize: fontSize.base, color: colors.textMuted },
   warningBox: {
     flexDirection: 'row',
@@ -267,7 +338,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.warning,
   },
-  warningText: { flex: 1, fontSize: fontSize.sm, color: colors.text, lineHeight: fontSize.sm * 1.45 },
+  warningText: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: colors.text,
+    lineHeight: fontSize.sm * 1.45,
+  },
   tabsRow: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
@@ -284,7 +360,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   tabActive: { backgroundColor: colors.primary },
-  tabLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.medium, color: colors.textMuted },
+  tabLabel: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
+    color: colors.textMuted,
+  },
   tabLabelActive: { color: colors.white, fontWeight: fontWeight.semibold },
   fab: {
     position: 'absolute',

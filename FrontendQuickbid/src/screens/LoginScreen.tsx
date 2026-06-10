@@ -25,7 +25,13 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 function UserIcon() {
   return (
     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="8" r="4" stroke={colors.textSubtle} strokeWidth="1.8" />
+      <Circle
+        cx="12"
+        cy="8"
+        r="4"
+        stroke={colors.textSubtle}
+        strokeWidth="1.8"
+      />
       <Path
         d="M4 20c0-3.866 3.582-7 8-7s8 3.134 8 7"
         stroke={colors.textSubtle}
@@ -39,8 +45,21 @@ function UserIcon() {
 function LockIcon() {
   return (
     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <Rect x="5" y="11" width="14" height="10" rx="2" stroke={colors.textSubtle} strokeWidth="1.8" />
-      <Path d="M8 11V7a4 4 0 0 1 8 0v4" stroke={colors.textSubtle} strokeWidth="1.8" strokeLinecap="round" />
+      <Rect
+        x="5"
+        y="11"
+        width="14"
+        height="10"
+        rx="2"
+        stroke={colors.textSubtle}
+        strokeWidth="1.8"
+      />
+      <Path
+        d="M8 11V7a4 4 0 0 1 8 0v4"
+        stroke={colors.textSubtle}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -48,9 +67,9 @@ function LockIcon() {
 export default function LoginScreen({ navigation }: Props) {
   const { login, continueAsGuest } = useAuth();
 
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
     if (!email.trim() || !password.trim()) {
@@ -65,10 +84,20 @@ export default function LoginScreen({ navigation }: Props) {
       await login(res.data);
       navigation.reset({
         index: 0,
-        routes: [{ name: res.data.estadoCuenta === 'bloqueada_permanente' ? 'LimitedAccess' : 'Subastas' }],
+        routes: [
+          {
+            name:
+              res.data.estadoCuenta === 'bloqueada_permanente'
+                ? 'LimitedAccess'
+                : 'Subastas',
+          },
+        ],
       });
     } catch (e) {
-      const msg = e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.';
+      const msg =
+        e instanceof ApiError
+          ? e.message
+          : 'No se pudo conectar con el servidor.';
       Alert.alert('Error', msg);
     } finally {
       setLoading(false);
@@ -77,14 +106,18 @@ export default function LoginScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-
       <View style={styles.header}>
         <Text style={styles.brand}>QuickBid</Text>
       </View>
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
           <Text style={styles.title}>Entrar a QuickBid</Text>
           <Text style={styles.subtitle}>Ingresa tus credenciales.</Text>
 
@@ -116,11 +149,19 @@ export default function LoginScreen({ navigation }: Props) {
             />
           </View>
 
-          <TouchableOpacity style={styles.forgotWrap} onPress={() => navigation.navigate('RecuperacionCuenta')}>
+          <TouchableOpacity
+            style={styles.forgotWrap}
+            onPress={() => navigation.navigate('RecuperacionCuenta')}
+          >
             <Text style={styles.forgotText}>Olvidé mi contraseña</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.btn} activeOpacity={0.85} onPress={handleLogin} disabled={loading}>
+          <TouchableOpacity
+            style={styles.btn}
+            activeOpacity={0.85}
+            onPress={handleLogin}
+            disabled={loading}
+          >
             {loading ? (
               <ActivityIndicator color={colors.textInverse} />
             ) : (
@@ -134,21 +175,31 @@ export default function LoginScreen({ navigation }: Props) {
             onPress={async () => {
               await continueAsGuest();
               navigation.reset({ index: 0, routes: [{ name: 'Subastas' }] });
-            }}>
+            }}
+          >
             <Text style={styles.btnText}>Continuar como Invitado</Text>
           </TouchableOpacity>
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>
               ¿No tienes una cuenta?{' '}
-              <Text style={styles.footerLink} onPress={() => navigation.navigate('Register')}>Registrarte</Text>
+              <Text
+                style={styles.footerLink}
+                onPress={() => navigation.navigate('Register')}
+              >
+                Registrarte
+              </Text>
             </Text>
             <Text style={styles.footerText}>
               ¿Ya completaste el primer registro?{' '}
-              <Text style={styles.footerLink} onPress={() => navigation.navigate('EnlaceRegistro')}>Consultalo</Text>
+              <Text
+                style={styles.footerLink}
+                onPress={() => navigation.navigate('EnlaceRegistro')}
+              >
+                Consultalo
+              </Text>
             </Text>
           </View>
-
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -156,8 +207,8 @@ export default function LoginScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe:  { flex: 1, backgroundColor: colors.white },
-  flex:  { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: colors.white },
+  flex: { flex: 1, backgroundColor: colors.background },
   header: {
     backgroundColor: colors.white,
     paddingHorizontal: spacing.xl,
@@ -165,26 +216,75 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.borderMuted,
   },
-  brand: { fontSize: fontSize['2xl'], fontWeight: 'bold', color: colors.primary },
-  scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingTop: 36, paddingBottom: 36 },
-  title:    { fontSize: fontSize['5xl'], fontWeight: 'bold', color: colors.text, marginBottom: spacing.xs },
-  subtitle: { fontSize: fontSize.lg, color: colors.textMuted, marginBottom: spacing['2xl'] },
-  label: { fontSize: fontSize.sm, fontWeight: '500', color: colors.textLabel, letterSpacing: 0.5, marginBottom: 6 },
+  brand: {
+    fontSize: fontSize['2xl'],
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  scroll: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.xl,
+    paddingTop: 36,
+    paddingBottom: 36,
+  },
+  title: {
+    fontSize: fontSize['5xl'],
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  subtitle: {
+    fontSize: fontSize.lg,
+    color: colors.textMuted,
+    marginBottom: spacing['2xl'],
+  },
+  label: {
+    fontSize: fontSize.sm,
+    fontWeight: '500',
+    color: colors.textLabel,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
   inputRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.white,
-    borderRadius: radius.base, borderWidth: 1, borderColor: colors.border,
-    paddingHorizontal: 14, height: controlHeight.base, marginBottom: spacing.lg, gap: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: radius.base,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 14,
+    height: controlHeight.base,
+    marginBottom: spacing.lg,
+    gap: 10,
   },
   input: { flex: 1, fontSize: fontSize.md, color: colors.text, padding: 0 },
   forgotWrap: { alignSelf: 'flex-end', marginBottom: 28 },
-  forgotText: { fontSize: fontSize.sm, color: colors.textMuted, textDecorationLine: 'underline' },
+  forgotText: {
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    textDecorationLine: 'underline',
+  },
   btn: {
-    backgroundColor: colors.primary, borderRadius: radius.base, height: controlHeight.base,
-    alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md, paddingHorizontal: spacing.lg,
+    backgroundColor: colors.primary,
+    borderRadius: radius.base,
+    height: controlHeight.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   btnSecondary: { backgroundColor: colors.textMuted },
-  btnText:  { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600', textAlign: 'center' },
-  footer:   { paddingTop: 40, alignItems: 'center', gap: 6 },
-  footerText: { fontSize: fontSize.sm, color: colors.textMuted, textAlign: 'center' },
+  btnText: {
+    color: colors.textInverse,
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  footer: { paddingTop: 40, alignItems: 'center', gap: 6 },
+  footerText: {
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
   footerLink: { color: colors.primary, fontWeight: '600' },
 });

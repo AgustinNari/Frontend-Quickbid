@@ -9,6 +9,15 @@ export type PujaActualApi = {
   versionEstado: number;
   puedePujar: boolean;
   motivo: string | null;
+  precioBase?: number | null;
+  incrementoMinimo?: number | null;
+  serverNow?: string | null;
+  retencionHasta?: string | null;
+  segundosRestantes?: number | null;
+  miPujaGanadora?: boolean;
+  estadoLote?: string;
+  adjudicado?: boolean;
+  siguienteAccion?: string | null;
 };
 
 export type PujarRequestApi = {
@@ -31,6 +40,7 @@ export type PujarResponseApi = {
   mejorOfertaActual: number | null;
   numeroPostor: number | null;
   idempotentReplay?: boolean;
+  retencionHasta?: string | null;
 };
 
 export type PujaEventoTipo =
@@ -113,6 +123,8 @@ export type PujaActual = {
   historialReciente: PujaHistorial[];
   mediosParaPujar: MedioPagoInscripcionApi[];
   segundosRestantes?: number;
+  retencionHasta?: string;
+  serverTimeOffsetMs: number;
 };
 
 export type PujaErrorTipo =

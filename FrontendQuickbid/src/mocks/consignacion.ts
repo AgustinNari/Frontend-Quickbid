@@ -10,20 +10,6 @@ import {
   ResultadoConsignacion,
 } from '../types/consignacion';
 
-/**
- * Mock del dominio rico de Consignaciones (alta, detalle con timeline, acuerdo).
- *
- * Complementa el listado simple de `mocks/consignaciones.ts` (de Nico) sin
- * tocarlo: los ids de detalle coinciden con los de ese listado para que
- * "Ver detalle" funcione. Replica el contrato (POST /api/consignaciones,
- * GET /api/consignaciones/{id}, acuerdo/aceptar|rechazar) con sus codigos HTTP.
- *
- * Estado mutable en module-scope (se reinicia con reload): las consignaciones
- * nuevas que carga el usuario y los cambios de estado al aceptar/rechazar.
- */
-
-// ── Timeline ─────────────────────────────────────────────────────────────────
-
 const ETAPAS_LABELS = [
   'Validación',
   'Verificación física',
@@ -32,7 +18,6 @@ const ETAPAS_LABELS = [
   'Liquidación',
 ];
 
-/** Indice de la etapa "actual" segun el estado. -1 = flujo de rechazo. */
 const PROGRESO: Record<EstadoConsignacion, number> = {
   en_validacion: 0,
   recepcion_pendiente: 1,
@@ -54,7 +39,12 @@ function construirEtapas(
   return ETAPAS_LABELS.map((label, i) => {
     let st: EtapaEstado;
     if (estado === 'rechazada' || estado === 'devolucion_pendiente') {
-      st = i < rechazoEnEtapa ? 'completada' : i === rechazoEnEtapa ? 'rechazada' : 'pendiente';
+      st =
+        i < rechazoEnEtapa
+          ? 'completada'
+          : i === rechazoEnEtapa
+          ? 'rechazada'
+          : 'pendiente';
     } else {
       const p = PROGRESO[estado];
       st = i < p ? 'completada' : i === p ? 'actual' : 'pendiente';
@@ -68,10 +58,7 @@ function construirEtapas(
   });
 }
 
-// ── Datos base de los detalles (sin etapas — se computan al vuelo) ───────────
-
 type DetalleBase = Omit<ConsignacionDetalle, 'etapas'> & {
-  /** Etapa donde se rechazo (para el timeline), si aplica. */
   rechazoEnEtapa?: number;
 };
 
@@ -83,12 +70,7 @@ const acuerdoEstandar = (precioBase: number): AcuerdoConsignacion => ({
   vigencia: '72 horas',
 });
 
-/**
- * Detalles mapeados a los ids del listado de Nico (`mocks/consignaciones.ts`).
- * Cubren todos los estados clave para la demo.
- */
 const DETALLES: Record<string, DetalleBase> = {
-  // Activa con acuerdo propuesto — el caso principal de la demo (acepta/rechaza).
   '1': {
     id: '1',
     codigo: '#CONS-2026-00847',
@@ -101,7 +83,6 @@ const DETALLES: Record<string, DetalleBase> = {
     acuerdo: acuerdoEstandar(2800000),
     fecha: '12 may 2026',
   },
-  // Activa ya publicada y en subasta.
   '2': {
     id: '2',
     codigo: '#CONS-2026-00848',
@@ -114,7 +95,6 @@ const DETALLES: Record<string, DetalleBase> = {
     acuerdo: acuerdoEstandar(3500),
     fecha: '8 may 2026',
   },
-  // Recién cargada, en validacion digital.
   '3': {
     id: '3',
     codigo: '#CONS-2026-00851',
@@ -125,7 +105,6 @@ const DETALLES: Record<string, DetalleBase> = {
     estado: 'en_validacion',
     fecha: '21 may 2026',
   },
-  // Aprobada digital, en revision fisica.
   '4': {
     id: '4',
     codigo: '#CONS-2026-00852',
@@ -136,7 +115,6 @@ const DETALLES: Record<string, DetalleBase> = {
     estado: 'revision_fisica',
     fecha: '19 may 2026',
   },
-  // Rechazada en validacion por documentacion.
   '5': {
     id: '5',
     codigo: '#CONS-2026-00839',
@@ -149,7 +127,6 @@ const DETALLES: Record<string, DetalleBase> = {
     rechazoEnEtapa: 0,
     fecha: '2 may 2026',
   },
-  // Vendida y liquidada — timeline completo.
   '8': {
     id: '8',
     codigo: '#CONS-2025-00710',
@@ -164,20 +141,10 @@ const DETALLES: Record<string, DetalleBase> = {
   },
 };
 
-// ── Estado mutable de runtime ────────────────────────────────────────────────
-
-/** Cambios de estado por aceptar/rechazar acuerdo. */
 const _estadoOverride: Record<string, EstadoConsignacion> = {};
-/** Consignaciones nuevas cargadas por el usuario en esta corrida. */
 const _nuevas: Record<string, Omit<ConsignacionDetalle, 'etapas'>> = {};
 let _seq = 100;
 
-// ── API del mock ─────────────────────────────────────────────────────────────
-
-/**
- * Requisitos para consignar (`GET /api/consignaciones/requisitos`).
- * El comprobante de origen es opcional al inicio (Consignas 11.9).
- */
 export function getRequisitos(): {
   puedeContinuar: boolean;
   requisitos: RequisitoConsignacion[];
@@ -206,15 +173,11 @@ export function getRequisitos(): {
     },
   ];
   const puedeContinuar = requisitos
-    .filter((r) => r.obligatorio)
-    .every((r) => r.cumplido);
+    .filter(r => r.obligatorio)
+    .every(r => r.cumplido);
   return { puedeContinuar, requisitos };
 }
 
-/**
- * Alta de consignacion (`POST /api/consignaciones`).
- * Valida titulo y minimo de fotos (Consignas 11.6). Codigos: 400, 422.
- */
 export function crearConsignacion(datos: DatosBien): ResultadoConsignacion {
   if (!datos.titulo.trim()) {
     return {
@@ -253,10 +216,6 @@ export function crearConsignacion(datos: DatosBien): ResultadoConsignacion {
   return { ok: true, id, codigo, nuevoEstado: 'en_validacion' };
 }
 
-/**
- * Detalle de una consignacion (`GET /api/consignaciones/{id}`).
- * Computa el timeline al vuelo segun el estado actual. `null` si no existe.
- */
 export function getConsignacionDetalle(id: string): ConsignacionDetalle | null {
   const nueva = _nuevas[id];
   if (nueva) {
@@ -273,16 +232,16 @@ export function getConsignacionDetalle(id: string): ConsignacionDetalle | null {
   };
 }
 
-/**
- * Acepta el acuerdo propuesto (`POST /api/consignaciones/{id}/acuerdo/aceptar`).
- * Al aceptar, el bien pasa a publicarse. Codigos: 403, 404, 409.
- */
 export function aceptarAcuerdo(id: string): ResultadoConsignacion {
   const det = getConsignacionDetalle(id);
   if (!det) {
     return {
       ok: false,
-      error: { codigo: 404, tipo: 'NO_ENCONTRADA', mensaje: 'No encontramos la consignación.' },
+      error: {
+        codigo: 404,
+        tipo: 'NO_ENCONTRADA',
+        mensaje: 'No encontramos la consignación.',
+      },
     };
   }
   if (det.estado !== 'acuerdo_pendiente') {
@@ -299,16 +258,16 @@ export function aceptarAcuerdo(id: string): ResultadoConsignacion {
   return { ok: true, id, nuevoEstado: 'acuerdo_aceptado' };
 }
 
-/**
- * Rechaza el acuerdo (`POST /api/consignaciones/{id}/acuerdo/rechazar`).
- * Al rechazar, la consignacion entra al flujo de devolucion. Codigo: 409.
- */
 export function rechazarAcuerdo(id: string): ResultadoConsignacion {
   const det = getConsignacionDetalle(id);
   if (!det) {
     return {
       ok: false,
-      error: { codigo: 404, tipo: 'NO_ENCONTRADA', mensaje: 'No encontramos la consignación.' },
+      error: {
+        codigo: 404,
+        tipo: 'NO_ENCONTRADA',
+        mensaje: 'No encontramos la consignación.',
+      },
     };
   }
   if (det.estado !== 'acuerdo_pendiente') {

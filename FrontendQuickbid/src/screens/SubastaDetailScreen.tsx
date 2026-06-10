@@ -28,7 +28,10 @@ import {
   fontWeight,
   letterSpacing,
 } from '../theme';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import BottomNavBar, {
+  NavTab,
+  BOTTOM_NAV_HEIGHT,
+} from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SubastaInfoRow } from '../components/SubastaInfoRow';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
@@ -45,32 +48,16 @@ import { VerificacionSubastaApi } from '../types/subastaApi';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SubastaDetail'>;
 
-/**
- * Pantalla de detalle de una subasta (tarea #11 del Trello).
- *
- * Alineada al frame `236:2658` (Colecciones Detalle) del Figma:
- *  - Header con back y brand QuickBid.
- *  - Hero: placeholder tematizado por segmento + badge de estado.
- *  - Título grande + subtítulo (tagline).
- *  - Card con fecha y hora (2 columnas).
- *  - Lista de info rows: ubicación, rematador, categoría, segmento, moneda,
- *    cantidad de items.
- *  - Descripción larga (si la subasta la tiene).
- *  - CTAs:
- *      • Primario: "Entrar al catálogo" → navega a `CatalogoSubasta`.
- *      • Secundario: "Inscribirme" (placeholder — la inscripción es otra tarea).
- *
- * Consume `GET /api/subastas/{id}` y mantiene las acciones economicas como
- * placeholders hasta que sus flujos sean implementados.
- */
 export default function SubastaDetailScreen({ navigation, route }: Props) {
-  const { canPerformEconomicActions, isAuthenticated, isGuest, estadoCuenta } = useAuth();
+  const { canPerformEconomicActions, isAuthenticated, isGuest, estadoCuenta } =
+    useAuth();
   const { id } = route.params;
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
   const [loading, setLoading] = useState(true);
   const [detalle, setDetalle] = useState<SubastaDetalle | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [verificacion, setVerificacion] = useState<VerificacionSubastaApi | null>(null);
+  const [verificacion, setVerificacion] =
+    useState<VerificacionSubastaApi | null>(null);
   const [accessError, setAccessError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -89,14 +76,22 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
           setVerificacion(await subastasApi.verificarAcceso(Number(id)));
         } catch (accessLoadError) {
           setVerificacion(null);
-          setAccessError(accessLoadError instanceof Error ? accessLoadError.message : 'No pudimos verificar tu acceso.');
+          setAccessError(
+            accessLoadError instanceof Error
+              ? accessLoadError.message
+              : 'No pudimos verificar tu acceso.',
+          );
         }
       } else {
         setVerificacion(null);
       }
     } catch (loadError) {
       setDetalle(null);
-      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar la subasta.');
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : 'No pudimos cargar la subasta.',
+      );
     } finally {
       setLoading(false);
     }
@@ -119,12 +114,20 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
 
   const handleInscribirme = () => {
     if (!detalle) return;
-    if (isGuest || !canPerformEconomicActions || verificacion?.cuentaBloqueada || verificacion?.cuentaRestringida) {
+    if (
+      isGuest ||
+      !canPerformEconomicActions ||
+      verificacion?.cuentaBloqueada ||
+      verificacion?.cuentaRestringida
+    ) {
       navigation.navigate('LimitedAccess');
       return;
     }
     if (verificacion?.yaInscripto) {
-      Alert.alert('Ya estas inscripto', 'Tu inscripcion para esta subasta ya esta activa.');
+      Alert.alert(
+        'Ya estas inscripto',
+        'Tu inscripcion para esta subasta ya esta activa.',
+      );
       return;
     }
     navigation.navigate('InscripcionSubasta', { subastaId: detalle.id });
@@ -136,23 +139,11 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
       navigation.navigate('PujaEnVivo', { subastaId: detalle.id });
       return;
     }
-    if (verificacion?.cuentaBloqueada || estadoCuenta === 'bloqueada_permanente') {
+    if (
+      verificacion?.cuentaBloqueada ||
+      estadoCuenta === 'bloqueada_permanente'
+    ) {
       navigation.navigate('LimitedAccess');
-      return;
-    }
-    if (verificacion?.cuentaRestringida || estadoCuenta === 'restriccion_multa') {
-      navigation.navigate('LimitedAccess');
-      return;
-    }
-    if (estadoCuenta === 'activa' && verificacion && !verificacion.yaInscripto) {
-      Alert.alert(
-        'Inscripcion requerida',
-        'Para entrar a la puja en vivo primero completa la inscripcion a esta subasta.',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Inscribirme', onPress: () => navigation.navigate('InscripcionSubasta', { subastaId: detalle.id }) },
-        ],
-      );
       return;
     }
     navigation.navigate('PujaEnVivo', { subastaId: detalle.id });
@@ -212,11 +203,19 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
               ) : null}
 
               <View style={styles.infoList}>
-                <SubastaInfoRow icon="search" label="Ubicacion" value={detalle.ubicacion} />
+                <SubastaInfoRow
+                  icon="search"
+                  label="Ubicacion"
+                  value={detalle.ubicacion}
+                />
                 {detalle.rematador ? (
                   <>
                     <Divider />
-                    <SubastaInfoRow icon="bank" label="Rematador" value={detalle.rematador} />
+                    <SubastaInfoRow
+                      icon="bank"
+                      label="Rematador"
+                      value={detalle.rematador}
+                    />
                   </>
                 ) : null}
                 <Divider />
@@ -259,20 +258,35 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
                 </View>
               ) : null}
 
-              {isAuthenticated && verificacion && !verificacion.puedeInscribirse ? (
+              {isAuthenticated &&
+              verificacion &&
+              !verificacion.puedeInscribirse ? (
                 <View style={styles.accessBanner}>
-                  <Icon name="info" size={18} color={verificacion.yaInscripto ? colors.success : colors.danger} />
-                  <Body style={styles.accessText}>{motivoInscripcion(verificacion)}</Body>
+                  <Icon
+                    name="info"
+                    size={18}
+                    color={
+                      verificacion.yaInscripto ? colors.success : colors.danger
+                    }
+                  />
+                  <Body style={styles.accessText}>
+                    {motivoInscripcion(verificacion)}
+                  </Body>
                 </View>
               ) : estadoCuenta === 'restriccion_multa' ? (
                 <View style={styles.accessBanner}>
                   <Icon name="alert" size={18} color={colors.danger} />
-                  <Body style={styles.accessText}>Puedes ver la subasta, pero la restriccion por multa impide inscribirte.</Body>
+                  <Body style={styles.accessText}>
+                    Puedes ver la subasta, pero la restriccion por multa impide
+                    inscribirte.
+                  </Body>
                 </View>
               ) : accessError ? (
                 <View style={styles.accessBanner}>
                   <Icon name="alert" size={18} color={colors.danger} />
-                  <Body style={styles.accessText}>No pudimos verificar la inscripcion: {accessError}</Body>
+                  <Body style={styles.accessText}>
+                    No pudimos verificar la inscripcion: {accessError}
+                  </Body>
                 </View>
               ) : null}
             </View>
@@ -284,7 +298,11 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
                 <Button
                   onPress={handleEntrarPuja}
                   leftIcon={
-                    <Icon name="plus-circle" color={colors.textInverse} size={18} />
+                    <Icon
+                      name="plus-circle"
+                      color={colors.textInverse}
+                      size={18}
+                    />
                   }
                 >
                   Entrar a Puja en Vivo
@@ -320,25 +338,15 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
         </>
       )}
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }
 
-// ── Sub-componentes ────────────────────────────────────────────────────────
-
-/**
- * Botón secundario "Inscribirme" / "Ya estás inscripto" / variantes bloqueadas.
- *
- * La lógica vive acá adentro para no inflar el componente principal. Estados:
- *  - Inscripto         → "Ya estás inscripto"            (disabled)
- *  - Categoría insuf.  → "Categoría insuficiente"        (disabled)
- *  - Multa activa      → "Regularizá tu multa"           (disabled)
- *  - OK                → "Inscribirme"                    (activo, navega)
- *
- * Las dos primeras se chequean en orden de prioridad: si el usuario está
- * inscripto, ese estado gana sobre cualquier otro bloqueo.
- */
 function InscribirmeButton({
   canPerformEconomicActions,
   isGuest,
@@ -353,14 +361,14 @@ function InscribirmeButton({
   const label = isGuest
     ? 'Inicia sesion para inscribirte'
     : verificacion?.yaInscripto
-      ? 'Ya estas inscripto'
-      : verificacion?.cuentaRestringida
-        ? 'Inscripcion bloqueada por multa'
-        : verificacion?.cuentaBloqueada
-          ? 'Cuenta bloqueada'
-          : verificacion && !verificacion.puedeInscribirse
-            ? 'Ver motivo de bloqueo'
-            : 'Inscribirme con metodo de pago';
+    ? 'Ya estas inscripto'
+    : verificacion?.cuentaRestringida
+    ? 'Inscripcion bloqueada por multa'
+    : verificacion?.cuentaBloqueada
+    ? 'Cuenta bloqueada'
+    : verificacion && !verificacion.puedeInscribirse
+    ? 'Ver motivo de bloqueo'
+    : 'Inscribirme con metodo de pago';
   return (
     <Button
       variant="secondary"
@@ -388,7 +396,7 @@ function Hero({ detalle }: { detalle: SubastaDetalle }) {
 
 function BadgeEstado({ estado }: { estado: SubastaDetalle['estado'] }) {
   const tone: 'primary' | 'info' | 'neutral' =
-    estado === 'activa' ? 'primary' : estado === 'proxima' || estado === 'abierta' ? 'info' : 'neutral';
+    estado === 'activa' ? 'primary' : estado === 'proxima' ? 'info' : 'neutral';
   return (
     <Badge tone={tone}>
       {estado === 'activa' ? '● ' : ''}
@@ -422,17 +430,23 @@ function Divider() {
 }
 
 function motivoInscripcion(value: VerificacionSubastaApi) {
-  if (value.yaInscripto) return 'Ya tienes una inscripcion activa para esta subasta.';
-  if (value.cuentaRestringida) return 'La restriccion por multa impide nuevas inscripciones.';
+  if (value.yaInscripto)
+    return 'Ya tienes una inscripcion activa para esta subasta.';
+  if (value.cuentaRestringida)
+    return 'La restriccion por multa impide nuevas inscripciones.';
   if (value.cuentaBloqueada) return 'Tu cuenta esta bloqueada.';
-  if (value.categoriaInsuficienteParaInscripcion) return 'Tu categoria es insuficiente para esta subasta.';
-  if (value.inscripcionCerradaPorTiempo) return 'La inscripcion ya cerro por cercania al inicio.';
+  if (value.categoriaInsuficienteParaInscripcion)
+    return 'Tu categoria es insuficiente para esta subasta.';
+  if (value.inscripcionCerradaPorTiempo)
+    return 'La inscripcion ya cerro por cercania al inicio.';
   if (value.subastaYaIniciada) return 'La subasta ya comenzo.';
-  if (value.requiereMedioPagoParaInscripcion || value.monedaIncompatibleParaInscripcion) return 'Necesitas un medio de pago compatible para inscribirte.';
+  if (
+    value.requiereMedioPagoParaInscripcion ||
+    value.monedaIncompatibleParaInscripcion
+  )
+    return 'Necesitas un medio de pago compatible para inscribirte.';
   return 'La inscripcion no esta disponible actualmente.';
 }
-
-// ── Helpers ────────────────────────────────────────────────────────────────
 
 const MESES = [
   'Ene',
@@ -464,8 +478,6 @@ function formatFechaPartes(iso: string): { fecha: string; hora: string } {
     hora: `${hora}:${min}`,
   };
 }
-
-// ── Estilos ────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: {

@@ -8,14 +8,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import {
-  Heading,
-  Body,
-  Typography,
-  Icon,
-  EmptyState,
-  Loader,
-} from '../ui';
+import { Heading, Body, Typography, Icon, EmptyState, Loader } from '../ui';
 import {
   colors,
   spacing,
@@ -25,28 +18,19 @@ import {
   fontWeight,
   letterSpacing,
 } from '../theme';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import BottomNavBar, {
+  NavTab,
+  BOTTOM_NAV_HEIGHT,
+} from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { ItemCatalogoCard } from '../components/ItemCatalogoCard';
 import { subastasApi } from '../api/subastas';
 import { mapItemCatalogo, mapSubastaDetalle } from '../mappers/subastas';
-import { ItemCatalogo } from '../types/subasta';
+import { ItemCatalogo, SubastaEstado } from '../types/subasta';
 import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CatalogoSubasta'>;
 
-/**
- * Pantalla del catálogo de una subasta (tarea #11 del Trello).
- *
- * Alineada al frame `178:1666` (Catálogo de Subasta Secuencial):
- *  - Header con back y brand QuickBid.
- *  - Switch de pestañas: "Catálogo completo" / "Ver en puja actual" (la 2da
- *    queda deshabilitada porque la puja en vivo es de otra tarea).
- *  - Subtítulo: nombre de la subasta + cantidad de lotes.
- *  - Lista vertical con `<ItemCatalogoCard>` (10–12 lotes).
- *  - Empty state si el catálogo está vacío.
- * Consume el catalogo real y oculta precios en modo invitado.
- */
 export default function CatalogoSubastaScreen({ navigation, route }: Props) {
   const { isAuthenticated } = useAuth();
   const { subastaId, titulo: tituloParam } = route.params;
@@ -55,6 +39,9 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
   const [items, setItems] = useState<ItemCatalogo[]>([]);
   const [tituloResolved, setTituloResolved] = useState<string | undefined>(
     tituloParam,
+  );
+  const [subastaEstado, setSubastaEstado] = useState<SubastaEstado | null>(
+    null,
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -74,9 +61,14 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
       const detalle = mapSubastaDetalle(detalleDto);
       setItems(catalogoDto.items.map(item => mapItemCatalogo(item, detalle)));
       setTituloResolved(tituloParam ?? detalle.titulo);
+      setSubastaEstado(detalle.estado);
     } catch (loadError) {
       setItems([]);
-      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar el catalogo.');
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : 'No pudimos cargar el catalogo.',
+      );
     } finally {
       setLoading(false);
     }
@@ -112,28 +104,35 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
           <View style={styles.tabs}>
             <CatalogoTab label="Catálogo completo" active />
             <CatalogoTab
-              label="Ver en puja actual"
-              onPress={() => navigation.navigate('PujaEnVivo', { subastaId })}
+              label={
+                subastaEstado === 'activa'
+                  ? 'Ver en puja actual'
+                  : 'Live no iniciado'
+              }
+              comingSoon={subastaEstado !== 'activa'}
+              onPress={
+                subastaEstado === 'activa'
+                  ? () => navigation.navigate('PujaEnVivo', { subastaId })
+                  : undefined
+              }
             />
           </View>
 
           <View style={styles.titleBlock}>
-            <Heading numberOfLines={2}>
-              {tituloResolved ?? 'Catálogo'}
-            </Heading>
+            <Heading numberOfLines={2}>{tituloResolved ?? 'Catálogo'}</Heading>
             <Body muted style={styles.subtitle}>
               {items.length === 0
                 ? 'Sin lotes cargados todavía'
-                : `${items.length} ${items.length === 1 ? 'lote' : 'lotes'} en catálogo`}
+                : `${items.length} ${
+                    items.length === 1 ? 'lote' : 'lotes'
+                  } en catálogo`}
             </Body>
           </View>
 
           {items.length === 0 ? (
             <View style={styles.emptyWrap}>
               <EmptyState
-                icon={
-                  <Icon name="inbox" size={48} color={colors.textSubtle} />
-                }
+                icon={<Icon name="inbox" size={48} color={colors.textSubtle} />}
                 title="El catálogo está vacío"
                 description="Esta subasta todavía no publicó los lotes. Volvé a chequear más cerca de la fecha de inicio."
                 actionLabel="Volver al detalle"
@@ -143,7 +142,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
           ) : (
             <FlatList
               data={items}
-              keyExtractor={(it) => it.id}
+              keyExtractor={it => it.id}
               contentContainerStyle={styles.list}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => (
@@ -159,12 +158,14 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
         </>
       )}
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }
-
-// ── Sub-componentes ────────────────────────────────────────────────────────
 
 function CatalogoTab({
   label,
@@ -174,10 +175,6 @@ function CatalogoTab({
 }: {
   label: string;
   active?: boolean;
-  /**
-   * Estilo "no disponible" pero el tap sigue funcionando si hay `onPress`
-   * (típicamente para Alert placeholder de tarea futura).
-   */
   comingSoon?: boolean;
   onPress?: () => void;
 }) {
@@ -208,8 +205,6 @@ function CatalogoTab({
 function VerticalSeparator() {
   return <View style={styles.verticalSeparator} />;
 }
-
-// ── Estilos ────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: {

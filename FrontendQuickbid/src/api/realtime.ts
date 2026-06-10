@@ -1,4 +1,9 @@
-import { Client, IMessage, IStompSocket, StompSubscription } from '@stomp/stompjs';
+import {
+  Client,
+  IMessage,
+  IStompSocket,
+  StompSubscription,
+} from '@stomp/stompjs';
 import { WS_BASE_URL } from './config';
 import { PujaEventoApi } from '../types/puja';
 
@@ -17,11 +22,14 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
   const wsUrl = `${WS_BASE_URL}/ws`;
   const subscriptions: StompSubscription[] = [];
   let active = false;
+  let connectionTimer: ReturnType<typeof setTimeout> | null = null;
 
   const destinations = [
     `/topic/subastas/${options.subastaId}/estado`,
     `/topic/subastas/${options.subastaId}/items/${options.itemId}/pujas`,
-    ...(options.includePrivateQueues ? ['/user/queue/pujas', '/user/queue/notificaciones'] : []),
+    ...(options.includePrivateQueues
+      ? ['/user/queue/pujas', '/user/queue/notificaciones']
+      : []),
   ];
 
   const client = new Client({
@@ -31,9 +39,12 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
     },
     heartbeatIncoming: 10000,
     heartbeatOutgoing: 10000,
+    forceBinaryWSFrames: true,
     reconnectDelay: 3000,
-    debug: () => undefined,
+    debug: message => logRealtime(message),
     onConnect: () => {
+      clearConnectionTimer();
+      logRealtime(`connected ${wsUrl}`);
       options.onConnected?.();
       destinations.forEach(destination => {
         subscriptions.push(client.subscribe(destination, handleMessage));
@@ -43,12 +54,17 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
       options.onDisconnected?.();
     },
     onStompError: frame => {
-      options.onError?.(frame.body || frame.headers.message || 'Realtime no disponible');
+      logRealtime(`broker error: ${frame.headers.message ?? frame.body}`);
+      options.onError?.(
+        frame.body || frame.headers.message || 'Realtime no disponible',
+      );
     },
-    onWebSocketError: () => {
+    onWebSocketError: event => {
+      logRealtime(`websocket error: ${String(event)}`);
       options.onError?.('No pudimos conectar realtime');
     },
-    onWebSocketClose: () => {
+    onWebSocketClose: event => {
+      logRealtime(`websocket closed: ${event.code} ${event.reason}`);
       options.onDisconnected?.();
     },
   });
@@ -67,18 +83,44 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
     }
   }
 
+  function clearConnectionTimer() {
+    if (connectionTimer) {
+      clearTimeout(connectionTimer);
+      connectionTimer = null;
+    }
+  }
+
   return {
     connect() {
       if (active || client.active) return;
       active = true;
       client.activate();
+      connectionTimer = setTimeout(() => {
+        connectionTimer = null;
+        if (!client.connected) {
+          logRealtime(`connection timeout ${wsUrl}`);
+          options.onError?.('No pudimos conectar realtime');
+        }
+      }, 15000);
     },
     disconnect() {
       active = false;
+      clearConnectionTimer();
       unsubscribeAll();
       client.deactivate().catch(() => {
         options.onError?.('No pudimos cerrar realtime limpiamente');
       });
     },
   };
+}
+
+function logRealtime(message: string) {
+  if (__DEV__) {
+    console.info(
+      `[realtime] ${message.replace(
+        /Authorization:Bearer [^\n]+/,
+        'Authorization:Bearer [redacted]',
+      )}`,
+    );
+  }
 }

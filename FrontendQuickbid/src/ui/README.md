@@ -1,6 +1,6 @@
 # Sistema visual de QuickBid
 
-Esta carpeta contiene el sistema de UI base de la app: componentes reutilizables, design tokens y un showcase para inspeccionarlos.
+Esta carpeta contiene el sistema de UI base de la app: componentes reutilizables y design tokens.
 
 > **Regla principal**: cualquier nueva pantalla debe usar estos componentes y los tokens de `src/theme`. **No hardcodear colores, spacing ni font sizes** en pantallas — si falta algo, agregarlo acá primero.
 
@@ -14,10 +14,6 @@ import type { IconName } from '../ui';
 // Tokens (colores, spacing, radius, etc.)
 import { colors, spacing, radius, fontSize, fontWeight } from '../theme';
 ```
-
-## Showcase
-
-La pantalla `UIShowcase` muestra todos los componentes y sus variantes en vivo. Para verla, en `App.tsx` cambiá `initialRouteName="Splash"` por `initialRouteName="UIShowcase"` (temporal) o navegá con `navigation.navigate('UIShowcase')` desde cualquier pantalla.
 
 ## Tokens (`src/theme/tokens.ts`)
 

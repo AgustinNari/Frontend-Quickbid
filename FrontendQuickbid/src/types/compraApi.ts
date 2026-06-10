@@ -12,13 +12,21 @@ export type CompraEstadoBackend =
 
 export type EntregaTipo = 'envio' | 'retiro';
 
-export type EntregaEstadoBackend = 'pendiente' | 'pagada' | 'completada' | string;
+export type EntregaEstadoBackend =
+  | 'pendiente'
+  | 'pagada'
+  | 'completada'
+  | string;
 
 export type MultaEstadoBackend = 'pendiente' | 'pagada' | 'vencida' | string;
 
 export type PagoEstadoBackend = 'aprobado' | 'rechazado' | 'pendiente' | string;
 
-export type DocumentoEstadoBackend = 'disponible' | 'generado' | 'pendiente' | string;
+export type DocumentoEstadoBackend =
+  | 'disponible'
+  | 'generado'
+  | 'pendiente'
+  | string;
 
 export type CompraResumenDto = {
   id: number;
@@ -40,6 +48,15 @@ export type CompraEntregaDto = {
   perdioCoberturaSeguro: boolean;
   direccionSnapshotJson: string | null;
   direccionSnapshotAt: string | null;
+};
+
+export type CompraEntregaPreviewDto = {
+  tipo: EntregaTipo;
+  direccionEnvioId: number | null;
+  costoEnvio: number;
+  moneda: 'ARS' | 'USD';
+  comisionComprador: number;
+  totalEstimado: number;
 };
 
 export type CompraMultaDto = {

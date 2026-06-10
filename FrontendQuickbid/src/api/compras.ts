@@ -2,6 +2,7 @@ import { apiFetch } from './client';
 import {
   CompraDetalleDto,
   CompraEntregaDto,
+  CompraEntregaPreviewDto,
   CompraEstadoBackend,
   CompraResumenDto,
   ConfigurarEntregaRequest,
@@ -22,12 +23,16 @@ export function createIdempotencyKey(prefix: string) {
 }
 
 export const comprasApi = {
-  async listar(params: { page?: number; size?: number; estado?: CompraEstadoBackend } = {}) {
+  async listar(
+    params: { page?: number; size?: number; estado?: CompraEstadoBackend } = {},
+  ) {
     const query = [
       `page=${params.page ?? 0}`,
       `size=${params.size ?? 20}`,
       params.estado ? `estado=${encodeURIComponent(params.estado)}` : null,
-    ].filter(Boolean).join('&');
+    ]
+      .filter(Boolean)
+      .join('&');
 
     return required(
       (await apiFetch<PageDto<CompraResumenDto>>(`/api/compras?${query}`)).data,
@@ -44,37 +49,59 @@ export const comprasApi = {
 
   async configurarEntrega(id: number, payload: ConfigurarEntregaRequest) {
     return required(
-      (await apiFetch<CompraEntregaDto>(`/api/compras/${id}/entrega`, {
-        method: 'PUT',
-        body: JSON.stringify(payload),
-      })).data,
+      (
+        await apiFetch<CompraEntregaDto>(`/api/compras/${id}/entrega`, {
+          method: 'PUT',
+          body: JSON.stringify(payload),
+        })
+      ).data,
       'El servidor no devolvio la entrega',
+    );
+  },
+
+  async previewEntrega(id: number, payload: ConfigurarEntregaRequest) {
+    return required(
+      (
+        await apiFetch<CompraEntregaPreviewDto>(
+          `/api/compras/${id}/entrega/preview`,
+          {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          },
+        )
+      ).data,
+      'El servidor no devolvio la cotizacion de entrega',
     );
   },
 
   async pagar(id: number, payload: PagoCompraRequest) {
     return required(
-      (await apiFetch<PagoCompraDto>(`/api/compras/${id}/pagar`, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })).data,
+      (
+        await apiFetch<PagoCompraDto>(`/api/compras/${id}/pagar`, {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        })
+      ).data,
       'El servidor no devolvio el pago',
     );
   },
 
   async pagarConMulta(id: number, payload: PagoCompraRequest) {
     return required(
-      (await apiFetch<PagoCompraDto>(`/api/compras/${id}/pagar-con-multa`, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })).data,
+      (
+        await apiFetch<PagoCompraDto>(`/api/compras/${id}/pagar-con-multa`, {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        })
+      ).data,
       'El servidor no devolvio el pago',
     );
   },
 
   async documentos(id: number) {
     return required(
-      (await apiFetch<DocumentoCompraDto[]>(`/api/compras/${id}/documentos`)).data,
+      (await apiFetch<DocumentoCompraDto[]>(`/api/compras/${id}/documentos`))
+        .data,
       'El servidor no devolvio documentos',
     );
   },

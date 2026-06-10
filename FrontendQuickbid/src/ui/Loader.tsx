@@ -9,23 +9,10 @@ import {
 import { Body } from './Typography';
 import { colors, spacing } from '../theme';
 
-/**
- * Spinner / loader con label opcional.
- *
- * Uso:
- *   <Loader />                                     // inline pequeño
- *   <Loader fullScreen />                          // overlay pantalla completa
- *   <Loader label="Validando tus datos..." />      // con label
- */
-
 type LoaderProps = {
-  /** Tamaño nativo del ActivityIndicator */
   size?: 'small' | 'large';
-  /** Color del spinner. Default: primary */
   color?: string;
-  /** Si true, ocupa toda la pantalla centrado (overlay) */
   fullScreen?: boolean;
-  /** Label debajo del spinner */
   label?: string;
   style?: StyleProp<ViewStyle>;
 };

@@ -1,18 +1,6 @@
 import { MedioPago } from '../types/medioPago';
 import { SubastaMoneda } from '../types/subasta';
 
-/**
- * Medios de pago del usuario actual para desarrollo / demo sin backend.
- *
- * Se mockean 5 medios variados a proposito para cubrir todos los casos del
- * flujo de inscripcion:
- *  - tarjetas en ambas monedas (USD y ARS)
- *  - cuentas bancarias en ambas monedas
- *  - un cheque pendiente de validacion (no deberia poder usarse para inscripcion)
- *
- * Cuando exista backend, este archivo desaparece y la lista viene de
- * `GET /api/usuario/medios-pago`.
- */
 export const MOCK_MEDIOS_PAGO: MedioPago[] = [
   {
     id: 'mp_001',
@@ -58,20 +46,12 @@ export const MOCK_MEDIOS_PAGO: MedioPago[] = [
   },
 ];
 
-/**
- * Devuelve los medios de pago utilizables para inscribirse a una subasta.
- *
- * Filtra:
- *  - solo medios `activo` (los pendientes/vencidos no se pueden usar).
- *  - si se pasa una moneda, deja solo los compatibles con esa moneda.
- */
 export function getMediosPagoUtilizables(moneda?: SubastaMoneda): MedioPago[] {
-  let lista = MOCK_MEDIOS_PAGO.filter((m) => m.estado === 'activo');
-  if (moneda) lista = lista.filter((m) => m.moneda === moneda);
+  let lista = MOCK_MEDIOS_PAGO.filter(m => m.estado === 'activo');
+  if (moneda) lista = lista.filter(m => m.moneda === moneda);
   return lista;
 }
 
-/** Devuelve un medio de pago por id, o null si no existe. */
 export function getMedioPagoById(id: string): MedioPago | null {
-  return MOCK_MEDIOS_PAGO.find((m) => m.id === id) ?? null;
+  return MOCK_MEDIOS_PAGO.find(m => m.id === id) ?? null;
 }

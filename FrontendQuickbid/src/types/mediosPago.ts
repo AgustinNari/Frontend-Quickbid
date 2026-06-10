@@ -1,4 +1,7 @@
-export type TipoMedioPago = 'tarjeta' | 'cuenta_bancaria' | 'cheque_certificado';
+export type TipoMedioPago =
+  | 'tarjeta'
+  | 'cuenta_bancaria'
+  | 'cheque_certificado';
 export type EstadoMedioPago =
   | 'pendiente_verificacion'
   | 'verificado'
@@ -20,6 +23,12 @@ export type MedioPagoDto = {
   verificadoHasta: string | null;
   createdAt: string;
 };
+
+export function isMedioPagoVigente(medio: MedioPagoDto): boolean {
+  if (medio.estado !== 'verificado' || !medio.verificadoHasta) return false;
+  const verificadoHasta = Date.parse(medio.verificadoHasta);
+  return !Number.isNaN(verificadoHasta) && verificadoHasta > Date.now();
+}
 
 export type CrearTarjetaRequest = {
   tipo: 'tarjeta';

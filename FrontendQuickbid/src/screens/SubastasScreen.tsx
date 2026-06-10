@@ -1,17 +1,33 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, SafeAreaView, ScrollView, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  View,
+  SafeAreaView,
+  ScrollView,
+  FlatList,
+  StyleSheet,
+  RefreshControl,
+} from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { Heading, Body, Typography, Icon, EmptyState, Loader } from '../ui';
 import {
-  Heading,
-  Body,
-  Typography,
-  Icon,
-  EmptyState,
-  Loader,
-} from '../ui';
-import { colors, spacing, layout, radius, fontSize, fontWeight } from '../theme';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+  colors,
+  spacing,
+  layout,
+  radius,
+  fontSize,
+  fontWeight,
+} from '../theme';
+import BottomNavBar, {
+  NavTab,
+  BOTTOM_NAV_HEIGHT,
+} from '../components/BottomNavBar';
 import { SubastaCard, SubastaCardCompact } from '../components/SubastaCard';
 import { FilterChips, FilterOption } from '../components/FilterChips';
 import { subastasApi } from '../api/subastas';
@@ -27,21 +43,6 @@ import {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Subastas'>;
 
-/**
- * Pantalla principal de subastas (tarea #10 del Trello).
- *
- * Alineada al Figma (frame "Subastas Activas", 178:1469):
- *  - Header con brand QuickBid.
- *  - Sección "Subastas Activas":
- *      • Título + toggle de moneda (Todas / ARS / USD) a la derecha.
- *      • Carrusel horizontal con cards grandes (imagen + body + botón Entrar).
- *  - Filtros de segmento (Todo, Joyas, Arte, Vehículos, ...).
- *  - Filtros de categoría (Todo, Plata, Oro, Platino, ...).
- *  - Sección "Próximas Subastas" con cards horizontales compactas.
- *  - BottomNavBar al fondo con tab "subastas" activo.
- *
- * Consume el listado real y aplica los filtros visuales en cliente.
- */
 export default function SubastasScreen({ navigation }: Props) {
   const scrollRef = useRef<ScrollView>(null);
   const [segmento, setSegmento] = useState<SubastaSegmento | null>(null);
@@ -60,7 +61,11 @@ export default function SubastasScreen({ navigation }: Props) {
       const page = await subastasApi.listar({ page: 0, size: 100 });
       setSubastas(page.content.map(mapSubastaResumen));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar las subastas.');
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : 'No pudimos cargar las subastas.',
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -76,10 +81,8 @@ export default function SubastasScreen({ navigation }: Props) {
     if (tab === 'subastas') {
       scrollRef.current?.scrollTo({ y: 0, animated: true });
     }
-    // Agregar navegación a otras tabs cuando existan esas pantallas
   };
 
-  // Opciones de filtros
   const segmentoOptions = useMemo<FilterOption<SubastaSegmento>[]>(
     () => [
       { value: null, label: 'Todo' },
@@ -100,9 +103,8 @@ export default function SubastasScreen({ navigation }: Props) {
     [],
   );
 
-  // Filtrado client-side
   const filtered = useMemo(() => {
-    return subastas.filter((s) => {
+    return subastas.filter(s => {
       if (segmento && s.segmento !== segmento) return false;
       if (categoria && s.categoria !== categoria) return false;
       if (moneda && s.moneda !== moneda) return false;
@@ -110,10 +112,9 @@ export default function SubastasScreen({ navigation }: Props) {
     });
   }, [subastas, segmento, categoria, moneda]);
 
-  const activas = filtered.filter((s) => s.estado === 'activa' || s.estado === 'abierta');
-  const proximas = filtered.filter((s) => s.estado === 'proxima');
-  const finalizadas = filtered.filter((s) => s.estado === 'finalizada');
-  const isEmpty = filtered.length === 0;
+  const activas = filtered.filter(s => s.estado === 'activa');
+  const proximas = filtered.filter(s => s.estado === 'proxima');
+  const isEmpty = activas.length === 0 && proximas.length === 0;
 
   const handleOpenSubasta = (s: SubastaResumen) => {
     navigation.navigate('SubastaDetail', { id: s.id });
@@ -121,7 +122,6 @@ export default function SubastasScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       <View style={styles.header}>
         <Typography variant="h2" primary>
           QuickBid
@@ -133,7 +133,10 @@ export default function SubastasScreen({ navigation }: Props) {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => loadSubastas(true)} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadSubastas(true)}
+          />
         }
       >
         {loading ? (
@@ -150,122 +153,114 @@ export default function SubastasScreen({ navigation }: Props) {
           </View>
         ) : (
           <>
-        {/* Sección Activas: título + toggle de moneda */}
-        <View style={styles.activasHeader}>
-          <View style={styles.activasTitleRow}>
-            <View style={styles.livePulse} />
-            <Heading>Subastas abiertas</Heading>
-          </View>
+            <View style={styles.activasHeader}>
+              <View style={styles.activasTitleRow}>
+                <View style={styles.livePulse} />
+                <Heading>Subastas en vivo</Heading>
+              </View>
 
-          <View style={styles.currencyToggle}>
-            <CurrencyChip
-              label="ARS"
-              selected={moneda === 'ARS'}
-              onPress={() => setMoneda(moneda === 'ARS' ? null : 'ARS')}
-            />
-            <CurrencyChip
-              label="USD"
-              selected={moneda === 'USD'}
-              onPress={() => setMoneda(moneda === 'USD' ? null : 'USD')}
-            />
-          </View>
-        </View>
-
-        {/* Carrusel horizontal de activas */}
-        {activas.length > 0 ? (
-          <FlatList
-            data={activas}
-            keyExtractor={(s) => s.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.carrusel}
-            renderItem={({ item }) => (
-              <SubastaCard subasta={item} onPress={() => handleOpenSubasta(item)} />
-            )}
-            ItemSeparatorComponent={HorizontalSeparator}
-          />
-        ) : (
-          <View style={styles.activasEmpty}>
-            <Body muted>No hay subastas abiertas con estos filtros.</Body>
-          </View>
-        )}
-
-        {/* Filtros */}
-        <View style={styles.filtersWrap}>
-          <FilterChips
-            options={segmentoOptions}
-            value={segmento}
-            onChange={setSegmento}
-          />
-          <View style={{ height: spacing.sm }} />
-          <FilterChips
-            options={categoriaOptions}
-            value={categoria}
-            onChange={setCategoria}
-          />
-        </View>
-
-        {/* Próximas */}
-        <View style={styles.proximasWrap}>
-          <Heading style={styles.proximasTitle}>Próximas Subastas</Heading>
-
-          {proximas.length === 0 ? (
-            isEmpty ? (
-              <View style={styles.emptyWrap}>
-                <EmptyState
-                  icon={<Icon name="inbox" size={48} color={colors.textSubtle} />}
-                  title="Sin resultados"
-                  description="No encontramos subastas con esos filtros. Probá quitar alguno."
-                  actionLabel="Limpiar filtros"
-                  onAction={() => {
-                    setSegmento(null);
-                    setCategoria(null);
-                    setMoneda(null);
-                  }}
+              <View style={styles.currencyToggle}>
+                <CurrencyChip
+                  label="ARS"
+                  selected={moneda === 'ARS'}
+                  onPress={() => setMoneda(moneda === 'ARS' ? null : 'ARS')}
+                />
+                <CurrencyChip
+                  label="USD"
+                  selected={moneda === 'USD'}
+                  onPress={() => setMoneda(moneda === 'USD' ? null : 'USD')}
                 />
               </View>
-            ) : (
-              <Body muted style={styles.metaCenter}>
-                No hay subastas próximas con estos filtros.
-              </Body>
-            )
-          ) : (
-            <View style={styles.proximasList}>
-              {proximas.map((s) => (
-                <SubastaCardCompact
-                  key={s.id}
-                  subasta={s}
-                  onPress={() => handleOpenSubasta(s)}
-                />
-              ))}
             </View>
-          )}
-        </View>
 
-        {finalizadas.length > 0 ? (
-          <View style={styles.proximasWrap}>
-            <Heading style={styles.proximasTitle}>Subastas finalizadas</Heading>
-            <View style={styles.proximasList}>
-              {finalizadas.map((s) => (
-                <SubastaCardCompact
-                  key={s.id}
-                  subasta={s}
-                  onPress={() => handleOpenSubasta(s)}
-                />
-              ))}
+            {activas.length > 0 ? (
+              <FlatList
+                data={activas}
+                keyExtractor={s => s.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.carrusel}
+                renderItem={({ item }) => (
+                  <SubastaCard
+                    subasta={item}
+                    onPress={() => handleOpenSubasta(item)}
+                  />
+                )}
+                ItemSeparatorComponent={HorizontalSeparator}
+              />
+            ) : (
+              <View style={styles.activasEmpty}>
+                <Body muted>No hay subastas en vivo con estos filtros.</Body>
+              </View>
+            )}
+
+            <View style={styles.filtersWrap}>
+              <FilterChips
+                options={segmentoOptions}
+                value={segmento}
+                onChange={setSegmento}
+              />
+              <View style={{ height: spacing.sm }} />
+              <FilterChips
+                options={categoriaOptions}
+                value={categoria}
+                onChange={setCategoria}
+              />
             </View>
-          </View>
-        ) : null}
+
+            <View style={styles.proximasWrap}>
+              <Heading style={styles.proximasTitle}>Próximas Subastas</Heading>
+
+              {proximas.length === 0 ? (
+                isEmpty ? (
+                  <View style={styles.emptyWrap}>
+                    <EmptyState
+                      icon={
+                        <Icon
+                          name="inbox"
+                          size={48}
+                          color={colors.textSubtle}
+                        />
+                      }
+                      title="Sin resultados"
+                      description="No encontramos subastas con esos filtros. Probá quitar alguno."
+                      actionLabel="Limpiar filtros"
+                      onAction={() => {
+                        setSegmento(null);
+                        setCategoria(null);
+                        setMoneda(null);
+                      }}
+                    />
+                  </View>
+                ) : (
+                  <Body muted style={styles.metaCenter}>
+                    No hay subastas próximas con estos filtros.
+                  </Body>
+                )
+              ) : (
+                <View style={styles.proximasList}>
+                  {proximas.map(s => (
+                    <SubastaCardCompact
+                      key={s.id}
+                      subasta={s}
+                      onPress={() => handleOpenSubasta(s)}
+                    />
+                  ))}
+                </View>
+              )}
+            </View>
           </>
         )}
       </ScrollView>
 
-      <BottomNavBar activeTab={activeTab} onTabPress={handleTabPress} navigation={navigation} />
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={handleTabPress}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }
-
-// ── Chip de moneda (toggle compacto) ─────────────────────────────────────────
 
 function CurrencyChip({
   label,
@@ -292,8 +287,6 @@ function CurrencyChip({
 function HorizontalSeparator() {
   return <View style={styles.horizontalSeparator} />;
 }
-
-// ── Estilos ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: {

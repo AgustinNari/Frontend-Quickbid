@@ -3,24 +3,10 @@ import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { Icon, IconName, Typography } from '../ui';
 import { colors, spacing, fontSize, fontWeight } from '../theme';
 
-/**
- * Fila de metadata para la pantalla de detalle de subasta (tarea #11).
- *
- * Layout:
- *   ┌────┐ Ubicación
- *   │ 📍 │ Grosvenor Square, Londres
- *   └────┘
- *
- * Inspirado en las "Info rows" del frame `236:2658` (Colecciones Detalle).
- * El icono va en una "tile" cuadrada con fondo gris suave para anclar
- * visualmente cada dato.
- */
-
 type Props = {
   icon: IconName;
   label: string;
   value: string;
-  /** Si true, el valor va en negrita y un tono más oscuro (para destacar). */
   emphasized?: boolean;
   style?: StyleProp<ViewStyle>;
 };

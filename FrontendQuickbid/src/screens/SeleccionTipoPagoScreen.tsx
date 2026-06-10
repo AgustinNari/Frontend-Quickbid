@@ -10,19 +10,28 @@ import {
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import BottomNavBar, {
+  NavTab,
+  BOTTOM_NAV_HEIGHT,
+} from '../components/BottomNavBar';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeleccionTipoPago'>;
 
-// ── Iconos ────────────────────────────────────────────────────────────────────
-
 function CardIcon({ active }: { active: boolean }) {
   const c = active ? colors.primary : colors.textMuted;
   return (
     <Svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-      <Rect x="2" y="5" width="20" height="14" rx="2" stroke={c} strokeWidth="1.7" />
+      <Rect
+        x="2"
+        y="5"
+        width="20"
+        height="14"
+        rx="2"
+        stroke={c}
+        strokeWidth="1.7"
+      />
       <Path d="M2 10h20" stroke={c} strokeWidth="1.7" strokeLinecap="round" />
     </Svg>
   );
@@ -32,8 +41,19 @@ function BankIcon({ active }: { active: boolean }) {
   const c = active ? colors.primary : colors.textMuted;
   return (
     <Svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-      <Path d="M3 21h18M3 10h18M5 6l7-3 7 3" stroke={c} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M6 10v11M10 10v11M14 10v11M18 10v11" stroke={c} strokeWidth="1.7" strokeLinecap="round" />
+      <Path
+        d="M3 21h18M3 10h18M5 6l7-3 7 3"
+        stroke={c}
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M6 10v11M10 10v11M14 10v11M18 10v11"
+        stroke={c}
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -42,8 +62,21 @@ function CheckDocIcon({ active }: { active: boolean }) {
   const c = active ? colors.primary : colors.textMuted;
   return (
     <Svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-      <Rect x="4" y="2" width="16" height="20" rx="2" stroke={c} strokeWidth="1.7" />
-      <Path d="M8 10h8M8 14h5M8 6h8" stroke={c} strokeWidth="1.7" strokeLinecap="round" />
+      <Rect
+        x="4"
+        y="2"
+        width="16"
+        height="20"
+        rx="2"
+        stroke={c}
+        strokeWidth="1.7"
+      />
+      <Path
+        d="M8 10h8M8 14h5M8 6h8"
+        stroke={c}
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -51,29 +84,35 @@ function CheckDocIcon({ active }: { active: boolean }) {
 function RadioIcon({ active }: { active: boolean }) {
   return (
     <Svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <Circle cx="11" cy="11" r="10" stroke={active ? colors.primary : colors.border} strokeWidth="1.8" />
+      <Circle
+        cx="11"
+        cy="11"
+        r="10"
+        stroke={active ? colors.primary : colors.border}
+        strokeWidth="1.8"
+      />
       {active && <Circle cx="11" cy="11" r="6" fill={colors.primary} />}
     </Svg>
   );
 }
 
-// ── Opciones ──────────────────────────────────────────────────────────────────
-
 type PaymentType = 'card' | 'bank' | 'check';
 
 const OPTIONS: { id: PaymentType; name: string; desc: string }[] = [
-  { id: 'card',  name: 'Crédito / Débito',     desc: 'Visa, Mastercard, Amex.'         },
-  { id: 'bank',  name: 'Cuenta Bancaria',       desc: 'Transferencia vía CBU o CVU.'   },
-  { id: 'check', name: 'Cheque Certificado',    desc: 'Depósito físico o de caja.'     },
+  { id: 'card', name: 'Crédito / Débito', desc: 'Visa, Mastercard, Amex.' },
+  { id: 'bank', name: 'Cuenta Bancaria', desc: 'Transferencia vía CBU o CVU.' },
+  {
+    id: 'check',
+    name: 'Cheque Certificado',
+    desc: 'Depósito físico o de caja.',
+  },
 ];
 
 const ICONS: Record<PaymentType, (active: boolean) => React.ReactNode> = {
-  card:  (a) => <CardIcon     active={a} />,
-  bank:  (a) => <BankIcon     active={a} />,
-  check: (a) => <CheckDocIcon active={a} />,
+  card: a => <CardIcon active={a} />,
+  bank: a => <BankIcon active={a} />,
+  check: a => <CheckDocIcon active={a} />,
 };
-
-// ── Pantalla ──────────────────────────────────────────────────────────────────
 
 export default function SeleccionTipoPagoScreen({ navigation }: Props) {
   const [selected, setSelected] = useState<PaymentType>('card');
@@ -81,13 +120,13 @@ export default function SeleccionTipoPagoScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-
       <ScreenHeader onBack={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={styles.scroll}>
-
         <Text style={styles.title}>Seleccionar tipo</Text>
-        <Text style={styles.subtitle}>Elige el método que deseas vincular hoy.</Text>
+        <Text style={styles.subtitle}>
+          Elige el método que deseas vincular hoy.
+        </Text>
 
         {OPTIONS.map(opt => {
           const active = selected === opt.id;
@@ -102,7 +141,9 @@ export default function SeleccionTipoPagoScreen({ navigation }: Props) {
                 {ICONS[opt.id](active)}
               </View>
               <View style={styles.optionText}>
-                <Text style={[styles.optionName, active && styles.optionNameActive]}>
+                <Text
+                  style={[styles.optionName, active && styles.optionNameActive]}
+                >
                   {opt.name}
                 </Text>
                 <Text style={styles.optionDesc}>{opt.desc}</Text>
@@ -111,30 +152,30 @@ export default function SeleccionTipoPagoScreen({ navigation }: Props) {
             </TouchableOpacity>
           );
         })}
-
       </ScrollView>
 
-      {/* Botón fijo antes de la navbar */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.btn}
           activeOpacity={0.85}
           onPress={() => {
-            if (selected === 'card')  navigation.navigate('NuevaTarjeta');
-            if (selected === 'bank')  navigation.navigate('CuentaBancaria');
+            if (selected === 'card') navigation.navigate('NuevaTarjeta');
+            if (selected === 'bank') navigation.navigate('CuentaBancaria');
             if (selected === 'check') navigation.navigate('ChequeCertificado');
-          }}>
+          }}
+        >
           <Text style={styles.btnText}>Siguiente</Text>
         </TouchableOpacity>
       </View>
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
-
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }
-
-// ── Estilos ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
@@ -146,10 +187,18 @@ const styles = StyleSheet.create({
     paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
   },
 
-  title:    { fontSize: fontSize['4xl'], fontWeight: 'bold', color: colors.text, marginBottom: 6 },
-  subtitle: { fontSize: fontSize.base, color: colors.textMuted, marginBottom: 28 },
+  title: {
+    fontSize: fontSize['4xl'],
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: fontSize.base,
+    color: colors.textMuted,
+    marginBottom: 28,
+  },
 
-  // Opciones
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -193,7 +242,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 
-  // Footer con botón
   footer: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.base,
@@ -208,5 +256,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  btnText: { color: colors.textInverse, fontSize: fontSize.lg, fontWeight: '600' },
+  btnText: {
+    color: colors.textInverse,
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+  },
 });

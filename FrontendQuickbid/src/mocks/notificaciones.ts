@@ -5,7 +5,7 @@ export type Notificacion = {
   tipo: NotifTipo;
   titulo: string;
   cuerpo: string;
-  hora: string;   // "hace 12 min" | "ayer 18:24" etc.
+  hora: string;
   leida: boolean;
   grupo: 'HOY' | 'AYER' | 'ESTA SEMANA';
 };

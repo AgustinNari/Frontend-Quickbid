@@ -1,6 +1,5 @@
 import { SubastaCategoria } from './subasta';
 
-// Compatibilidad con flujos mock de inscripcion/puja fuera de este bloque.
 export type Categoria = SubastaCategoria;
 export const CATEGORIA_ORDER: Record<Categoria, number> = {
   comun: 0,
@@ -9,7 +8,10 @@ export const CATEGORIA_ORDER: Record<Categoria, number> = {
   oro: 3,
   platino: 4,
 };
-export function puedeInscribirsePorCategoria(userCat: Categoria, subastaCat: SubastaCategoria) {
+export function puedeInscribirsePorCategoria(
+  userCat: Categoria,
+  subastaCat: SubastaCategoria,
+) {
   return CATEGORIA_ORDER[userCat] >= CATEGORIA_ORDER[subastaCat];
 }
 export type UsuarioActual = {

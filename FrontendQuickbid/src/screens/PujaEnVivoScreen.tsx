@@ -1,6 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
+  BackHandler,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -31,7 +38,10 @@ import {
   radius,
   spacing,
 } from '../theme';
-import BottomNavBar, { BOTTOM_NAV_HEIGHT, NavTab } from '../components/BottomNavBar';
+import BottomNavBar, {
+  BOTTOM_NAV_HEIGHT,
+  NavTab,
+} from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
 import { useAuth } from '../context/AuthContext';
@@ -40,7 +50,11 @@ import { createLiveRealtimeClient } from '../api/realtime';
 import { createBidIdempotencyKey, pujasApi } from '../api/pujas';
 import { subastasApi } from '../api/subastas';
 import { mapItemDetalle, mapSubastaDetalle } from '../mappers/subastas';
-import { applyPujaEvent, calcularLimites, mapPujaActual } from '../mappers/pujas';
+import {
+  applyPujaEvent,
+  calcularLimites,
+  mapPujaActual,
+} from '../mappers/pujas';
 import { formatPrecio } from '../utils/format';
 import { MedioPagoInscripcionApi } from '../types/subastaApi';
 import { PujaActual, PujaEventoApi } from '../types/puja';
@@ -74,8 +88,12 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>('idle');
+  const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
+  const pujaRef = useRef<PujaActual | null>(null);
 
   const liveId = Number(subastaId);
+  const realtimeSubastaId = puja?.subastaId ?? null;
+  const realtimeItemId = puja?.item.id ?? null;
 
   const loadLive = useCallback(async () => {
     if (!isAuthenticated) {
@@ -101,12 +119,14 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       const itemDto = await subastasApi.item(snapshot.itemActivoId);
       const subasta = mapSubastaDetalle(subastaDto);
       const item = mapItemDetalle(itemDto, subasta);
-      setPuja(mapPujaActual(
-        snapshot,
-        subasta,
-        item,
-        verification.mediosPagoVerificadosVigentesCompatiblesParaPuja ?? [],
-      ));
+      setPuja(
+        mapPujaActual(
+          snapshot,
+          subasta,
+          item,
+          verification.mediosPagoVerificadosVigentesCompatiblesParaPuja ?? [],
+        ),
+      );
     } catch (loadError) {
       setPuja(null);
       setError(readableError(loadError, 'No pudimos cargar la sala de puja.'));
@@ -119,97 +139,178 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
     loadLive();
   }, [loadLive]);
 
-  const handleRealtimeEvent = useCallback((event: PujaEventoApi) => {
-    setPuja(current => {
-      if (!current) return current;
-      if (event.subastaId && String(event.subastaId) !== current.subastaId) return current;
-      if (event.itemCatalogoId && String(event.itemCatalogoId) !== current.item.id) return current;
-      return applyPujaEvent(current, event);
-    });
+  useEffect(() => {
+    pujaRef.current = puja;
+  }, [puja]);
 
-    if (event.tipo === 'PUJA_ACEPTADA') {
-      setFeedback({
-        tone: 'success',
-        title: 'Puja aceptada',
-        message: event.monto != null
-          ? `Tu oferta de ${formatPrecio(event.monto, event.moneda === 'USD' ? 'USD' : 'ARS')} quedo registrada.`
-          : 'Tu oferta quedo registrada.',
-      });
-    } else if (event.tipo === 'PUJA_SUPERADA') {
-      setFeedback({
-        tone: 'info',
-        title: 'Tu puja fue superada',
-        message: 'Otro postor acaba de superar tu oferta. Podes ofertar otra vez si el lote sigue abierto.',
-      });
-    } else if (event.tipo === 'PUJA_RECHAZADA') {
-      setFeedback({
-        tone: 'danger',
-        title: 'Puja rechazada',
-        message: event.message ?? 'El backend rechazo la puja. Actualiza la sala e intenta nuevamente.',
-      });
-    } else if (event.tipo === 'LOTE_CERRADO') {
-      setFeedback({
-        tone: 'info',
-        title: 'Lote cerrado',
-        message: event.proximoLoteProgramadoAt
-          ? 'Este lote ya cerro. El proximo lote comienza en instantes.'
-          : 'Este lote ya cerro. La subasta esta por finalizar.',
-      });
-    } else if (event.tipo === 'LOTE_GANADO') {
-      setFeedback({
-        tone: 'success',
-        title: 'Lote ganado',
-        message: 'Ganaste el lote. El detalle de compra se habilitara en el bloque de compras.',
-      });
-    } else if (event.tipo === 'LOTE_ACTIVADO') {
-      // Cambio el lote activo: se recarga el snapshot completo (item, limites y
-      // medios) y la reconexion del cliente realtime resuscribe al lote nuevo.
-      setFeedback({
-        tone: 'info',
-        title: 'Nuevo lote en vivo',
-        message: 'Comienza la puja por el siguiente lote del catalogo.',
-      });
-      loadLive();
-    } else if (event.tipo === 'SUBASTA_INICIADA') {
-      setFeedback({
-        tone: 'info',
-        title: 'Subasta en vivo',
-        message: 'La subasta acaba de comenzar.',
-      });
-    } else if (event.tipo === 'SUBASTA_FINALIZADA') {
-      setFeedback({
-        tone: 'info',
-        title: 'Subasta finalizada',
-        message: 'La subasta termino. Gracias por participar.',
-      });
-    } else if (
-      event.tipo !== 'MEJOR_OFERTA_ACTUALIZADA' &&
-      event.tipo !== 'ESTADO_ACTUALIZADO'
-    ) {
-      console.warn('Evento live no reconocido', event);
-    }
-  }, [loadLive]);
+  const winningRetentionActive = Boolean(
+    puja?.esGanadorActual && puja.retencionHasta && (secondsRemaining ?? 0) > 0,
+  );
+
+  const explainNavigationLock = useCallback(() => {
+    setFeedback({
+      tone: 'info',
+      title: 'Debes permanecer en la sala',
+      message:
+        'Tenes la mejor oferta. Debes permanecer en la sala hasta que te superen o finalice la retencion.',
+    });
+  }, []);
 
   useEffect(() => {
-    if (!accessToken || !puja || isGuest || estadoCuenta === 'bloqueada_permanente') {
+    if (!winningRetentionActive) return;
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        explainNavigationLock();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [explainNavigationLock, winningRetentionActive]);
+
+  useEffect(() => {
+    if (!puja?.retencionHasta) {
+      setSecondsRemaining(null);
+      return;
+    }
+    let refreshed = false;
+    const tick = () => {
+      const until = Date.parse(puja.retencionHasta as string);
+      const serverNow = Date.now() + puja.serverTimeOffsetMs;
+      const remaining = Number.isNaN(until)
+        ? 0
+        : Math.max(0, Math.ceil((until - serverNow) / 1000));
+      setSecondsRemaining(remaining);
+      if (remaining === 0 && !refreshed) {
+        refreshed = true;
+        loadLive();
+      }
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [loadLive, puja?.retencionHasta, puja?.serverTimeOffsetMs]);
+
+  const handleRealtimeEvent = useCallback(
+    (event: PujaEventoApi) => {
+      if (event.tipo === 'LOTE_ACTIVADO') {
+        loadLive();
+        return;
+      }
+      setPuja(current => {
+        if (!current) return current;
+        if (event.subastaId && String(event.subastaId) !== current.subastaId)
+          return current;
+        if (
+          event.itemCatalogoId &&
+          String(event.itemCatalogoId) !== current.item.id
+        )
+          return current;
+        return applyPujaEvent(current, event);
+      });
+
+      if (event.tipo === 'PUJA_ACEPTADA') {
+        setFeedback({
+          tone: 'success',
+          title: 'Puja aceptada',
+          message:
+            event.monto != null
+              ? `Tu oferta de ${formatPrecio(
+                  event.monto,
+                  event.moneda === 'USD' ? 'USD' : 'ARS',
+                )} quedo registrada.`
+              : 'Tu oferta quedo registrada.',
+        });
+      } else if (event.tipo === 'PUJA_SUPERADA') {
+        setFeedback({
+          tone: 'info',
+          title: 'Tu puja fue superada',
+          message:
+            'Otro postor acaba de superar tu oferta. Podes ofertar otra vez si el lote sigue abierto.',
+        });
+      } else if (event.tipo === 'PUJA_RECHAZADA') {
+        setFeedback({
+          tone: 'danger',
+          title: 'Puja rechazada',
+          message:
+            event.message ??
+            'No pudimos registrar la oferta. Actualiza la sala e intenta nuevamente.',
+        });
+      } else if (event.tipo === 'LOTE_CERRADO') {
+        setFeedback({
+          tone: 'info',
+          title: 'Lote cerrado',
+          message: event.proximoLoteProgramadoAt
+            ? 'Este lote ya cerro. El proximo lote comienza en instantes.'
+            : 'Este lote ya cerro. La subasta esta por finalizar.',
+        });
+      } else if (event.tipo === 'LOTE_GANADO') {
+        const current = pujaRef.current;
+        navigation.replace('PujaExito', {
+          subastaId: String(event.subastaId ?? current?.subastaId),
+          itemId: String(event.itemCatalogoId ?? current?.item.id),
+          montoFinal: event.montoAdjudicacion ?? current?.mejorOferta ?? 0,
+          numeroPostor: current?.numeroPostorGanador ?? undefined,
+        });
+      } else if (event.tipo === 'SUBASTA_INICIADA') {
+        setFeedback({
+          tone: 'info',
+          title: 'Subasta en vivo',
+          message: 'La subasta acaba de comenzar.',
+        });
+      } else if (event.tipo === 'SUBASTA_FINALIZADA') {
+        setFeedback({
+          tone: 'info',
+          title: 'Subasta finalizada',
+          message: 'La subasta termino. Gracias por participar.',
+        });
+      } else if (
+        event.tipo !== 'MEJOR_OFERTA_ACTUALIZADA' &&
+        event.tipo !== 'ESTADO_ACTUALIZADO'
+      ) {
+        console.warn('Evento live no reconocido', event);
+      }
+    },
+    [loadLive, navigation],
+  );
+
+  useEffect(() => {
+    if (
+      !accessToken ||
+      !realtimeSubastaId ||
+      !realtimeItemId ||
+      isGuest ||
+      estadoCuenta === 'bloqueada_permanente'
+    ) {
       return;
     }
 
     setRealtimeStatus('connecting');
     const client = createLiveRealtimeClient({
-      subastaId: Number(puja.subastaId),
-      itemId: Number(puja.item.id),
+      subastaId: Number(realtimeSubastaId),
+      itemId: Number(realtimeItemId),
       accessToken,
       includePrivateQueues: isAuthenticated,
       onEvent: handleRealtimeEvent,
       onConnected: () => setRealtimeStatus('connected'),
-      onDisconnected: () => setRealtimeStatus(current => current === 'connected' ? 'offline' : current),
+      onDisconnected: () =>
+        setRealtimeStatus(current =>
+          current === 'connected' ? 'offline' : current,
+        ),
       onError: () => setRealtimeStatus('offline'),
     });
 
     client.connect();
     return () => client.disconnect();
-  }, [accessToken, estadoCuenta, handleRealtimeEvent, isAuthenticated, isGuest, puja]);
+  }, [
+    accessToken,
+    estadoCuenta,
+    handleRealtimeEvent,
+    isAuthenticated,
+    isGuest,
+    realtimeItemId,
+    realtimeSubastaId,
+  ]);
 
   const refreshSnapshot = async () => {
     await loadLive();
@@ -229,7 +330,8 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       setFeedback({
         tone: 'danger',
         title: 'Puja bloqueada',
-        message: 'Tu cuenta tiene una restriccion por multa. Podes mirar la sala, pero no pujar.',
+        message:
+          'Tu cuenta tiene una restriccion por multa. Podes mirar la sala, pero no pujar.',
       });
       return;
     }
@@ -265,24 +367,35 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
         clientStateVersion: puja.versionEstado,
         idempotencyKey,
       });
-      setPuja(current => current
-        ? applyPujaEvent(current, {
-            tipo: 'PUJA_ACEPTADA',
-            subastaId: response.subastaId,
-            itemCatalogoId: response.itemCatalogoId,
-            pujaId: response.id,
-            monto: response.monto,
-            moneda: response.moneda,
-            secuencia: response.secuencia,
-            versionEstado: response.versionEstado,
-            numeroPostor: response.numeroPostor,
-            postorAlias: response.numeroPostor != null ? `Postor #${response.numeroPostor}` : 'Tu oferta',
-          })
-        : current);
+      setPuja(current =>
+        current
+          ? applyPujaEvent(current, {
+              tipo: 'PUJA_ACEPTADA',
+              subastaId: response.subastaId,
+              itemCatalogoId: response.itemCatalogoId,
+              pujaId: response.id,
+              monto: response.monto,
+              moneda: response.moneda,
+              secuencia: response.secuencia,
+              versionEstado: response.versionEstado,
+              numeroPostor: response.numeroPostor,
+              postorAlias:
+                response.numeroPostor != null
+                  ? `Postor #${response.numeroPostor}`
+                  : 'Tu oferta',
+              retencionHasta: response.retencionHasta,
+            })
+          : current,
+      );
       setFeedback({
         tone: 'success',
-        title: response.idempotentReplay ? 'Puja ya registrada' : 'Puja aceptada',
-        message: `${formatPrecio(response.monto, response.moneda === 'USD' ? 'USD' : 'ARS')} fue enviada por HTTP y quedo registrada.`,
+        title: response.idempotentReplay
+          ? 'Oferta ya registrada'
+          : 'Oferta aceptada',
+        message: `${formatPrecio(
+          response.monto,
+          response.moneda === 'USD' ? 'USD' : 'ARS',
+        )} quedo registrada.`,
       });
     } catch (bidError) {
       const message = readableError(bidError, 'No pudimos registrar la puja.');
@@ -299,7 +412,11 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
 
   if (isGuest || !isAuthenticated) {
     return (
-      <LiveShell navigation={navigation} activeTab={activeTab} setActiveTab={setActiveTab}>
+      <LiveShell
+        navigation={navigation}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      >
         <EmptyState
           icon={<Icon name="lock" size={48} color={colors.textSubtle} />}
           title="Acceso limitado"
@@ -313,7 +430,13 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScreenHeader onBack={() => navigation.goBack()} />
+      <ScreenHeader
+        onBack={
+          winningRetentionActive
+            ? explainNavigationLock
+            : () => navigation.goBack()
+        }
+      />
 
       {loading ? (
         <Loader fullScreen label="Entrando a la sala..." />
@@ -322,21 +445,26 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
           <EmptyState
             icon={<Icon name="clock" size={48} color={colors.textSubtle} />}
             title={error ? 'Live no disponible' : 'No hay lote activo'}
-            description={error ?? 'Esta subasta no tiene un lote activo en este momento.'}
+            description={
+              error ?? 'Esta subasta no tiene un lote activo en este momento.'
+            }
             actionLabel="Reintentar"
             onAction={refreshSnapshot}
           />
         </View>
       ) : (
         <>
-          <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.body}>
               <SalaHeader puja={puja} realtimeStatus={realtimeStatus} />
               {realtimeStatus === 'offline' ? (
                 <StatusBanner
                   tone="danger"
                   icon="alert"
-                  text="Realtime no esta disponible. El snapshot funciona; podes refrescar antes de ofertar."
+                  text="La actualizacion en vivo no esta disponible. Podes refrescar antes de ofertar."
                   actionLabel="Reintentar"
                   onAction={refreshSnapshot}
                 />
@@ -355,10 +483,56 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
                   text={puja.motivoNoPuedePujar ?? bloqueoPujaMessage(puja)}
                 />
               ) : null}
+              {winningRetentionActive ? (
+                <StatusBanner
+                  tone="info"
+                  icon="info"
+                  text="Tenes la mejor oferta. Debes permanecer en la sala hasta que te superen o finalice la retencion."
+                />
+              ) : null}
               <ItemEnVivoCard puja={puja} />
-              <MejorOfertaBlock puja={puja} />
-              <PujarButton puja={puja} submitting={submitting} onPress={handleOpenBid} />
+              <MejorOfertaBlock
+                puja={puja}
+                secondsRemaining={secondsRemaining}
+              />
+              <PujarButton
+                puja={puja}
+                submitting={submitting}
+                onPress={handleOpenBid}
+              />
               <HistorialReciente puja={puja} />
+              <View style={styles.liveNavigationActions}>
+                <Button
+                  variant="secondary"
+                  disabled={winningRetentionActive}
+                  onPress={
+                    winningRetentionActive
+                      ? explainNavigationLock
+                      : () =>
+                          navigation.navigate('ItemDetail', {
+                            itemId: puja.item.id,
+                            subastaId: puja.subastaId,
+                          })
+                  }
+                >
+                  Ver detalle del articulo
+                </Button>
+                <Button
+                  variant="secondary"
+                  disabled={winningRetentionActive}
+                  onPress={
+                    winningRetentionActive
+                      ? explainNavigationLock
+                      : () =>
+                          navigation.navigate('CatalogoSubasta', {
+                            subastaId: puja.subastaId,
+                            titulo: puja.subastaTitulo,
+                          })
+                  }
+                >
+                  Ver catalogo
+                </Button>
+              </View>
             </View>
           </ScrollView>
 
@@ -374,7 +548,13 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       )}
 
       <FeedbackModal feedback={feedback} onClose={() => setFeedback(null)} />
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        navigation={navigation}
+        locked={winningRetentionActive}
+        onLockedPress={explainNavigationLock}
+      />
     </SafeAreaView>
   );
 }
@@ -394,32 +574,48 @@ function LiveShell({
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={() => navigation.goBack()} />
       <View style={styles.errorWrap}>{children}</View>
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }
 
-function SalaHeader({ puja, realtimeStatus }: { puja: PujaActual; realtimeStatus: RealtimeStatus }) {
+function SalaHeader({
+  puja,
+  realtimeStatus,
+}: {
+  puja: PujaActual;
+  realtimeStatus: RealtimeStatus;
+}) {
   return (
     <View style={styles.salaHeader}>
       <View style={styles.salaHeaderTop}>
         <Badge tone="danger">EN VIVO</Badge>
         <View style={styles.realtimePill}>
-          <View style={[
-            styles.realtimeDot,
-            realtimeStatus === 'connected' ? styles.realtimeDotOk : styles.realtimeDotWarn,
-          ]} />
+          <View
+            style={[
+              styles.realtimeDot,
+              realtimeStatus === 'connected'
+                ? styles.realtimeDotOk
+                : styles.realtimeDotWarn,
+            ]}
+          />
           <Typography style={styles.realtimeText}>
             {realtimeStatus === 'connected'
-              ? 'Realtime activo'
+              ? 'En vivo'
               : realtimeStatus === 'connecting'
-                ? 'Conectando'
-                : 'Snapshot'}
+              ? 'Conectando'
+              : 'Actualizar'}
           </Typography>
         </View>
       </View>
       <Heading style={styles.salaTitulo}>{puja.subastaTitulo}</Heading>
-      <Body muted style={styles.salaSubtitulo}>Lote en subasta ahora</Body>
+      <Body muted style={styles.salaSubtitulo}>
+        Lote en subasta ahora
+      </Body>
     </View>
   );
 }
@@ -438,8 +634,17 @@ function StatusBanner({
   onAction?: () => void;
 }) {
   return (
-    <View style={[styles.statusBanner, tone === 'danger' ? styles.statusDanger : styles.statusInfo]}>
-      <Icon name={icon} size={18} color={tone === 'danger' ? colors.danger : colors.primary} />
+    <View
+      style={[
+        styles.statusBanner,
+        tone === 'danger' ? styles.statusDanger : styles.statusInfo,
+      ]}
+    >
+      <Icon
+        name={icon}
+        size={18}
+        color={tone === 'danger' ? colors.danger : colors.primary}
+      />
       <Body style={styles.statusText}>{text}</Body>
       {actionLabel && onAction ? (
         <TouchableOpacity onPress={onAction} hitSlop={hitSlop}>
@@ -463,7 +668,9 @@ function ItemEnVivoCard({ puja }: { puja: PujaActual }) {
       <View style={styles.itemInfo}>
         <Heading style={styles.itemTitulo}>{puja.item.titulo}</Heading>
         {puja.item.descripcion ? (
-          <Body muted numberOfLines={2}>{puja.item.descripcion}</Body>
+          <Body muted numberOfLines={2}>
+            {puja.item.descripcion}
+          </Body>
         ) : null}
         <View style={styles.precioBaseRow}>
           <Typography style={styles.precioBaseLabel}>Precio base</Typography>
@@ -476,17 +683,27 @@ function ItemEnVivoCard({ puja }: { puja: PujaActual }) {
   );
 }
 
-function MejorOfertaBlock({ puja }: { puja: PujaActual }) {
+function MejorOfertaBlock({
+  puja,
+  secondsRemaining,
+}: {
+  puja: PujaActual;
+  secondsRemaining: number | null;
+}) {
   const hayOferta = puja.mejorOferta != null;
   return (
     <View style={styles.mejorOfertaWrap}>
-      <Typography style={styles.mejorOfertaLabel}>MEJOR OFERTA ACTUAL</Typography>
+      <Typography style={styles.mejorOfertaLabel}>
+        MEJOR OFERTA ACTUAL
+      </Typography>
       {hayOferta ? (
         <>
           <View style={styles.postorRow}>
             <View style={styles.postorDot} />
             <Typography style={styles.postorText}>
-              {puja.esGanadorActual ? 'Tu oferta va ganando' : puja.postorGanadorAlias ?? 'Mejor postor'}
+              {puja.esGanadorActual
+                ? 'Tu oferta va ganando'
+                : puja.postorGanadorAlias ?? 'Mejor postor'}
             </Typography>
           </View>
           <Typography style={styles.mejorOfertaValue}>
@@ -495,11 +712,25 @@ function MejorOfertaBlock({ puja }: { puja: PujaActual }) {
         </>
       ) : (
         <>
-          <Typography style={styles.postorText}>Todavia nadie pujo. La primera oferta puede ser el precio base.</Typography>
-          <Typography style={styles.mejorOfertaValue}>{formatPrecio(puja.precioBase, puja.moneda)}</Typography>
+          <Typography style={styles.postorText}>
+            Todavia nadie pujo. La primera oferta puede ser el precio base.
+          </Typography>
+          <Typography style={styles.mejorOfertaValue}>
+            {formatPrecio(puja.precioBase, puja.moneda)}
+          </Typography>
         </>
       )}
-      <Typography style={styles.versionText}>Version estado {puja.versionEstado}</Typography>
+      <Typography style={styles.versionText}>
+        Ultima actualizacion reciente
+      </Typography>
+      {secondsRemaining != null ? (
+        <View style={styles.countdownRow}>
+          <Icon name="clock" size={18} color={colors.warning} />
+          <Typography style={styles.countdownText}>
+            Retencion: {formatCountdown(secondsRemaining)}
+          </Typography>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -524,13 +755,19 @@ function PujarButton({
     );
   }
   if (puja.esGanadorActual) {
-    return <Button variant="secondary" disabled>Tenes la oferta ganadora</Button>;
+    return (
+      <Button variant="secondary" disabled>
+        Tenes la oferta ganadora
+      </Button>
+    );
   }
   return (
     <Button
       onPress={onPress}
       loading={submitting}
-      leftIcon={<Icon name="plus-circle" color={colors.textInverse} size={18} />}
+      leftIcon={
+        <Icon name="plus-circle" color={colors.textInverse} size={18} />
+      }
     >
       PUJAR AHORA
     </Button>
@@ -543,24 +780,37 @@ function HistorialReciente({ puja }: { puja: PujaActual }) {
       <Typography style={styles.historialLabel}>EVENTOS RECIENTES</Typography>
       <Card variant="flat" padding="none" style={styles.historialCard}>
         {puja.historialReciente.length === 0 ? (
-          <Body muted style={styles.emptyHistory}>Todavia no hay ofertas para este lote.</Body>
-        ) : puja.historialReciente.map((item, index) => (
-          <View key={item.id}>
-            {index > 0 ? <View style={styles.historialDivider} /> : null}
-            <View style={styles.historialRow}>
-              <Icon name="user" size={18} color={colors.textMuted} />
-              <View style={styles.historialInfo}>
-                <Typography style={styles.historialPostor}>{item.postorAlias}</Typography>
-                <Typography style={styles.historialTiempo}>
-                  {item.versionEstado ? `Version ${item.versionEstado}` : 'Snapshot'}
+          <Body muted style={styles.emptyHistory}>
+            Todavia no hay ofertas para este lote.
+          </Body>
+        ) : (
+          puja.historialReciente.map((item, index) => (
+            <View key={item.id}>
+              {index > 0 ? <View style={styles.historialDivider} /> : null}
+              <View style={styles.historialRow}>
+                <Icon name="user" size={18} color={colors.textMuted} />
+                <View style={styles.historialInfo}>
+                  <Typography style={styles.historialPostor}>
+                    {item.postorAlias}
+                  </Typography>
+                  <Typography style={styles.historialTiempo}>
+                    {item.ganadora
+                      ? 'Mejor oferta actual'
+                      : 'Oferta actualizada'}
+                  </Typography>
+                </View>
+                <Typography
+                  style={[
+                    styles.historialMonto,
+                    item.ganadora ? styles.historialMontoGanadora : null,
+                  ]}
+                >
+                  {formatPrecio(item.monto, puja.moneda)}
                 </Typography>
               </View>
-              <Typography style={[styles.historialMonto, item.ganadora ? styles.historialMontoGanadora : null]}>
-                {formatPrecio(item.monto, puja.moneda)}
-              </Typography>
             </View>
-          </View>
-        ))}
+          ))
+        )}
       </Card>
     </View>
   );
@@ -590,12 +840,17 @@ function BidModal({
   useEffect(() => {
     if (visible) {
       setAmountText(String(limites.minimo));
-      setPaymentId(puja.mediosParaPujar.find(medio => medio.principal)?.id ?? puja.mediosParaPujar[0]?.id ?? null);
+      setPaymentId(
+        puja.mediosParaPujar.find(medio => medio.principal)?.id ??
+          puja.mediosParaPujar[0]?.id ??
+          null,
+      );
       setError(null);
     }
   }, [limites.minimo, puja.mediosParaPujar, visible]);
 
-  const selectedPayment = puja.mediosParaPujar.find(medio => medio.id === paymentId) ?? null;
+  const selectedPayment =
+    puja.mediosParaPujar.find(medio => medio.id === paymentId) ?? null;
 
   const confirm = () => {
     const amount = parseAmount(amountText);
@@ -608,11 +863,21 @@ function BidModal({
       return;
     }
     if (amount < limites.minimo) {
-      setError(`El minimo para esta oferta es ${formatPrecio(limites.minimo, puja.moneda)}.`);
+      setError(
+        `El minimo para esta oferta es ${formatPrecio(
+          limites.minimo,
+          puja.moneda,
+        )}.`,
+      );
       return;
     }
     if (limites.maximo != null && amount > limites.maximo) {
-      setError(`El maximo para esta oferta es ${formatPrecio(limites.maximo, puja.moneda)}.`);
+      setError(
+        `El maximo para esta oferta es ${formatPrecio(
+          limites.maximo,
+          puja.moneda,
+        )}.`,
+      );
       return;
     }
     if (!selectedPayment) {
@@ -623,9 +888,18 @@ function BidModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
       <View style={styles.sheetBackdrop}>
-        <TouchableOpacity style={styles.sheetBackdropTouch} activeOpacity={1} onPress={onClose} />
+        <TouchableOpacity
+          style={styles.sheetBackdropTouch}
+          activeOpacity={1}
+          onPress={onClose}
+        />
         <View style={styles.sheet}>
           <View style={styles.sheetHandle} />
           <View style={styles.sheetHeader}>
@@ -649,11 +923,18 @@ function BidModal({
           </View>
 
           <View style={styles.limitsRow}>
-            <LimitCol label="Monto minimo" value={formatPrecio(limites.minimo, puja.moneda)} />
+            <LimitCol
+              label="Monto minimo"
+              value={formatPrecio(limites.minimo, puja.moneda)}
+            />
             <View style={styles.limitDivider} />
             <LimitCol
               label="Monto maximo"
-              value={limites.maximo != null ? formatPrecio(limites.maximo, puja.moneda) : 'Sin tope'}
+              value={
+                limites.maximo != null
+                  ? formatPrecio(limites.maximo, puja.moneda)
+                  : 'Sin tope'
+              }
             />
           </View>
 
@@ -663,13 +944,17 @@ function BidModal({
             onSelect={setPaymentId}
           />
 
-          {error ? <Typography style={styles.formError}>{error}</Typography> : null}
+          {error ? (
+            <Typography style={styles.formError}>{error}</Typography>
+          ) : null}
 
           <Button
             onPress={confirm}
             loading={submitting}
             disabled={!selectedPayment}
-            rightIcon={<Icon name="arrow-right" color={colors.textInverse} size={18} />}
+            rightIcon={
+              <Icon name="arrow-right" color={colors.textInverse} size={18} />
+            }
           >
             CONFIRMAR PUJA
           </Button>
@@ -701,34 +986,56 @@ function PaymentSelector({
     <View style={styles.paymentWrap}>
       <Typography style={styles.paymentTitle}>Metodo de pago</Typography>
       {medios.length === 0 ? (
-        <Body muted>No hay medios verificados vigentes compatibles para pujar.</Body>
-      ) : medios.map(medio => {
-        const selected = medio.id === selectedId;
-        return (
-          <TouchableOpacity
-            key={medio.id}
-            onPress={() => onSelect(medio.id)}
-            activeOpacity={0.75}
-            style={[styles.paymentOption, selected ? styles.paymentOptionSelected : null]}
-          >
-            <Icon name={medio.tipo === 'cuenta_bancaria' ? 'bank' : 'card'} size={20} color={colors.textMuted} />
-            <View style={styles.paymentInfo}>
-              <Typography style={styles.paymentName}>{medio.aliasVisible}</Typography>
-              <Typography style={styles.paymentMeta}>
-                {medio.tipo} {medio.ultimos4 ? `...${medio.ultimos4}` : ''} - {medio.moneda}
-              </Typography>
-            </View>
-            <View style={[styles.radio, selected ? styles.radioSelected : null]}>
-              {selected ? <View style={styles.radioInner} /> : null}
-            </View>
-          </TouchableOpacity>
-        );
-      })}
+        <Body muted>
+          No hay medios verificados vigentes compatibles para pujar.
+        </Body>
+      ) : (
+        medios.map(medio => {
+          const selected = medio.id === selectedId;
+          return (
+            <TouchableOpacity
+              key={medio.id}
+              onPress={() => onSelect(medio.id)}
+              activeOpacity={0.75}
+              style={[
+                styles.paymentOption,
+                selected ? styles.paymentOptionSelected : null,
+              ]}
+            >
+              <Icon
+                name={medio.tipo === 'cuenta_bancaria' ? 'bank' : 'card'}
+                size={20}
+                color={colors.textMuted}
+              />
+              <View style={styles.paymentInfo}>
+                <Typography style={styles.paymentName}>
+                  {medio.aliasVisible}
+                </Typography>
+                <Typography style={styles.paymentMeta}>
+                  {medio.tipo} {medio.ultimos4 ? `...${medio.ultimos4}` : ''} -{' '}
+                  {medio.moneda}
+                </Typography>
+              </View>
+              <View
+                style={[styles.radio, selected ? styles.radioSelected : null]}
+              >
+                {selected ? <View style={styles.radioInner} /> : null}
+              </View>
+            </TouchableOpacity>
+          );
+        })
+      )}
     </View>
   );
 }
 
-function SubmittingOverlay({ visible, puja }: { visible: boolean; puja: PujaActual | null }) {
+function SubmittingOverlay({
+  visible,
+  puja,
+}: {
+  visible: boolean;
+  puja: PujaActual | null;
+}) {
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlayBackdrop}>
@@ -738,12 +1045,16 @@ function SubmittingOverlay({ visible, puja }: { visible: boolean; puja: PujaActu
           </View>
           <Heading style={styles.overlayTitle}>Enviando tu puja...</Heading>
           <Body muted style={styles.overlayText}>
-            La oferta se envia por HTTP y el resultado se valida con el backend.
+            Estamos procesando tu oferta.
           </Body>
           {puja ? (
             <View style={styles.overlaySummary}>
-              <Typography style={styles.overlaySummaryLabel}>ARTICULO</Typography>
-              <Typography style={styles.overlaySummaryValue} numberOfLines={1}>{puja.item.titulo}</Typography>
+              <Typography style={styles.overlaySummaryLabel}>
+                ARTICULO
+              </Typography>
+              <Typography style={styles.overlaySummaryValue} numberOfLines={1}>
+                {puja.item.titulo}
+              </Typography>
             </View>
           ) : null}
         </View>
@@ -752,23 +1063,46 @@ function SubmittingOverlay({ visible, puja }: { visible: boolean; puja: PujaActu
   );
 }
 
-function FeedbackModal({ feedback, onClose }: { feedback: Feedback | null; onClose: () => void }) {
+function FeedbackModal({
+  feedback,
+  onClose,
+}: {
+  feedback: Feedback | null;
+  onClose: () => void;
+}) {
   if (!feedback) return null;
-  const color = feedback.tone === 'success'
-    ? colors.success
-    : feedback.tone === 'danger'
+  const color =
+    feedback.tone === 'success'
+      ? colors.success
+      : feedback.tone === 'danger'
       ? colors.danger
       : colors.primary;
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlayBackdrop}>
         <View style={styles.feedbackCard}>
-          <View style={[styles.feedbackIcon, { backgroundColor: `${color}22` }]}>
-            <Icon name={feedback.tone === 'success' ? 'check-circle' : feedback.tone === 'danger' ? 'alert' : 'info'} size={34} color={color} />
+          <View
+            style={[styles.feedbackIcon, { backgroundColor: `${color}22` }]}
+          >
+            <Icon
+              name={
+                feedback.tone === 'success'
+                  ? 'check-circle'
+                  : feedback.tone === 'danger'
+                  ? 'alert'
+                  : 'info'
+              }
+              size={34}
+              color={color}
+            />
           </View>
           <Heading style={styles.feedbackTitle}>{feedback.title}</Heading>
-          <Body muted style={styles.feedbackText}>{feedback.message}</Body>
-          <Button onPress={onClose}>{feedback.tone === 'danger' ? 'REALIZAR NUEVA PUJA' : 'ENTENDIDO'}</Button>
+          <Body muted style={styles.feedbackText}>
+            {feedback.message}
+          </Body>
+          <Button onPress={onClose}>
+            {feedback.tone === 'danger' ? 'REALIZAR NUEVA PUJA' : 'ENTENDIDO'}
+          </Button>
         </View>
       </View>
     </Modal>
@@ -780,6 +1114,11 @@ function parseAmount(value: string): number | null {
   if (!normalized) return null;
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatCountdown(seconds: number) {
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
 function readableError(error: unknown, fallback: string) {
@@ -795,8 +1134,9 @@ function bloqueoPujaMessage(puja: PujaActual) {
       ? 'El lote ya esta cerrado. El proximo lote comienza en instantes.'
       : 'El lote ya esta cerrado.';
   }
-  if (puja.mediosParaPujar.length === 0) return 'Necesitas un medio de pago verificado vigente compatible para pujar.';
-  return 'El backend indica que no cumplis las condiciones para pujar en este momento.';
+  if (puja.mediosParaPujar.length === 0)
+    return 'Necesitas un medio de pago verificado vigente compatible para pujar.';
+  return 'No cumplis las condiciones para pujar en este momento.';
 }
 
 const hitSlop = { top: 10, bottom: 10, left: 10, right: 10 };
@@ -970,7 +1310,21 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     color: colors.textSubtle,
   },
+  countdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  countdownText: {
+    color: colors.warning,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
+  },
   historialWrap: {
+    gap: spacing.sm,
+  },
+  liveNavigationActions: {
     gap: spacing.sm,
   },
   historialLabel: {

@@ -11,7 +11,7 @@ export default function SplashScreen({ navigation }: Props) {
   const { isAuthenticated, isGuest, isRestoring, estadoCuenta } = useAuth();
 
   useEffect(() => {
-    if (isRestoring) return; // Esperar a que AsyncStorage termine de restaurar
+    if (isRestoring) return;
     const timer = setTimeout(() => {
       if (isAuthenticated && estadoCuenta === 'bloqueada_permanente') {
         navigation.replace('LimitedAccess');

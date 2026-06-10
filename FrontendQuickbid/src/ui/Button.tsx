@@ -10,19 +10,14 @@ import {
   TextStyle,
 } from 'react-native';
 import { Typography } from './Typography';
-import { colors, radius, spacing, controlHeight, fontSize, fontWeight } from '../theme';
-
-/**
- * Botón estándar de QuickBid.
- *
- * Variants: `primary` (default), `secondary`, `ghost`, `danger`.
- * Sizes: `sm`, `md`, `base` (default), `lg`.
- *
- * Uso:
- *   <Button onPress={handleSubmit}>Iniciar Sesión</Button>
- *   <Button variant="secondary" leftIcon={<Plus />}>Agregar</Button>
- *   <Button loading disabled>Procesando...</Button>
- */
+import {
+  colors,
+  radius,
+  spacing,
+  controlHeight,
+  fontSize,
+  fontWeight,
+} from '../theme';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'base' | 'lg';
@@ -30,17 +25,11 @@ type Size = 'sm' | 'md' | 'base' | 'lg';
 type ButtonProps = Omit<TouchableOpacityProps, 'style'> & {
   variant?: Variant;
   size?: Size;
-  /** Estado de carga: muestra spinner y deshabilita */
   loading?: boolean;
-  /** Ancho completo (default true) */
   fullWidth?: boolean;
-  /** Icono a la izquierda del label */
   leftIcon?: React.ReactNode;
-  /** Icono a la derecha del label */
   rightIcon?: React.ReactNode;
-  /** Override de estilos del contenedor */
   style?: StyleProp<ViewStyle>;
-  /** Override de estilos del texto */
   textStyle?: StyleProp<TextStyle>;
   children?: React.ReactNode;
 };
@@ -105,8 +94,6 @@ export function Button({
     </TouchableOpacity>
   );
 }
-
-// ── Estilos ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   base: {

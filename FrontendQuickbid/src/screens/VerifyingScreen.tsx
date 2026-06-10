@@ -18,12 +18,48 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Verifying'>;
 function IdVerifyIcon() {
   return (
     <Svg width="80" height="60" viewBox="0 0 80 60" fill="none">
-      <Rect x="2" y="8" width="76" height="44" rx="5" stroke={colors.border} strokeWidth="2" fill={colors.surfaceMuted} />
+      <Rect
+        x="2"
+        y="8"
+        width="76"
+        height="44"
+        rx="5"
+        stroke={colors.border}
+        strokeWidth="2"
+        fill={colors.surfaceMuted}
+      />
       <Circle cx="22" cy="30" r="10" stroke={colors.border} strokeWidth="1.8" />
-      <Path d="M18 30l3 3 5-5" stroke={colors.border} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <Rect x="38" y="22" width="28" height="3" rx="1.5" fill={colors.borderMuted} />
-      <Rect x="38" y="29" width="22" height="3" rx="1.5" fill={colors.borderMuted} />
-      <Rect x="38" y="36" width="16" height="3" rx="1.5" fill={colors.borderMuted} />
+      <Path
+        d="M18 30l3 3 5-5"
+        stroke={colors.border}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Rect
+        x="38"
+        y="22"
+        width="28"
+        height="3"
+        rx="1.5"
+        fill={colors.borderMuted}
+      />
+      <Rect
+        x="38"
+        y="29"
+        width="22"
+        height="3"
+        rx="1.5"
+        fill={colors.borderMuted}
+      />
+      <Rect
+        x="38"
+        y="36"
+        width="16"
+        height="3"
+        rx="1.5"
+        fill={colors.borderMuted}
+      />
     </Svg>
   );
 }
@@ -34,25 +70,30 @@ export default function VerifyingScreen({ navigation }: Props) {
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(progress, { toValue: 1, duration: 1200, useNativeDriver: false }),
-        Animated.timing(progress, { toValue: 0, duration: 0,    useNativeDriver: false }),
-      ])
+        Animated.timing(progress, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: false,
+        }),
+        Animated.timing(progress, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: false,
+        }),
+      ]),
     ).start();
   }, [progress]);
 
   const barWidth = progress.interpolate({
-    inputRange:  [0, 1],
+    inputRange: [0, 1],
     outputRange: ['0%', '100%'],
   });
 
   return (
     <SafeAreaView style={styles.safe}>
-
       <ScreenHeader onBack={() => navigation.navigate('Login')} />
 
       <View style={styles.container}>
-
-        {/* Ícono + barra animada */}
         <View style={styles.iconWrap}>
           <IdVerifyIcon />
           <View style={styles.progressTrack}>
@@ -61,7 +102,6 @@ export default function VerifyingScreen({ navigation }: Props) {
           <Text style={styles.verifyingText}>Verificando...</Text>
         </View>
 
-        {/* Textos */}
         <Text style={styles.title}>Estamos validando{'\n'}tus datos</Text>
 
         <Text style={styles.body}>
@@ -74,21 +114,21 @@ export default function VerifyingScreen({ navigation }: Props) {
         </Text>
 
         <Text style={styles.body}>
-          En ese mail encontrarás un enlace{'\n'}para generar tu clave de acceso.
+          En ese mail encontrarás un enlace{'\n'}para generar tu clave de
+          acceso.
         </Text>
 
         <Text style={styles.hint}>
           No olvides revisar tu carpeta de correo no deseado.
         </Text>
 
-        {/* Botón */}
         <TouchableOpacity
           style={styles.btn}
           activeOpacity={0.85}
-          onPress={() => navigation.navigate('Login')}>
+          onPress={() => navigation.navigate('Login')}
+        >
           <Text style={styles.btnText}>Volver al Login</Text>
         </TouchableOpacity>
-
       </View>
     </SafeAreaView>
   );
@@ -97,7 +137,6 @@ export default function VerifyingScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
 
-  // Contenido
   container: {
     flex: 1,
     paddingHorizontal: 28,
@@ -106,7 +145,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Icono
   iconWrap: {
     alignItems: 'center',
     backgroundColor: colors.surfaceMuted,
@@ -135,7 +173,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Textos
   title: {
     fontSize: 26,
     fontWeight: 'bold',
@@ -166,7 +203,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
 
-  // Botón
   btn: {
     flexDirection: 'row',
     backgroundColor: colors.primary,

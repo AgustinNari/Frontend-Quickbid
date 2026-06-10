@@ -1,7 +1,23 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { authApi, EstadoCuenta, LoginResponse, UsuarioSesion } from '../api/auth';
-import { configureSessionHandlers, RefreshedSession, setSessionTokens } from '../api/client';
+import {
+  authApi,
+  EstadoCuenta,
+  LoginResponse,
+  UsuarioSesion,
+} from '../api/auth';
+import {
+  configureSessionHandlers,
+  RefreshedSession,
+  setSessionTokens,
+} from '../api/client';
 
 const STORAGE_KEY = '@quickbid_auth';
 
@@ -62,7 +78,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(nextSession);
     setMode('authenticated');
     setSessionTokens(nextSession.accessToken, nextSession.refreshToken);
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ mode: 'authenticated', session: nextSession }));
+    await AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ mode: 'authenticated', session: nextSession }),
+    );
   }, []);
 
   const clearSession = useCallback(async () => {
@@ -72,9 +91,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.removeItem(STORAGE_KEY);
   }, []);
 
-  const applyRefresh = useCallback(async (refreshed: RefreshedSession) => {
-    await persistAuthenticated(asAuthSession(refreshed as LoginResponse));
-  }, [persistAuthenticated]);
+  const applyRefresh = useCallback(
+    async (refreshed: RefreshedSession) => {
+      await persistAuthenticated(asAuthSession(refreshed as LoginResponse));
+    },
+    [persistAuthenticated],
+  );
 
   useEffect(() => {
     configureSessionHandlers({
@@ -95,28 +117,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (saved.mode === 'authenticated' && saved.session) {
           setSession(saved.session);
           setMode('authenticated');
-          setSessionTokens(saved.session.accessToken, saved.session.refreshToken);
+          setSessionTokens(
+            saved.session.accessToken,
+            saved.session.refreshToken,
+          );
         }
       })
       .catch(() => clearSession())
       .finally(() => setIsRestoring(false));
   }, [clearSession]);
 
-  const login = useCallback(async (response: LoginResponse) => {
-    await persistAuthenticated(asAuthSession(response));
-  }, [persistAuthenticated]);
+  const login = useCallback(
+    async (response: LoginResponse) => {
+      await persistAuthenticated(asAuthSession(response));
+    },
+    [persistAuthenticated],
+  );
 
   const continueAsGuest = useCallback(async () => {
     setSession(null);
     setMode('guest');
     setSessionTokens(null, null);
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ mode: 'guest', session: null }));
+    await AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ mode: 'guest', session: null }),
+    );
   }, []);
 
   const refreshSession = useCallback(async () => {
     if (!session?.refreshToken) return false;
     try {
-      const response = await authApi.refresh({ refreshToken: session.refreshToken });
+      const response = await authApi.refresh({
+        refreshToken: session.refreshToken,
+      });
       if (!response.data) {
         await clearSession();
         return false;
@@ -134,7 +167,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       if (refreshToken) await authApi.logout({ refreshToken });
     } catch {
-      // Local logout must always succeed.
     } finally {
       await clearSession();
     }
@@ -152,15 +184,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated: mode === 'authenticated' && !!session,
       isGuest: mode === 'guest',
       isRestoring,
-      canNavigate: mode === 'authenticated' && estadoCuenta !== 'bloqueada_permanente',
-      canPerformEconomicActions: mode === 'authenticated' && estadoCuenta === 'activa',
+      canNavigate:
+        mode === 'authenticated' && estadoCuenta !== 'bloqueada_permanente',
+      canPerformEconomicActions:
+        mode === 'authenticated' && estadoCuenta === 'activa',
       login,
       logout,
       continueAsGuest,
       refreshSession,
       clearSession,
     };
-  }, [clearSession, continueAsGuest, isRestoring, login, logout, mode, refreshSession, session]);
+  }, [
+    clearSession,
+    continueAsGuest,
+    isRestoring,
+    login,
+    logout,
+    mode,
+    refreshSession,
+    session,
+  ]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

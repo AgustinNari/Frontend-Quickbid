@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -29,7 +28,10 @@ import {
   fontWeight,
   letterSpacing,
 } from '../theme';
-import BottomNavBar, { NavTab, BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
+import BottomNavBar, {
+  NavTab,
+  BOTTOM_NAV_HEIGHT,
+} from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SubastaInfoRow } from '../components/SubastaInfoRow';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
@@ -46,26 +48,6 @@ import { useAuth } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ItemDetail'>;
 
-/**
- * Pantalla de detalle de un ítem (lote) del catálogo (tarea #12 del Trello).
- *
- * Sin frame de Figma asignado todavía — alineamos al lenguaje visual ya
- * establecido por `SubastaDetailScreen`:
- *  - Header compartido (`ScreenHeader`) con back.
- *  - Hero tematizado por segmento + badge de estado top-left + badge de
- *    moneda bottom-right.
- *  - Body con overline "LOTE #XXX", título grande, autor, card de precio
- *    base y lista de info rows (segmento, moneda, dimensiones, procedencia,
- *    condición).
- *  - Descripción larga.
- *  - Footer con CTA que cambia según el estado del lote:
- *      • `en_vivo`     → "Pujar ahora" (placeholder de tarea #14).
- *      • `pendiente`   → "Avisarme cuando empiece" (placeholder).
- *      • `vendido`     → Badge "Adjudicado" (sin CTA).
- *      • `no_vendido`  → Badge "No vendido" (sin CTA).
- *
- * Consume `GET /api/items/{id}` y oculta datos economicos en modo invitado.
- */
 type ItemTab = 'detalles' | 'historia' | 'datos';
 
 export default function ItemDetailScreen({ navigation, route }: Props) {
@@ -93,7 +75,11 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       setItem(mapItemDetalle(itemDto, mapSubastaDetalle(subastaDto)));
     } catch (loadError) {
       setItem(null);
-      setError(loadError instanceof Error ? loadError.message : 'No pudimos cargar el lote.');
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : 'No pudimos cargar el lote.',
+      );
     } finally {
       setLoading(false);
     }
@@ -161,7 +147,6 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
                 </Card>
               ) : null}
 
-              {/* Tab bar — Detalles / Historia / Datos de interes (wireframe textual) */}
               <View style={styles.tabBar}>
                 <ItemTabButton
                   label="Detalles"
@@ -190,16 +175,24 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
             </View>
           </ScrollView>
 
-          <ItemFooter estado={item.estado} onPujar={handlePujar} />
+          <ItemFooter
+            estado={item.estado}
+            onPujar={handlePujar}
+            onOpenSubasta={() =>
+              navigation.navigate('SubastaDetail', { id: subastaId })
+            }
+          />
         </>
       )}
 
-      <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} navigation={navigation} />
+      <BottomNavBar
+        activeTab={activeTab}
+        onTabPress={setActiveTab}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }
-
-// ── Sub-componentes ────────────────────────────────────────────────────────
 
 function Hero({ item }: { item: ItemDetalle }) {
   const theme = SEGMENTO_THEME[item.segmento];
@@ -227,18 +220,21 @@ function Hero({ item }: { item: ItemDetalle }) {
 function ItemFooter({
   estado,
   onPujar,
+  onOpenSubasta,
 }: {
   estado: ItemEstado;
   onPujar: () => void;
+  onOpenSubasta: () => void;
 }) {
   if (estado === 'sin_estado') {
     return (
       <View style={styles.footer}>
-        <View style={styles.footerBadgeWrap}>
-          <Badge tone="neutral" variant="soft">
-            Acciones disponibles proximamente
-          </Badge>
-        </View>
+        <Body muted style={styles.footerStatusText}>
+          El estado en vivo se consulta desde la sala de subasta.
+        </Body>
+        <Button variant="secondary" onPress={onOpenSubasta}>
+          Ver subasta
+        </Button>
       </View>
     );
   }
@@ -271,7 +267,9 @@ function ItemFooter({
       <View style={styles.footer}>
         <Button
           onPress={onPujar}
-          leftIcon={<Icon name="plus-circle" color={colors.textInverse} size={18} />}
+          leftIcon={
+            <Icon name="plus-circle" color={colors.textInverse} size={18} />
+          }
         >
           Pujar ahora
         </Button>
@@ -281,18 +279,11 @@ function ItemFooter({
 
   return (
     <View style={styles.footer}>
-      <Button
-        variant="secondary"
-        onPress={() =>
-          Alert.alert(
-            'Notificación',
-            'Las notificaciones llegan con la tarea de notificaciones.',
-          )
-        }
-        leftIcon={<Icon name="bell" color={colors.text} size={18} />}
-      >
-        Avisarme cuando empiece
-      </Button>
+      <View style={styles.footerBadgeWrap}>
+        <Badge tone="info" variant="soft">
+          Lote programado
+        </Badge>
+      </View>
     </View>
   );
 }
@@ -300,8 +291,6 @@ function ItemFooter({
 function Divider() {
   return <View style={styles.divider} />;
 }
-
-// ── Tab system del item (wireframe textual: Detalles / Historia / Datos) ─────
 
 function ItemTabButton({
   label,
@@ -328,11 +317,6 @@ function ItemTabButton({
   );
 }
 
-/**
- * Tab "Detalles" — info estructural del item: segmento, moneda y, si esta
- * disponible, cantidad de pujas. Es el tab default por ser el mas informativo
- * para alguien que recien abre el item.
- */
 function TabDetalles({ item }: { item: ItemDetalle }) {
   return (
     <View style={styles.infoList}>
@@ -364,10 +348,6 @@ function TabDetalles({ item }: { item: ItemDetalle }) {
   );
 }
 
-/**
- * Tab "Historia" — narrativa del item: descripcion larga, autor y procedencia.
- * Si el item no tiene descripcion, muestra mensaje vacio.
- */
 function TabHistoria({ item }: { item: ItemDetalle }) {
   const hasContent = item.descripcion || item.autor || item.procedencia;
   if (!hasContent) {
@@ -404,13 +384,8 @@ function TabHistoria({ item }: { item: ItemDetalle }) {
   );
 }
 
-/**
- * Tab "Datos de interes" — informacion fisica / fechas / condicion del item.
- * Si nada de eso esta disponible, muestra mensaje vacio.
- */
 function TabDatos({ item }: { item: ItemDetalle }) {
-  const hasContent =
-    item.dimensiones || item.condicion || item.fechaAproximada;
+  const hasContent = item.dimensiones || item.condicion || item.fechaAproximada;
   if (!hasContent) {
     return <TabEmpty mensaje="Sin datos adicionales para este lote." />;
   }
@@ -456,8 +431,6 @@ function TabEmpty({ mensaje }: { mensaje: string }) {
   );
 }
 
-// ── Mapeos de presentación ─────────────────────────────────────────────────
-
 type HeroBadgeTone = {
   tone: 'primary' | 'success' | 'neutral' | 'info';
   variant: 'solid' | 'soft';
@@ -470,8 +443,6 @@ const HERO_ESTADO_TONE: Record<ItemEstado, HeroBadgeTone> = {
   no_vendido: { tone: 'neutral', variant: 'soft' },
   sin_estado: { tone: 'neutral', variant: 'soft' },
 };
-
-// ── Estilos ────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: {
@@ -626,5 +597,9 @@ const styles = StyleSheet.create({
   footerBadgeWrap: {
     alignItems: 'center',
     paddingVertical: spacing.sm,
+  },
+  footerStatusText: {
+    textAlign: 'center',
+    fontSize: fontSize.sm,
   },
 });

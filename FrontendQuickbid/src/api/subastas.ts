@@ -16,10 +16,15 @@ function requiredData<T>(data: T | null, message: string): T {
 }
 
 function queryString(params: SubastaListParams) {
-  const entries = Object.entries(params).filter(([, value]) => value !== undefined);
+  const entries = Object.entries(params).filter(
+    ([, value]) => value !== undefined,
+  );
   if (entries.length === 0) return '';
   return `?${entries
-    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`,
+    )
     .join('&')}`;
 }
 
@@ -28,36 +33,59 @@ export const subastasApi = {
     const response = await apiFetch<PageApi<SubastaApiResumen>>(
       `/api/subastas${queryString(params)}`,
     );
-    return requiredData(response.data, 'El servidor no devolvio el listado de subastas');
+    return requiredData(
+      response.data,
+      'El servidor no devolvio el listado de subastas',
+    );
   },
 
   async detalle(id: number) {
     const response = await apiFetch<SubastaApiDetalle>(`/api/subastas/${id}`);
-    return requiredData(response.data, 'El servidor no devolvio el detalle de la subasta');
+    return requiredData(
+      response.data,
+      'El servidor no devolvio el detalle de la subasta',
+    );
   },
 
   async catalogo(id: number) {
-    const response = await apiFetch<CatalogoApi>(`/api/subastas/${id}/catalogo`);
+    const response = await apiFetch<CatalogoApi>(
+      `/api/subastas/${id}/catalogo`,
+    );
     return requiredData(response.data, 'El servidor no devolvio el catalogo');
   },
 
   async item(id: number) {
     const response = await apiFetch<ItemApi>(`/api/items/${id}`);
-    return requiredData(response.data, 'El servidor no devolvio el detalle del lote');
+    return requiredData(
+      response.data,
+      'El servidor no devolvio el detalle del lote',
+    );
   },
 
   async verificarAcceso(id: number) {
-    const response = await apiFetch<VerificacionSubastaApi>(`/api/subastas/${id}/verificacion`, {
-      method: 'POST',
-    });
-    return requiredData(response.data, 'El servidor no devolvio la verificacion de acceso');
+    const response = await apiFetch<VerificacionSubastaApi>(
+      `/api/subastas/${id}/verificacion`,
+      {
+        method: 'POST',
+      },
+    );
+    return requiredData(
+      response.data,
+      'El servidor no devolvio la verificacion de acceso',
+    );
   },
 
   async inscribirse(id: number, medioPagoId: number) {
-    const response = await apiFetch<InscripcionSubastaApi>(`/api/subastas/${id}/inscribirse`, {
-      method: 'POST',
-      body: JSON.stringify({ medioPagoId }),
-    });
-    return requiredData(response.data, 'El servidor no devolvio la inscripcion');
+    const response = await apiFetch<InscripcionSubastaApi>(
+      `/api/subastas/${id}/inscribirse`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ medioPagoId }),
+      },
+    );
+    return requiredData(
+      response.data,
+      'El servidor no devolvio la inscripcion',
+    );
   },
 };

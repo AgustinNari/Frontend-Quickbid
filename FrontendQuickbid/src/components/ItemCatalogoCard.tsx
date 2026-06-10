@@ -13,29 +13,9 @@ import { ItemCatalogo, ITEM_ESTADO_LABEL } from '../types/subasta';
 import { SEGMENTO_THEME } from './SubastaCard';
 import { formatPrecio } from '../utils/format';
 
-/**
- * Card horizontal de un ítem del catálogo de una subasta (tarea #11).
- *
- * Layout alineado al frame `178:1666` (Catálogo de Subasta Secuencial):
- *   ┌──────┬──────────────────────────────────────────┐
- *   │      │ LOTE #042                  [● EN VIVO]   │
- *   │ IMG  │ Título del ítem (max 2 líneas)           │
- *   │      │ Autor / referencia                       │
- *   │      │ Precio base: USD 1.500                   │
- *   └──────┴──────────────────────────────────────────┘
- *
- * Imagen es un placeholder temático del segmento (mismo lenguaje visual que
- * `SubastaCard`) mientras no haya foto real del backend.
- */
-
 type Props = {
   item: ItemCatalogo;
   onPress?: () => void;
-  /**
-   * Si false, oculta el precio base — refleja el modo invitado del backend
-   * (`GET /api/subastas/{id}/catalogo` omite precios para usuarios anónimos).
-   * Default true (modo autenticado, asumido por la tarea #11).
-   */
   showPrice?: boolean;
   style?: StyleProp<ViewStyle>;
 };
@@ -94,9 +74,10 @@ export function ItemCatalogoCard({
   );
 }
 
-// ── Mapeos de presentación ──────────────────────────────────────────────────
-
-type EstadoBadge = { tone: 'success' | 'primary' | 'neutral'; variant: 'solid' | 'soft' };
+type EstadoBadge = {
+  tone: 'success' | 'primary' | 'neutral';
+  variant: 'solid' | 'soft';
+};
 
 const ESTADO_TONE: Record<ItemCatalogo['estado'], EstadoBadge> = {
   en_vivo: { tone: 'primary', variant: 'solid' },
@@ -105,8 +86,6 @@ const ESTADO_TONE: Record<ItemCatalogo['estado'], EstadoBadge> = {
   no_vendido: { tone: 'neutral', variant: 'soft' },
   sin_estado: { tone: 'neutral', variant: 'soft' },
 };
-
-// ── Estilos ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   card: {

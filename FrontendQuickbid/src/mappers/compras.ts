@@ -10,7 +10,11 @@ import {
 
 export type TipoPagoCompra = 'multa' | 'comisiones';
 
-export type CompraAction = 'pagar_multa' | 'pagar_extras' | 'ver_documentos' | null;
+export type CompraAction =
+  | 'pagar_multa'
+  | 'pagar_extras'
+  | 'ver_documentos'
+  | null;
 
 export type BadgeTone = {
   tone: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral';
@@ -132,13 +136,18 @@ export function mapPagoCompra(dto: PagoCompraDto): PagoCompraUi {
   };
 }
 
-export function tipoPagoForCompra(compra: Pick<CompraResumenUi, 'action'>): TipoPagoCompra | null {
+export function tipoPagoForCompra(
+  compra: Pick<CompraResumenUi, 'action'>,
+): TipoPagoCompra | null {
   if (compra.action === 'pagar_multa') return 'multa';
   if (compra.action === 'pagar_extras') return 'comisiones';
   return null;
 }
 
-export function totalParaPago(compra: CompraDetalleUi, tipo: TipoPagoCompra): number {
+export function totalParaPago(
+  compra: CompraDetalleUi,
+  tipo: TipoPagoCompra,
+): number {
   return tipo === 'multa' ? compra.totalConMulta : compra.totalExtras;
 }
 
@@ -226,7 +235,8 @@ function entregaLabel(entrega: CompraEntregaDto | null) {
 }
 
 function entregaDescription(entrega: CompraEntregaDto | null) {
-  if (!entrega) return 'Elegí retiro o envío antes de pagar comisiones y extras.';
+  if (!entrega)
+    return 'Elegí retiro o envío antes de pagar comisiones y extras.';
   if (entrega.tipo === 'envio') {
     const estado = humanize(entrega.estado);
     return `Costo de envío incluido: ${estado}. La dirección se congela al pagar extras.`;
@@ -246,8 +256,12 @@ function parseDireccionSnapshot(raw: string): string | null {
       provincia?: string;
       pais?: string;
     };
-    const calle = [json.calle, json.numero, json.piso].filter(Boolean).join(' ');
-    const zona = [json.localidad, json.provincia, json.pais].filter(Boolean).join(', ');
+    const calle = [json.calle, json.numero, json.piso]
+      .filter(Boolean)
+      .join(' ');
+    const zona = [json.localidad, json.provincia, json.pais]
+      .filter(Boolean)
+      .join(', ');
     return [calle, zona].filter(Boolean).join(' · ') || null;
   } catch {
     return null;
@@ -264,7 +278,20 @@ function formatFecha(iso: string | null | undefined) {
   if (!iso) return 'Sin fecha';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const meses = [
+    'ene',
+    'feb',
+    'mar',
+    'abr',
+    'may',
+    'jun',
+    'jul',
+    'ago',
+    'sep',
+    'oct',
+    'nov',
+    'dic',
+  ];
   return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
 }
 

@@ -1,40 +1,22 @@
-/**
- * Design tokens del sistema visual QuickBid.
- *
- * Toda decisión visual de la app (colores, spacing, radius, tipografía,
- * sombras) vive acá. Cualquier pantalla o componente debe importar desde
- * `src/theme` y nunca hardcodear valores.
- *
- * Valores extraídos del diseño implementado en las pantallas existentes
- * (Login, Registro, Métodos de Pago, etc.).
- */
-
-// ── Colores ──────────────────────────────────────────────────────────────────
-
 export const colors = {
-  // Marca
   primary: '#0055D1',
   primaryDark: '#0047B0',
   primaryLight: '#3D7DDE',
 
-  // Base
   background: '#F3F4F6',
   surface: '#FFFFFF',
   surfaceMuted: '#F9FAFB',
 
-  // Texto
   text: '#111827',
   textMuted: '#6B7280',
   textSubtle: '#9CA3AF',
   textInverse: '#FFFFFF',
   textLabel: '#374151',
 
-  // Borders / divisores
   border: '#D1D5DB',
   borderMuted: '#E5E7EB',
   divider: '#F3F4F6',
 
-  // Estados
   danger: '#EF4444',
   dangerSoft: '#FEE2E2',
   success: '#10B981',
@@ -44,18 +26,14 @@ export const colors = {
   info: '#3B82F6',
   infoSoft: '#DBEAFE',
 
-  // Overlay
   overlay: 'rgba(0, 0, 0, 0.4)',
 
-  // Crudos (cuando se necesita literal)
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',
 } as const;
 
 export type ColorToken = keyof typeof colors;
-
-// ── Spacing (4-pt base scale) ────────────────────────────────────────────────
 
 export const spacing = {
   none: 0,
@@ -73,8 +51,6 @@ export const spacing = {
 
 export type SpacingToken = keyof typeof spacing;
 
-// ── Radius ───────────────────────────────────────────────────────────────────
-
 export const radius = {
   none: 0,
   xs: 4,
@@ -88,8 +64,6 @@ export const radius = {
 } as const;
 
 export type RadiusToken = keyof typeof radius;
-
-// ── Tipografía ───────────────────────────────────────────────────────────────
 
 export const fontSize = {
   xs: 10,
@@ -125,9 +99,6 @@ export const letterSpacing = {
   wider: 0.5,
 } as const;
 
-// ── Sombras ──────────────────────────────────────────────────────────────────
-// Patrón: iOS shadow + Android elevation simultáneos.
-
 export const shadow = {
   none: {
     shadowColor: colors.transparent,
@@ -157,7 +128,6 @@ export const shadow = {
     shadowRadius: 10,
     elevation: 10,
   },
-  // Para barras pegadas al borde inferior (BottomNavBar)
   topBar: {
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: -3 },
@@ -167,21 +137,16 @@ export const shadow = {
   },
 } as const;
 
-// ── Tamaños de control ───────────────────────────────────────────────────────
-// Alturas estandarizadas para botones, inputs, etc.
-
 export const controlHeight = {
   sm: 36,
   md: 44,
-  base: 52, // default — alineado con lo que ya está implementado
+  base: 52,
   lg: 60,
 } as const;
 
-// ── Layout ───────────────────────────────────────────────────────────────────
-
 export const layout = {
-  screenPaddingHorizontal: spacing.xl, // 24
-  screenPaddingVertical: spacing['2xl'], // 32
+  screenPaddingHorizontal: spacing.xl,
+  screenPaddingVertical: spacing['2xl'],
   headerHeight: 56,
   bottomNavHeight: 68,
   bottomNavLogoOverhang: 26,
