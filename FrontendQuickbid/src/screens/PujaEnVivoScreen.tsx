@@ -151,7 +151,9 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       setFeedback({
         tone: 'info',
         title: 'Lote cerrado',
-        message: 'Este lote ya cerro. Las compras se conectaran en un bloque posterior.',
+        message: event.proximoLoteProgramadoAt
+          ? 'Este lote ya cerro. El proximo lote comienza en instantes.'
+          : 'Este lote ya cerro. La subasta esta por finalizar.',
       });
     } else if (event.tipo === 'LOTE_GANADO') {
       setFeedback({
@@ -159,13 +161,34 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
         title: 'Lote ganado',
         message: 'Ganaste el lote. El detalle de compra se habilitara en el bloque de compras.',
       });
+    } else if (event.tipo === 'LOTE_ACTIVADO') {
+      // Cambio el lote activo: se recarga el snapshot completo (item, limites y
+      // medios) y la reconexion del cliente realtime resuscribe al lote nuevo.
+      setFeedback({
+        tone: 'info',
+        title: 'Nuevo lote en vivo',
+        message: 'Comienza la puja por el siguiente lote del catalogo.',
+      });
+      loadLive();
+    } else if (event.tipo === 'SUBASTA_INICIADA') {
+      setFeedback({
+        tone: 'info',
+        title: 'Subasta en vivo',
+        message: 'La subasta acaba de comenzar.',
+      });
+    } else if (event.tipo === 'SUBASTA_FINALIZADA') {
+      setFeedback({
+        tone: 'info',
+        title: 'Subasta finalizada',
+        message: 'La subasta termino. Gracias por participar.',
+      });
     } else if (
       event.tipo !== 'MEJOR_OFERTA_ACTUALIZADA' &&
       event.tipo !== 'ESTADO_ACTUALIZADO'
     ) {
       console.warn('Evento live no reconocido', event);
     }
-  }, []);
+  }, [loadLive]);
 
   useEffect(() => {
     if (!accessToken || !puja || isGuest || estadoCuenta === 'bloqueada_permanente') {
@@ -490,8 +513,15 @@ function PujarButton({
   submitting: boolean;
   onPress: () => void;
 }) {
+  if (puja.subastaFinalizada) {
+    return <Button variant="secondary" disabled>Subasta finalizada</Button>;
+  }
   if (puja.loteCerrado) {
-    return <Button variant="secondary" disabled>Lote cerrado</Button>;
+    return (
+      <Button variant="secondary" disabled>
+        {puja.proximoLoteAt ? 'Lote cerrado - esperando proximo lote' : 'Lote cerrado'}
+      </Button>
+    );
   }
   if (puja.esGanadorActual) {
     return <Button variant="secondary" disabled>Tenes la oferta ganadora</Button>;
@@ -759,7 +789,12 @@ function readableError(error: unknown, fallback: string) {
 }
 
 function bloqueoPujaMessage(puja: PujaActual) {
-  if (puja.loteCerrado) return 'El lote ya esta cerrado.';
+  if (puja.subastaFinalizada) return 'La subasta ya finalizo.';
+  if (puja.loteCerrado) {
+    return puja.proximoLoteAt
+      ? 'El lote ya esta cerrado. El proximo lote comienza en instantes.'
+      : 'El lote ya esta cerrado.';
+  }
   if (puja.mediosParaPujar.length === 0) return 'Necesitas un medio de pago verificado vigente compatible para pujar.';
   return 'El backend indica que no cumplis las condiciones para pujar en este momento.';
 }

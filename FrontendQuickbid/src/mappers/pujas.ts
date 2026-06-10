@@ -112,6 +112,20 @@ export function applyPujaEvent(current: PujaActual, event: PujaEventoApi): PujaA
       loteGanado: event.tipo === 'LOTE_GANADO' ? true : current.loteGanado,
       puedePujar: false,
       versionEstado: nextVersion,
+      // El backend informa que sigue despues del cierre: proximo lote programado
+      // o cierre de la subasta. Permite mostrar la espera sin reconsultar.
+      proximoLoteAt: event.proximoLoteProgramadoAt ?? null,
+    };
+  }
+
+  if (event.tipo === 'SUBASTA_FINALIZADA') {
+    return {
+      ...current,
+      subastaFinalizada: true,
+      loteCerrado: true,
+      puedePujar: false,
+      proximoLoteAt: null,
+      versionEstado: nextVersion,
     };
   }
 
