@@ -156,8 +156,8 @@ adb reverse --list
 
 - HTTP: `http://10.0.2.2:8080`
 - WebSocket: `ws://10.0.2.2:8080/ws`
-- Requiere seleccionar explicitamente las constantes alternativas de
-  `src/api/config.ts` para mantener HTTP y WebSocket alineados.
+- Seleccionar `API_MODE = 'emulator'` en `src/api/config.ts`. WebSocket se
+  deriva de la URL HTTP.
 
 **Escenario C - Celular fisico por Wi-Fi**
 
@@ -172,13 +172,26 @@ El backend debe estar escuchando en `8080`. Despues de cambiar la API base URL,
 reiniciar o recargar la app; si Metro conserva una version anterior, usar
 `npm start -- --reset-cache`.
 
+**Escenario D - Backend publico (demo/entrega)**
+
+- Reemplazar `PUBLIC_API_BASE_URL` por la URL HTTPS real entregada por el
+  hosting, sin barra final.
+- Seleccionar `API_MODE = 'public'` en `src/api/config.ts`.
+- La app usa HTTPS y deriva automaticamente `wss://.../ws`.
+- No hace falta `adb reverse` para el puerto del backend.
+- El valor versionado `https://tu-backend-publico.example.com` es solamente un
+  placeholder reservado y no representa un deploy real.
+
 ## 8. Configuracion HTTP y WebSocket
 
 La configuracion central vive en `src/api/config.ts`.
 
-- HTTP por defecto: `http://localhost:8080`.
-- WebSocket por defecto: `ws://localhost:8080/ws`.
-- Alternativa habitual de emulador sin reverse: `http://10.0.2.2:8080`.
+- `API_MODE = 'localReverse'`: default local con `adb reverse`.
+- `API_MODE = 'emulator'`: emulador Android Studio sin reverse del backend.
+- `API_MODE = 'public'`: usa `PUBLIC_API_BASE_URL`, que debe reemplazarse antes
+  del build/demo.
+- `API_BASE_URL` es la unica base consumida por el cliente HTTP.
+- `WS_BASE_URL` se deriva de ella: HTTP usa `ws://` y HTTPS usa `wss://`.
 - STOMP envia `Authorization: Bearer <accessToken>` en el frame `CONNECT`.
 - Las pujas se envian por HTTP.
 - STOMP se usa solo para actualizaciones realtime.

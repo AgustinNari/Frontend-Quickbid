@@ -360,7 +360,7 @@ Checklist:
 | COM-01 | Listar compras | `aprobado@quickbid.demo` o `multa@quickbid.demo` | Abrir Mis Compras | Lista paginada o estado vacio controlado | No | `README.md` |
 | COM-02 | Detalle de compra | Usuario con compra seed | Abrir compra | Se ve estado, importes y acciones segun estado | No | `02_pujas_compras_flujo_exitoso.http` |
 | COM-03 | Documentos metadata | Usuario con compra/documentos | Abrir documentos | Se muestran nombre, tipo, fecha u otros metadatos | No | `README.md` |
-| COM-04 | Sin descarga binaria | Usuario con documentos | Intentar abrir/ver documento si app lo ofrece | No esperar descarga binaria si backend solo expone metadata | No | `00_decisiones_finales.md` |
+| COM-04 | Descarga autorizada | Usuario con documento real | Pulsar Descargar cuando `downloadAvailable=true` | Backend entrega bytes; la app informa recepción sin crashear aunque todavía no guarda/abre nativamente | No | `README.md` |
 | COM-05 | Pagos reales | Usuario con compra seed | No confirmar pago salvo caso seguro | Pago no ejecutado en smoke; solo se valida UI/guard | No si no se confirma | `03_multas_alternativas.http` |
 
 No ejecutar pagos reales salvo caso seguro en BD reseteada.
@@ -406,14 +406,27 @@ reseteada o seed seguro preparado para consumirse.
 - [ ] Consignacion OK.
 - [ ] Logout OK.
 
+### Checklist adicional con backend publico
+
+- [ ] Reemplazar el placeholder y seleccionar `API_MODE = 'public'` antes del
+  build de demo.
+- [ ] Health publico responde `UP` desde otra PC y desde el celular.
+- [ ] Login, invitado y usuario activo funcionan sin `adb reverse` del backend.
+- [ ] Realtime conecta por `wss://` y dos usuarios reciben eventos.
+- [ ] Recuperacion llega por SMTP real y el deep link abre la app.
+- [ ] Documento propio disponible entrega bytes y la limitacion nativa se
+  maneja sin crash.
+- [ ] No hay JSON crudo, tokens en logs ni credenciales en el repositorio.
+
 ## 11. Observaciones conocidas
 
 - Jest puede fallar por configuracion ESM de React Navigation.
 - Pueden aparecer warnings no bloqueantes en mocks.
 - Puede aparecer warning de deprecacion de `SafeAreaView` si sigue existiendo en
   dependencias o codigo.
-- Los documentos de compras y consignaciones pueden ser metadata, no descarga
-  binaria.
+- Documentos historicos pueden conservar solo metadata. Los nuevos con
+  `downloadAvailable=true` entregan bytes, pero la app aun no los guarda ni abre
+  nativamente por falta de una integracion especifica.
 - No usar endpoints de Figma como contrato tecnico.
 - No ejecutar `npm audit fix` sin revisar cambios de versiones,
   compatibilidad React Native y posibles modificaciones nativas.
