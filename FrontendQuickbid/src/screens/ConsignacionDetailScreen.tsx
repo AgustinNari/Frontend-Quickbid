@@ -188,6 +188,21 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
     setDetalle(mapConsignacionDetalle(updated));
   };
 
+  const descargarArchivo = async (file: ConsignacionArchivoUi) => {
+    if (!file.downloadAvailable || !file.downloadUrl) return;
+    try {
+      const downloaded = await consignacionesApi.descargarArchivo(
+        file.downloadUrl,
+      );
+      Alert.alert(
+        'Archivo recibido',
+        `${downloaded.filename ?? file.filename} (${downloaded.sizeBytes} bytes) se descargo de forma autenticada. Esta version de la app todavia no puede guardarlo o abrirlo sin una integracion nativa de archivos.`,
+      );
+    } catch (err) {
+      Alert.alert('No se pudo descargar', readableError(err));
+    }
+  };
+
   const aceptarAcuerdo = async () => {
     if (!detalle || !leyoContrato || !aceptaClausulas) return;
     setActionLoading(true);
@@ -598,14 +613,27 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
             ) : null}
 
             {detalle.fotos.length > 0 ? (
-              <ArchivosSection title="FOTOS" archivos={detalle.fotos} />
+              <ArchivosSection
+                title="FOTOS"
+                archivos={detalle.fotos}
+                onOpen={descargarArchivo}
+              />
             ) : null}
 
             <ArchivosSection
               title="DOCUMENTOS DE ORIGEN"
               archivos={detalle.documentosOrigen}
               empty="Sin documentos de origen cargados."
+              onOpen={descargarArchivo}
             />
+
+            {detalle.documentosGenerados.length > 0 ? (
+              <ArchivosSection
+                title="DOCUMENTOS EMITIDOS"
+                archivos={detalle.documentosGenerados}
+                onOpen={descargarArchivo}
+              />
+            ) : null}
 
             {detalle.devolucion ? (
               <InfoCard title="DEVOLUCION">
@@ -855,10 +883,12 @@ function ArchivosSection({
   title,
   archivos,
   empty,
+  onOpen,
 }: {
   title: string;
   archivos: ConsignacionArchivoUi[];
   empty?: string;
+  onOpen: (file: ConsignacionArchivoUi) => void;
 }) {
   return (
     <InfoCard title={title}>
@@ -876,6 +906,18 @@ function ArchivosSection({
               {file.contentType} - {file.sizeLabel} - {file.estadoLabel}
             </Typography>
           </View>
+          {file.downloadAvailable ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              fullWidth={false}
+              onPress={() => onOpen(file)}
+            >
+              Ver archivo
+            </Button>
+          ) : (
+            <Typography style={styles.fileMeta}>No disponible</Typography>
+          )}
         </View>
       ))}
     </InfoCard>

@@ -108,6 +108,8 @@ export type DocumentoCompraDto = {
   contentType: string;
   sizeBytes: number;
   createdAt: string;
+  downloadAvailable: boolean;
+  downloadUrl: string | null;
 };
 
 export type PageDto<T> = {

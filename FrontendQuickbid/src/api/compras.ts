@@ -1,4 +1,4 @@
-import { apiFetch } from './client';
+import { apiDownload, apiFetch } from './client';
 import {
   CompraDetalleDto,
   CompraEntregaDto,
@@ -104,5 +104,9 @@ export const comprasApi = {
         .data,
       'El servidor no devolvio documentos',
     );
+  },
+
+  async descargarDocumento(downloadUrl: string) {
+    return apiDownload(downloadUrl);
   },
 };

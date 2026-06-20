@@ -215,3 +215,55 @@ export async function apiFetch<T = null>(
 
   return body ?? { data: null, message: '', errors: [] };
 }
+
+export type DownloadedFile = {
+  filename: string | null;
+  contentType: string;
+  sizeBytes: number;
+};
+
+export async function apiDownload(path: string): Promise<DownloadedFile> {
+  const request = (accessToken: string | null) =>
+    safeFetch(`${API_BASE_URL}${path}`, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    });
+
+  let response = await request(tokens.accessToken);
+  if (response.status === 401 && tokens.refreshToken) {
+    const refreshedToken = await refreshAccessToken();
+    if (refreshedToken) response = await request(refreshedToken);
+  }
+  if (!response.ok) {
+    const body = await parseEnvelope<unknown>(response);
+    throw new ApiError(
+      response.status,
+      readableError(body, fallbackForStatus(response.status)),
+      body?.errors ?? [],
+    );
+  }
+
+  const blob = await response.blob();
+  return {
+    filename: filenameFromDisposition(
+      response.headers.get('Content-Disposition'),
+    ),
+    contentType:
+      response.headers.get('Content-Type') ||
+      blob.type ||
+      'application/octet-stream',
+    sizeBytes: blob.size,
+  };
+}
+
+function filenameFromDisposition(value: string | null) {
+  if (!value) return null;
+  const encoded = value.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  if (encoded) {
+    try {
+      return decodeURIComponent(encoded);
+    } catch {
+      return encoded;
+    }
+  }
+  return value.match(/filename="?([^";]+)"?/i)?.[1] ?? null;
+}

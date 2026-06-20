@@ -54,6 +54,8 @@ export type ConsignacionArchivoDto = {
   contentType: string;
   sizeBytes: number;
   estado: string;
+  downloadAvailable: boolean;
+  downloadUrl: string | null;
 };
 
 export type ConsignacionPolizaDto = {
@@ -131,6 +133,7 @@ export type ConsignacionDetalleDto = {
   poliza: ConsignacionPolizaDto | null;
   fotos: ConsignacionArchivoDto[];
   documentosOrigen: ConsignacionArchivoDto[];
+  documentosGenerados: ConsignacionArchivoDto[];
   devolucion: ConsignacionDevolucionDto | null;
   liquidacion: ConsignacionLiquidacionDto | null;
   createdAt: string;

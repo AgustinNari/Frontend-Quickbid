@@ -1,4 +1,4 @@
-import { apiFetch } from './client';
+import { apiDownload, apiFetch } from './client';
 import {
   ConsignacionDetalleDto,
   ConsignacionFiltro,
@@ -128,6 +128,10 @@ export const consignacionesApi = {
         .data,
       'El servidor no devolvio la consignacion',
     );
+  },
+
+  async descargarArchivo(downloadUrl: string) {
+    return apiDownload(downloadUrl);
   },
 
   async aceptarAcuerdo(id: number, payload: AceptarAcuerdoRequest) {

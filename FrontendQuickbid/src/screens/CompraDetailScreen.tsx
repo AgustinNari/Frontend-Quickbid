@@ -85,7 +85,26 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
     load();
   }, [load]);
 
-  const handleAccion = () => {
+  const handleDocumento = async (doc: DocumentoCompraUi) => {
+    if (!doc.downloadAvailable || !doc.downloadUrl) {
+      Alert.alert(
+        'Archivo no disponible',
+        'Existe metadata del documento, pero el archivo fisico no esta disponible.',
+      );
+      return;
+    }
+    try {
+      const downloaded = await comprasApi.descargarDocumento(doc.downloadUrl);
+      Alert.alert(
+        'Documento recibido',
+        `${downloaded.filename ?? doc.filename} (${downloaded.sizeBytes} bytes) se descargo de forma autenticada. Esta version de la app todavia no puede guardarlo o abrirlo sin una integracion nativa de archivos.`,
+      );
+    } catch (err) {
+      Alert.alert('No se pudo descargar', readableError(err));
+    }
+  };
+
+  const handleAccion = async () => {
     if (!compra) return;
     const tipo = tipoPagoForCompra(compra);
     if (tipo) {
@@ -93,7 +112,7 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
       return;
     }
     if (documentos.length > 0) {
-      showDocumento(documentos[0]);
+      await handleDocumento(documentos[0]);
       return;
     }
     Alert.alert(
@@ -174,7 +193,7 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
               <DocumentosSection
                 documentos={documentos}
                 error={docsError}
-                onShow={showDocumento}
+                onShow={handleDocumento}
               />
             </View>
           </ScrollView>
@@ -409,14 +428,18 @@ function DocumentosSection({
               {doc.estadoLabel} · {doc.fechaLabel} · {doc.sizeLabel}
             </Typography>
           </View>
-          <Button
-            variant="secondary"
-            size="sm"
-            onPress={() => onShow(doc)}
-            fullWidth={false}
-          >
-            Ver datos
-          </Button>
+          {doc.downloadAvailable ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onPress={() => onShow(doc)}
+              fullWidth={false}
+            >
+              Descargar
+            </Button>
+          ) : (
+            <Typography style={styles.docMeta}>Archivo no disponible</Typography>
+          )}
         </Card>
       ))}
     </View>
@@ -496,21 +519,6 @@ function EconRow({
         {value}
       </Typography>
     </View>
-  );
-}
-
-function showDocumento(doc: DocumentoCompraUi) {
-  Alert.alert(
-    doc.tipoLabel,
-    [
-      `ID: ${doc.id}`,
-      `Archivo ID: ${doc.archivoId ?? 'sin archivo'}`,
-      `Nombre: ${doc.filename}`,
-      `Tipo: ${doc.contentType}`,
-      `Estado: ${doc.estadoLabel}`,
-      `Tamaño: ${doc.sizeLabel}`,
-      `Creado: ${doc.fechaLabel}`,
-    ].join('\n'),
   );
 }
 

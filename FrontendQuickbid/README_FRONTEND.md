@@ -542,3 +542,15 @@ BE/-Backend-Desarrollo-de-Aplicaciones-I/quickbid/docs/*.http
 
 Las referencias visuales orientan la UI, pero no definen endpoints ni
 contratos.
+## Documentos descargables
+
+CompraDetail y ConsignacionDetail muestran acciones de descarga únicamente
+cuando el backend informa `downloadAvailable=true`. La descarga usa JWT en el
+header contra el `downloadUrl` relativo; nunca agrega tokens a la URL ni muestra
+rutas internas de storage.
+
+La app actual no incluye una dependencia nativa para persistir o abrir archivos
+recibidos. Por eso valida la descarga autenticada completa y muestra nombre,
+tamaño y resultado, pero no guarda el archivo en Descargas ni lo abre con otra
+app. Esa integración queda pendiente para un cambio nativo separado. Metadata
+histórica sin archivo físico se presenta como “Archivo no disponible”.

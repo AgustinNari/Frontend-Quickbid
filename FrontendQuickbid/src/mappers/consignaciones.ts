@@ -88,6 +88,7 @@ export type ConsignacionDetalleUi = ConsignacionResumenUi & {
   poliza: ConsignacionDetalleDto['poliza'];
   fotos: ConsignacionArchivoUi[];
   documentosOrigen: ConsignacionArchivoUi[];
+  documentosGenerados: ConsignacionArchivoUi[];
   devolucion: ConsignacionDevolucionUi | null;
   liquidacion: ConsignacionLiquidacionUi | null;
   createdAtLabel: string;
@@ -165,6 +166,7 @@ export function mapConsignacionDetalle(
     poliza: dto.poliza,
     fotos: dto.fotos.map(mapArchivo),
     documentosOrigen: dto.documentosOrigen.map(mapArchivo),
+    documentosGenerados: dto.documentosGenerados.map(mapArchivo),
     devolucion: dto.devolucion ? mapDevolucion(dto.devolucion) : null,
     liquidacion: dto.liquidacion
       ? mapLiquidacion(dto.liquidacion, dto.moneda ?? 'ARS')
