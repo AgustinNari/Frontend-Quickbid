@@ -18,11 +18,14 @@ type LiveRealtimeOptions = {
   onError?: (message: string) => void;
 };
 
+const MAX_RECONNECT_ATTEMPTS = 5;
+
 export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
   const wsUrl = `${WS_BASE_URL}/ws`;
   const subscriptions: StompSubscription[] = [];
   let active = false;
-  let connectionTimer: ReturnType<typeof setTimeout> | null = null;
+  let reconnectAttempts = 0;
+  let stabilityTimer: ReturnType<typeof setTimeout> | null = null;
 
   const destinations = [
     `/topic/subastas/${options.subastaId}/estado`,
@@ -40,18 +43,25 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
     heartbeatIncoming: 10000,
     heartbeatOutgoing: 10000,
     forceBinaryWSFrames: true,
+    connectionTimeout: 15000,
     reconnectDelay: 3000,
     debug: message => logRealtime(message),
     onConnect: () => {
-      clearConnectionTimer();
+      clearStabilityTimer();
+      stabilityTimer = setTimeout(() => {
+        reconnectAttempts = 0;
+        stabilityTimer = null;
+      }, 30000);
+      subscriptions.length = 0;
       logRealtime(`connected ${wsUrl}`);
+      if (!active) return;
       options.onConnected?.();
       destinations.forEach(destination => {
         subscriptions.push(client.subscribe(destination, handleMessage));
       });
     },
     onDisconnect: () => {
-      options.onDisconnected?.();
+      if (active) options.onDisconnected?.();
     },
     onStompError: frame => {
       logRealtime(`broker error: ${frame.headers.message ?? frame.body}`);
@@ -61,15 +71,28 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
     },
     onWebSocketError: event => {
       logRealtime(`websocket error: ${String(event)}`);
-      options.onError?.('No pudimos conectar realtime');
+      if (active) options.onError?.('No pudimos conectar realtime');
     },
     onWebSocketClose: event => {
       logRealtime(`websocket closed: ${event.code} ${event.reason}`);
+      clearStabilityTimer();
+      if (!active) return;
+      reconnectAttempts += 1;
       options.onDisconnected?.();
+      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        active = false;
+        options.onError?.(
+          'Realtime sigue sin responder. Reintenta manualmente desde la sala.',
+        );
+        client.deactivate({ force: true }).catch(() => {
+          logRealtime('realtime shutdown after retry limit failed');
+        });
+      }
     },
   });
 
   function handleMessage(message: IMessage) {
+    if (!active) return;
     try {
       options.onEvent(JSON.parse(message.body) as PujaEventoApi);
     } catch {
@@ -83,10 +106,10 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
     }
   }
 
-  function clearConnectionTimer() {
-    if (connectionTimer) {
-      clearTimeout(connectionTimer);
-      connectionTimer = null;
+  function clearStabilityTimer() {
+    if (stabilityTimer) {
+      clearTimeout(stabilityTimer);
+      stabilityTimer = null;
     }
   }
 
@@ -94,21 +117,16 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
     connect() {
       if (active || client.active) return;
       active = true;
+      reconnectAttempts = 0;
       client.activate();
-      connectionTimer = setTimeout(() => {
-        connectionTimer = null;
-        if (!client.connected) {
-          logRealtime(`connection timeout ${wsUrl}`);
-          options.onError?.('No pudimos conectar realtime');
-        }
-      }, 15000);
     },
     disconnect() {
       active = false;
-      clearConnectionTimer();
-      unsubscribeAll();
+      clearStabilityTimer();
+      if (client.connected) unsubscribeAll();
+      else subscriptions.length = 0;
       client.deactivate().catch(() => {
-        options.onError?.('No pudimos cerrar realtime limpiamente');
+        logRealtime('realtime shutdown failed');
       });
     },
   };

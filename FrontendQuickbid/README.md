@@ -199,6 +199,6 @@ El proyecto compila solo para `arm64-v8a` (dispositivos físicos) y `x86_64` (em
 | `npm run android` | Compila e instala en Android (macOS/Linux) |
 | `npm run android:win` | Compila e instala en Android (Windows, gradlew directo) |
 | `npm run android:device` | **Windows con dispositivo físico** — hace `adb reverse` + build en un paso |
-| `npm run reverse` | Solo reenvía el puerto 8081 al celular (útil si Metro ya corre y solo perdiste conexión) |
+| `npm run reverse` | Reenvía Metro (`8081`) y el backend (`8080`) al dispositivo/emulador |
 | `npm run lint` | Corre el linter |
 | `npm test` | Corre los tests |

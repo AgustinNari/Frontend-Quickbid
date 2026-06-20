@@ -20,6 +20,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { authApi } from '../api/auth';
 import { ApiError } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { safeGoBack } from '../navigation/navigationUtils';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Security'>;
 
@@ -72,7 +73,7 @@ function EyeIcon({ visible }: { visible: boolean }) {
 }
 
 export default function SecurityScreen({ route, navigation }: Props) {
-  const { login } = useAuth();
+  const { estadoCuenta, isAuthenticated, isGuest, login } = useAuth();
   const params = route.params;
 
   const [password, setPassword] = useState('');
@@ -82,6 +83,18 @@ export default function SecurityScreen({ route, navigation }: Props) {
   const [loading, setLoading] = useState(false);
 
   const isRegistro = params.mode === 'registro';
+
+  function handleBack() {
+    safeGoBack(navigation, () => {
+      const destination =
+        estadoCuenta === 'bloqueada_permanente'
+          ? 'LimitedAccess'
+          : isAuthenticated && !isGuest
+          ? 'Subastas'
+          : 'Login';
+      navigation.reset({ index: 0, routes: [{ name: destination }] });
+    });
+  }
 
   async function handleConfirmar() {
     if (!password.trim() || !confirm.trim()) {
@@ -167,7 +180,7 @@ export default function SecurityScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScreenHeader onBack={() => navigation.goBack()} />
+      <ScreenHeader onBack={handleBack} />
 
       <KeyboardAvoidingView
         style={styles.flex}

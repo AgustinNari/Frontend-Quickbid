@@ -280,7 +280,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       !realtimeSubastaId ||
       !realtimeItemId ||
       isGuest ||
-      estadoCuenta === 'bloqueada_permanente'
+      (estadoCuenta !== 'activa' && estadoCuenta !== 'restriccion_multa')
     ) {
       return;
     }

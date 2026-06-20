@@ -5,8 +5,8 @@
   "scripts": {
     "android": "react-native run-android",
     "android:win": "cd android && gradlew.bat app:installDebug -PreactNativeDevServerPort=8081",
-    "android:device": "adb reverse tcp:8081 tcp:8081 && react-native run-android --no-packager",
-    "reverse": "adb reverse tcp:8081 tcp:8081",
+    "android:device": "adb reverse tcp:8081 tcp:8081 && adb reverse tcp:8080 tcp:8080 && react-native run-android --no-packager",
+    "reverse": "adb reverse tcp:8081 tcp:8081 && adb reverse tcp:8080 tcp:8080",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
