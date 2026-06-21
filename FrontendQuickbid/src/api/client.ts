@@ -42,6 +42,8 @@ type ApiFetchOptions = RequestInit & {
   skipRefresh?: boolean;
 };
 
+export const API_TIMEOUT_MS = 20000;
+
 let tokens: SessionTokens = { accessToken: null, refreshToken: null };
 let refreshPromise: Promise<string | null> | null = null;
 let onSessionRefreshed:
@@ -96,9 +98,19 @@ function fallbackForStatus(status: number) {
 }
 
 async function safeFetch(input: RequestInfo, init?: RequestInit) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  const abortFromCaller = () => controller.abort();
+  init?.signal?.addEventListener('abort', abortFromCaller, { once: true });
   try {
-    return await fetch(input, init);
+    return await fetch(input, { ...init, signal: controller.signal });
   } catch (error) {
+    if (controller.signal.aborted) {
+      throw new ApiError(
+        0,
+        'QuickBid esta iniciando o tarda mas de lo esperado. Reintenta en unos segundos.',
+      );
+    }
     if (__DEV__) {
       console.warn('[QuickBid API] Error de red', {
         baseUrl: API_BASE_URL,
@@ -111,7 +123,17 @@ async function safeFetch(input: RequestInfo, init?: RequestInit) {
       0,
       'No se pudo conectar con QuickBid. Verifica tu conexion o intenta nuevamente en unos minutos.',
     );
+  } finally {
+    clearTimeout(timeout);
+    init?.signal?.removeEventListener('abort', abortFromCaller);
   }
+}
+
+export function userFacingError(
+  error: unknown,
+  fallback = 'No pudimos completar la operacion. Intenta nuevamente.',
+) {
+  return error instanceof ApiError && error.message ? error.message : fallback;
 }
 
 async function parseEnvelope<T>(

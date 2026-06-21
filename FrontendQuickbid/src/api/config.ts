@@ -13,7 +13,7 @@ const API_BASE_URLS: Record<ApiMode, string> = {
 export const API_BASE_URL = API_BASE_URLS[API_MODE].replace(/\/+$/, '');
 export const WS_BASE_URL = toWebSocketBaseUrl(API_BASE_URL);
 
-function toWebSocketBaseUrl(apiBaseUrl: string) {
+export function toWebSocketBaseUrl(apiBaseUrl: string) {
   if (apiBaseUrl.startsWith('https://')) {
     return `wss://${apiBaseUrl.slice('https://'.length)}`;
   }

@@ -122,7 +122,7 @@ export default function RecuperacionCuentaScreen({ navigation }: Props) {
       setLinkEnviado(true);
       Alert.alert(
         'Enlace enviado',
-        'Si tu email está registrado, recibirás el link de recuperación. En desarrollo, revisá los logs del servidor.',
+        'Si tu email está registrado, recibirás el link de recuperación. Revisá también la carpeta de correo no deseado.',
       );
     } catch (e) {
       const msg =

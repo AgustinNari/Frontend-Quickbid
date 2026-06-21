@@ -235,16 +235,16 @@ smoke test no destructivo.
 | MUT-02 | Puja valida | `aprobado@quickbid.demo` | BD reseteada, subasta `6001` en vivo, snapshot fresco | Enviar puja con `idempotencyKey` unico | Puja aceptada, version aumenta, reserva/estado actualizados | Opcional | Si | `02_pujas_compras_flujo_exitoso.http` |
 | MUT-03 | Superacion de puja con dos usuarios | `aprobado@quickbid.demo` y `consignador@quickbid.demo` | BD reseteada, ambos tokens, dos clientes habilitados | Usuario A puja, usuario B supera | A recibe `PUJA_SUPERADA`, B recibe aceptacion | Opcional | Si | `06_ws_realtime_pujas_privadas.http` |
 | MUT-04 | Cierre de lote | Admin auxiliar seguro | BD reseteada, admin dev habilitado si corresponde | Cerrar lote con endpoint admin/procesador seguro | Se crea compra o compra interna segun ofertas | No, salvo cambio de env admin | Si | `98_admin_jobs_smoke.http`, `README.md` |
-| MUT-05 | Pago de extras | `aprobado@quickbid.demo` | Compra seed segura con extras pendientes | Ejecutar pago de extras | Compra avanza y puede generar documento metadata | Opcional | Si | `02_pujas_compras_flujo_exitoso.http` |
+| MUT-05 | Pago de extras | `aprobado@quickbid.demo` | Compra seed segura con extras pendientes | Ejecutar pago de extras | Compra avanza y puede generar un documento verificable | Opcional | Si | `02_pujas_compras_flujo_exitoso.http` |
 | MUT-06 | Pago de multa | `multa@quickbid.demo` | Multa seed `14001` activa | Pagar articulo + multa o flujo documentado | Multa queda pagada y cuenta puede regularizarse si no quedan multas | Opcional | Si | `03_multas_alternativas.http` |
 | MUT-07 | Aceptar acuerdo de consignacion | `consignador@quickbid.demo` | Consignacion `acuerdo_pendiente` | Aceptar acuerdo con ambos checks true | Acuerdo aceptado; luego no corresponde rechazo | Opcional | Si | `05_consignacion_seeds_ramas_independientes.http` |
 | MUT-08 | Rechazar acuerdo de consignacion | `consignador@quickbid.demo` | Consignacion `acuerdo_pendiente` en BD fresca alternativa | Rechazar acuerdo | Pasa a devolucion pendiente o estado documentado | Opcional | Si | `05_consignacion_seeds_ramas_independientes.http` |
 | MUT-09 | Seleccionar devolucion | `consignador@quickbid.demo` | Consignacion en devolucion pendiente | Elegir modalidad/datos de devolucion | Devolucion registrada | Opcional | Si | `05_consignacion_seeds_ramas_independientes.http` |
-| MUT-10 | Pagar envio de devolucion | `consignador@quickbid.demo` | Devolucion con envio pendiente | Pagar envio de devolucion | Pago registrado y comprobante metadata si aplica | Opcional | Si | `05_consignacion_seeds_ramas_independientes.http` |
+| MUT-10 | Pagar envio de devolucion | `consignador@quickbid.demo` | Devolucion con envio pendiente | Pagar envio de devolucion | Pago registrado y comprobante verificable si aplica | Opcional | Si | `05_consignacion_seeds_ramas_independientes.http` |
 | MUT-11 | Retencion live | dos usuarios activos | Lote activo y medios vigentes | Pujar, superar y esperar vencimiento | Countdown reinicia, navegación ganadora bloqueada y backend adjudica una sola vez | Si | Si | `06_ws_realtime_pujas_privadas.http` |
 | MUT-12 | Devolucion con direccion guardada | consignador con direccion activa | Consignacion en devolucion pendiente | Elegir direccion y confirmar | Request usa `direccionEnvioId` y detalle muestra snapshot | Si | Si | `05_consignacion_seeds_ramas_independientes.http` |
 | MUT-11 | Crear consignacion con imagenes validas | `consignador@quickbid.demo` | BD reseteada, 6 a 15 imagenes validas | Crear solicitud con fotos JPG/PNG/WebP validas | Solicitud creada en revision | Opcional | Si | `04_consignacion_flujo_nuevo_feliz.http` |
-| MUT-12 | Cargar documentacion de origen | `consignador@quickbid.demo` | Consignacion que requiere documentacion | Subir PDF/documento permitido por el flujo | Documentacion queda registrada como metadata y vuelve a revision | Opcional | Si | `04_consignacion_flujo_nuevo_feliz.http` |
+| MUT-12 | Cargar documentacion de origen | `consignador@quickbid.demo` | Consignacion que requiere documentacion | Subir PDF/documento permitido por el flujo | Documentacion queda registrada y vuelve a revision | Opcional | Si | `04_consignacion_flujo_nuevo_feliz.http` |
 
 No ejecutar pujas validas, pagos, aceptaciones/rechazos ni cargas reales sobre
 seeds compartidos salvo que el objetivo sea justamente consumirlos en una base
@@ -359,8 +359,8 @@ Checklist:
 | --- | --- | --- | --- | --- | --- | --- |
 | COM-01 | Listar compras | `aprobado@quickbid.demo` o `multa@quickbid.demo` | Abrir Mis Compras | Lista paginada o estado vacio controlado | No | `README.md` |
 | COM-02 | Detalle de compra | Usuario con compra seed | Abrir compra | Se ve estado, importes y acciones segun estado | No | `02_pujas_compras_flujo_exitoso.http` |
-| COM-03 | Documentos metadata | Usuario con compra/documentos | Abrir documentos | Se muestran nombre, tipo, fecha u otros metadatos | No | `README.md` |
-| COM-04 | Descarga autorizada | Usuario con documento real | Pulsar Descargar cuando `downloadAvailable=true` | Backend entrega bytes; la app informa recepción sin crashear aunque todavía no guarda/abre nativamente | No | `README.md` |
+| COM-03 | Documentos disponibles | Usuario con compra/documentos | Abrir documentos | Se muestran nombre, tipo, fecha y disponibilidad real | No | `README.md` |
+| COM-04 | Verificacion autorizada | Usuario con documento real | Pulsar Verificar documento cuando `downloadAvailable=true` | El servicio entrega bytes y la app muestra nombre, tamaño y tipo reales | No | `README.md` |
 | COM-05 | Pagos reales | Usuario con compra seed | No confirmar pago salvo caso seguro | Pago no ejecutado en smoke; solo se valida UI/guard | No si no se confirma | `03_multas_alternativas.http` |
 
 No ejecutar pagos reales salvo caso seguro en BD reseteada.
@@ -374,10 +374,10 @@ Checklist:
 | CON-01 | Requisitos | `consignador@quickbid.demo` | Abrir alta/requisitos | Se informan requisitos reales | No | `04_consignacion_flujo_nuevo_feliz.http` |
 | CON-02 | Listado | `consignador@quickbid.demo` | Abrir consignaciones | Se listan estados seed | No | `05_consignacion_seeds_ramas_independientes.http` |
 | CON-03 | Detalle | `consignador@quickbid.demo` | Abrir consignacion seed | Se ve detalle segun estado | No | `05_consignacion_seeds_ramas_independientes.http` |
-| CON-04 | Documentacion de origen | `consignador@quickbid.demo` | Abrir seccion de documentacion | Se ve estado/metadata disponible | No, si no se sube archivo | `04_consignacion_flujo_nuevo_feliz.http` |
+| CON-04 | Documentacion de origen | `consignador@quickbid.demo` | Abrir seccion de documentacion | Se ve estado y disponibilidad real | No, si no se sube archivo | `04_consignacion_flujo_nuevo_feliz.http` |
 | CON-05 | Acuerdo | `consignador@quickbid.demo` | Abrir consignacion con acuerdo pendiente | Se ve aceptar/rechazar segun estado | No, si no se confirma | `05_consignacion_seeds_ramas_independientes.http` |
 | CON-06 | Devolucion | `consignador@quickbid.demo` | Abrir consignacion en devolucion | Se ve seleccion/pago si corresponde | No, si no se confirma | `05_consignacion_seeds_ramas_independientes.http` |
-| CON-07 | Liquidacion | `consignador@quickbid.demo` | Abrir consignacion liquidada | Se ve liquidacion y comprobantes metadata | No | `05_consignacion_seeds_ramas_independientes.http` |
+| CON-07 | Liquidacion | `consignador@quickbid.demo` | Abrir consignacion liquidada | Se ve liquidacion y comprobantes verificables | No | `05_consignacion_seeds_ramas_independientes.http` |
 | CON-08 | Alta con imagenes | `consignador@quickbid.demo` | Completar alta sin confirmar en smoke | La UI exige 6 a 15 fotos y datos requeridos | No si no se confirma | `API_CONTRATO_FINAL.md` |
 
 Acciones reales como crear consignacion, aceptar/rechazar acuerdo, elegir
@@ -424,7 +424,7 @@ reseteada o seed seguro preparado para consumirse.
 - Pueden aparecer warnings no bloqueantes en mocks.
 - Puede aparecer warning de deprecacion de `SafeAreaView` si sigue existiendo en
   dependencias o codigo.
-- Documentos historicos pueden conservar solo metadata. Los nuevos con
+- Documentos historicos pueden conservar solo su registro descriptivo. Los nuevos con
   `downloadAvailable=true` entregan bytes, pero la app aun no los guarda ni abre
   nativamente por falta de una integracion especifica.
 - No usar endpoints de Figma como contrato tecnico.
@@ -450,5 +450,13 @@ reseteada o seed seguro preparado para consumirse.
 | Registro | Crear solicitudes descartables | Probar catalogo de paises sin enviar etapa completa |
 | Cambio de clave | Romper `Demo123!` | Usar clave actual incorrecta para prueba no destructiva |
 | WebSocket | Confundir transporte con operacion | Recordar que puja va por HTTP y STOMP solo notifica |
-| Documentos | Esperar descarga inexistente | Validar metadata si backend no expone binario |
+| Documentos | Prometer un archivo no guardado | Usar `Verificar documento`; comprobar nombre, tipo y tamaño |
 | Android local | Backend inaccesible desde emulador | Aplicar reverse o usar `10.0.2.2` |
+
+## 13. Robustez Render Free
+
+- Confirmar que un PDF generado después de V14 sigue verificable tras redeploy.
+- Confirmar que un documento sin bytes devuelve `downloadAvailable=false` y no
+  muestra CTA activo.
+- Simular fetch de más de 20 segundos: debe aparecer “QuickBid está iniciando”.
+- Ejecutar `npm test`: cubre derivación `wss`, mapper documental y saneo de errores.

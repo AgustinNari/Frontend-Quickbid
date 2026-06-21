@@ -42,7 +42,7 @@ import {
 } from '../api/consignaciones';
 import { mediosPagoApi } from '../api/mediosPago';
 import { direccionesApi } from '../api/direcciones';
-import { ApiError } from '../api/client';
+import { userFacingError } from '../api/client';
 import {
   ConsignacionArchivoUi,
   ConsignacionDetalleUi,
@@ -189,17 +189,26 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
   };
 
   const descargarArchivo = async (file: ConsignacionArchivoUi) => {
-    if (!file.downloadAvailable || !file.downloadUrl) return;
+    if (!file.downloadAvailable || !file.downloadUrl) {
+      Alert.alert(
+        'Archivo no disponible',
+        'El documento no esta disponible en este momento. Intenta generarlo nuevamente o contacta soporte.',
+      );
+      return;
+    }
     try {
       const downloaded = await consignacionesApi.descargarArchivo(
         file.downloadUrl,
       );
       Alert.alert(
-        'Archivo recibido',
-        `${downloaded.filename ?? file.filename} (${downloaded.sizeBytes} bytes) se descargo de forma autenticada. Esta version de la app todavia no puede guardarlo o abrirlo sin una integracion nativa de archivos.`,
+        'Documento verificado',
+        `${downloaded.filename ?? file.filename} - ${downloaded.sizeBytes} bytes - ${downloaded.contentType}. El archivo esta disponible; podes solicitar una copia desde soporte.`,
       );
-    } catch (err) {
-      Alert.alert('No se pudo descargar', readableError(err));
+    } catch {
+      Alert.alert(
+        'Documento no disponible',
+        'El documento no esta disponible en este momento. Intenta generarlo nuevamente o contacta soporte.',
+      );
     }
   };
 
@@ -913,7 +922,7 @@ function ArchivosSection({
               fullWidth={false}
               onPress={() => onOpen(file)}
             >
-              Ver archivo
+              Verificar documento
             </Button>
           ) : (
             <Typography style={styles.fileMeta}>No disponible</Typography>
@@ -1361,9 +1370,10 @@ function assetToFile(asset?: Asset): ConsignacionFileInput | null {
 }
 
 function readableError(err: unknown) {
-  if (err instanceof ApiError) return err.message;
-  if (err instanceof Error) return err.message;
-  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
+  return userFacingError(
+    err,
+    'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
+  );
 }
 
 function medioTipoLabel(tipo: MedioPagoDto['tipo']) {

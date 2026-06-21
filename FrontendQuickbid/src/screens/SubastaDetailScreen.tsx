@@ -36,6 +36,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { SubastaInfoRow } from '../components/SubastaInfoRow';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
 import { subastasApi } from '../api/subastas';
+import { userFacingError } from '../api/client';
 import { mapSubastaDetalle } from '../mappers/subastas';
 import {
   SubastaDetalle,
@@ -87,11 +88,7 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
       }
     } catch (loadError) {
       setDetalle(null);
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : 'No pudimos cargar la subasta.',
-      );
+      setError(userFacingError(loadError, 'No pudimos cargar la subasta.'));
     } finally {
       setLoading(false);
     }

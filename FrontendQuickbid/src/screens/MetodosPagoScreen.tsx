@@ -23,6 +23,7 @@ import {
   spacing,
 } from '../theme';
 import { mediosPagoApi } from '../api/mediosPago';
+import { userFacingError } from '../api/client';
 import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MetodosPago'>;
@@ -40,11 +41,7 @@ export default function MetodosPagoScreen({ navigation }: Props) {
       setItems(await mediosPagoApi.listar());
     } catch (loadError) {
       setItems([]);
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : 'No pudimos cargar los medios.',
-      );
+      setError(userFacingError(loadError, 'No pudimos cargar los medios.'));
     } finally {
       setLoading(false);
       setRefreshing(false);

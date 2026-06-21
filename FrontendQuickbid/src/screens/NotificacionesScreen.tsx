@@ -21,6 +21,7 @@ import {
   spacing,
 } from '../theme';
 import { usuarioApi } from '../api/usuario';
+import { userFacingError } from '../api/client';
 import { NotificacionUsuario } from '../types/usuario';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Notificaciones'>;
@@ -48,11 +49,7 @@ export default function NotificacionesScreen({ navigation }: Props) {
       setItems(response.content);
     } catch (loadError) {
       setItems([]);
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : 'No pudimos cargar las notificaciones.',
-      );
+      setError(userFacingError(loadError, 'No pudimos cargar las notificaciones.'));
     } finally {
       setLoading(false);
     }
@@ -80,11 +77,7 @@ export default function NotificacionesScreen({ navigation }: Props) {
         ),
       );
     } catch (updateError) {
-      setError(
-        updateError instanceof Error
-          ? updateError.message
-          : 'No pudimos marcar la notificacion.',
-      );
+      setError(userFacingError(updateError, 'No pudimos marcar la notificacion.'));
     } finally {
       setUpdating(false);
     }
@@ -98,11 +91,7 @@ export default function NotificacionesScreen({ navigation }: Props) {
       await usuarioApi.marcarTodasLeidas();
       setItems(previous => previous.map(item => ({ ...item, leida: true })));
     } catch (updateError) {
-      setError(
-        updateError instanceof Error
-          ? updateError.message
-          : 'No pudimos marcar las notificaciones.',
-      );
+      setError(userFacingError(updateError, 'No pudimos marcar las notificaciones.'));
     } finally {
       setUpdating(false);
     }

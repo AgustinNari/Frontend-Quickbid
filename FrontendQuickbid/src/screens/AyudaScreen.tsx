@@ -64,7 +64,7 @@ export default function AyudaScreen({ navigation }: Props) {
             Contactanos en ayuda@quickbid.com
           </Text>
           <Text style={styles.contactNote}>
-            QuickBid no tiene integracion de chat o tickets en este bloque.
+            La asistencia se gestiona por correo; no hay chat en esta version.
           </Text>
         </View>
       </ScrollView>

@@ -21,6 +21,7 @@ import {
   spacing,
 } from '../theme';
 import { usuarioApi } from '../api/usuario';
+import { userFacingError } from '../api/client';
 import { HistorialUsuarioItem } from '../types/usuario';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Historial'>;
@@ -45,11 +46,7 @@ export default function HistorialScreen({ navigation }: Props) {
       setPage(response.page);
       setTotalPages(response.totalPages);
     } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : 'No pudimos cargar el historial.',
-      );
+      setError(userFacingError(loadError, 'No pudimos cargar el historial.'));
       if (nextPage === 0) setItems([]);
     } finally {
       setLoading(false);

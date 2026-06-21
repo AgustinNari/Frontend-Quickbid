@@ -21,6 +21,7 @@ import {
   spacing,
 } from '../theme';
 import { usuarioApi } from '../api/usuario';
+import { userFacingError } from '../api/client';
 import { PerfilUsuario } from '../types/usuario';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Perfil'>;
@@ -45,11 +46,7 @@ export default function PerfilScreen({ navigation }: Props) {
       setPerfil(await usuarioApi.perfil());
     } catch (loadError) {
       setPerfil(null);
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : 'No pudimos cargar tu perfil.',
-      );
+      setError(userFacingError(loadError, 'No pudimos cargar tu perfil.'));
     } finally {
       setLoading(false);
     }

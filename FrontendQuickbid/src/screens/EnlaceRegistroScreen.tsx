@@ -180,7 +180,7 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
                 </View>
                 <Text style={styles.infoText}>
                   Revisá tu correo y copiá el token de verificación. En
-                  desarrollo lo encontrás en los logs del servidor.
+                  modo local necesitas habilitar un proveedor de correo de prueba.
                 </Text>
               </View>
 

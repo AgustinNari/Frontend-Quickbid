@@ -317,7 +317,7 @@ subasta o al live. No redirige automaticamente.
 - revisar documentacion de origen;
 - revisar, aceptar o rechazar un acuerdo solo en un caso controlado;
 - recorrer devolucion y pago de envio de devolucion;
-- revisar liquidacion y comprobantes como metadata.
+- revisar liquidacion y disponibilidad real de sus comprobantes.
 
 ### Seguridad
 
@@ -558,13 +558,22 @@ Las referencias visuales orientan la UI, pero no definen endpoints ni
 contratos.
 ## Documentos descargables
 
-CompraDetail y ConsignacionDetail muestran acciones de descarga únicamente
+CompraDetail y ConsignacionDetail muestran acciones de verificacion únicamente
 cuando el backend informa `downloadAvailable=true`. La descarga usa JWT en el
 header contra el `downloadUrl` relativo; nunca agrega tokens a la URL ni muestra
 rutas internas de storage.
 
-La app actual no incluye una dependencia nativa para persistir o abrir archivos
-recibidos. Por eso valida la descarga autenticada completa y muestra nombre,
-tamaño y resultado, pero no guarda el archivo en Descargas ni lo abre con otra
-app. Esa integración queda pendiente para un cambio nativo separado. Metadata
-histórica sin archivo físico se presenta como “Archivo no disponible”.
+La app actual no incluye una dependencia nativa para persistir o abrir archivos.
+Por eso el CTA dice `Verificar documento`: valida la respuesta autenticada y
+muestra nombre, tamaño y tipo sin afirmar que guardó una copia. Un archivo no
+disponible se explica con un mensaje de usuario y nunca muestra rutas internas.
+
+## Scripts Android local y Render
+
+- `npm run reverse:metro`: reverse solo de Metro (`8081`).
+- `npm run reverse:local-backend`: reverse solo del backend local (`8080`).
+- `npm run android:public`: Render público y reverse únicamente de Metro.
+- `npm run android:local`: backend local y Metro; requiere `API_MODE='localReverse'`.
+
+El cliente corta solicitudes a los 20 segundos y muestra que QuickBid puede estar
+iniciando, evitando loaders indefinidos durante un cold start de Render.

@@ -143,7 +143,7 @@ Probar con el propietario del documento:
 La app no guarda ni abre el archivo nativamente; informa la recepcion sin
 crashear. En Render sin disco persistente, `APP_FILES_STORAGE_PATH` es efimero:
 los archivos subidos pueden desaparecer al reiniciar o redesplegar. Los seeds
-de metadata no garantizan que exista un binario luego de cada deploy.
+historicos no garantizan que exista un binario luego de cada deploy.
 
 ## 8. Orden final de smoke
 
@@ -153,7 +153,8 @@ de metadata no garantizan que exista un binario luego de cada deploy.
 4. Restriccion por multa y cuenta bloqueada.
 5. Consignaciones y compras en modo lectura.
 6. WebSocket/STOMP y reconexion controlada.
-7. Documento autorizado real, si existe en storage.
+7. PDF generado autorizado: verificar nombre/tipo/tamaño; repetir tras redeploy
+   para validar el respaldo PostgreSQL de V14.
 8. Mail auth con Resend; notificaciones de negocio siguen desactivadas.
 9. Solo si la base fue reseteada, una mutacion seleccionada e idempotente.
 
@@ -163,3 +164,7 @@ Guardar fecha/hora, commit desplegado, escenario, status HTTP y resultado
 visible. En logs buscar errores de Flyway, autenticacion, timeout de Resend,
 WebSocket y storage, pero redactar siempre `Authorization`, tokens, URLs de
 auth, API keys, passwords y URLs privadas de PostgreSQL.
+
+Para modo público usar `npm run android:public`; no aplicar reverse `8080`.
+Para backend local seleccionar `API_MODE='localReverse'` y usar
+`npm run android:local`.

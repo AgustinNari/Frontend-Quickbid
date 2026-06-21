@@ -31,6 +31,7 @@ import BottomNavBar, {
 import { SubastaCard, SubastaCardCompact } from '../components/SubastaCard';
 import { FilterChips, FilterOption } from '../components/FilterChips';
 import { subastasApi } from '../api/subastas';
+import { userFacingError } from '../api/client';
 import { mapSubastaResumen } from '../mappers/subastas';
 import {
   SubastaSegmento,
@@ -61,11 +62,7 @@ export default function SubastasScreen({ navigation }: Props) {
       const page = await subastasApi.listar({ page: 0, size: 100 });
       setSubastas(page.content.map(mapSubastaResumen));
     } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : 'No pudimos cargar las subastas.',
-      );
+      setError(userFacingError(loadError, 'No pudimos cargar las subastas.'));
     } finally {
       setLoading(false);
       setRefreshing(false);

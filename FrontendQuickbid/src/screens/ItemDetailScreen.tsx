@@ -36,6 +36,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { SubastaInfoRow } from '../components/SubastaInfoRow';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
 import { subastasApi } from '../api/subastas';
+import { userFacingError } from '../api/client';
 import { mapItemDetalle, mapSubastaDetalle } from '../mappers/subastas';
 import { formatPrecio } from '../utils/format';
 import {
@@ -75,11 +76,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
       setItem(mapItemDetalle(itemDto, mapSubastaDetalle(subastaDto)));
     } catch (loadError) {
       setItem(null);
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : 'No pudimos cargar el lote.',
-      );
+      setError(userFacingError(loadError, 'No pudimos cargar el lote.'));
     } finally {
       setLoading(false);
     }

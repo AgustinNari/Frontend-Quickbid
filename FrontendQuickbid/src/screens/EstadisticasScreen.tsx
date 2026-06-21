@@ -21,6 +21,7 @@ import {
   spacing,
 } from '../theme';
 import { usuarioApi } from '../api/usuario';
+import { userFacingError } from '../api/client';
 import { EstadisticasUsuario, PeriodoEstadisticas } from '../types/usuario';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Estadisticas'>;
@@ -45,11 +46,7 @@ export default function EstadisticasScreen({ navigation }: Props) {
       setData(await usuarioApi.estadisticas(periodo));
     } catch (loadError) {
       setData(null);
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : 'No pudimos cargar las estadisticas.',
-      );
+      setError(userFacingError(loadError, 'No pudimos cargar las estadisticas.'));
     } finally {
       setLoading(false);
     }

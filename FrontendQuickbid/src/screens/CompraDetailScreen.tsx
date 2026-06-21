@@ -35,7 +35,7 @@ import BottomNavBar, {
 import { ScreenHeader } from '../components/ScreenHeader';
 import { formatPrecio } from '../utils/format';
 import { comprasApi } from '../api/compras';
-import { ApiError } from '../api/client';
+import { userFacingError } from '../api/client';
 import {
   CompraDetalleUi,
   DocumentoCompraUi,
@@ -89,18 +89,24 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
     if (!doc.downloadAvailable || !doc.downloadUrl) {
       Alert.alert(
         'Archivo no disponible',
-        'Existe metadata del documento, pero el archivo fisico no esta disponible.',
+        'El documento no esta disponible en este momento. Intenta generarlo nuevamente o contacta soporte.',
       );
       return;
     }
     try {
       const downloaded = await comprasApi.descargarDocumento(doc.downloadUrl);
       Alert.alert(
-        'Documento recibido',
-        `${downloaded.filename ?? doc.filename} (${downloaded.sizeBytes} bytes) se descargo de forma autenticada. Esta version de la app todavia no puede guardarlo o abrirlo sin una integracion nativa de archivos.`,
+        'Documento verificado',
+        `${downloaded.filename ?? doc.filename} - ${downloaded.sizeBytes} bytes - ${downloaded.contentType}. El archivo esta disponible; podes solicitar una copia desde soporte.`,
       );
     } catch (err) {
-      Alert.alert('No se pudo descargar', readableError(err));
+      Alert.alert(
+        'Documento no disponible',
+        userFacingError(
+          err,
+          'El documento no esta disponible en este momento. Intenta generarlo nuevamente o contacta soporte.',
+        ),
+      );
     }
   };
 
@@ -435,7 +441,7 @@ function DocumentosSection({
               onPress={() => onShow(doc)}
               fullWidth={false}
             >
-              Descargar
+              Verificar documento
             </Button>
           ) : (
             <Typography style={styles.docMeta}>Archivo no disponible</Typography>
@@ -523,9 +529,10 @@ function EconRow({
 }
 
 function readableError(err: unknown) {
-  if (err instanceof ApiError) return err.message;
-  if (err instanceof Error) return err.message;
-  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
+  return userFacingError(
+    err,
+    'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
+  );
 }
 
 function formatShortDate(iso: string | null) {
