@@ -2,8 +2,8 @@ export type ApiMode = 'localReverse' | 'emulator' | 'public';
 
 // Cambiar solo estas dos constantes para una demo contra un backend publico.
 // El dominio example.com es un placeholder: reemplazarlo antes de usar modo public.
-export const API_MODE: ApiMode = 'localReverse';
-export const PUBLIC_API_BASE_URL = 'https://tu-backend-publico.example.com';
+export const API_MODE: ApiMode = 'public';
+export const PUBLIC_API_BASE_URL = 'https://quickbid-backend-demo.onrender.com';
 
 const API_BASE_URLS: Record<ApiMode, string> = {
   localReverse: 'http://localhost:8080',
