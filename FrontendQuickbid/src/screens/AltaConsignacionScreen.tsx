@@ -33,7 +33,7 @@ import {
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SubastaSegmento, SEGMENTO_LABEL } from '../types/subasta';
 import { consignacionesApi } from '../api/consignaciones';
-import { ApiError } from '../api/client';
+import { userFacingError } from '../api/client';
 import { ConsignacionFileInput } from '../types/consignacionApi';
 import {
   ConsignacionRequisitoUi,
@@ -593,9 +593,10 @@ function assetToFile(asset: Asset): ConsignacionFileInput | null {
 }
 
 function readableError(err: unknown) {
-  if (err instanceof ApiError) return err.message;
-  if (err instanceof Error) return err.message;
-  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
+  return userFacingError(
+    err,
+    'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
+  );
 }
 
 const styles = StyleSheet.create({

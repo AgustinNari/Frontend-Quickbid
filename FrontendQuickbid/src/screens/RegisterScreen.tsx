@@ -18,7 +18,7 @@ import { RootStackParamList } from '../../App';
 import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { authApi } from '../api/auth';
-import { ApiError } from '../api/client';
+import { userFacingError } from '../api/client';
 import { catalogosApi } from '../api/catalogos';
 import { PaisCatalogo } from '../types/catalogos';
 import { safeGoBack } from '../navigation/navigationUtils';
@@ -318,9 +318,10 @@ export default function RegisterScreen({ navigation }: Props) {
 }
 
 function readableError(error: unknown) {
-  if (error instanceof ApiError) return error.message;
-  if (error instanceof Error) return error.message;
-  return 'No se pudo cargar el catalogo de paises. Probalo de nuevo en unos minutos.';
+  return userFacingError(
+    error,
+    'No se pudo cargar el catalogo de paises. Probalo de nuevo en unos minutos.',
+  );
 }
 
 const styles = StyleSheet.create({

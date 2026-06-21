@@ -1,5 +1,8 @@
 # FrontendQuickbid
 
+Guia unica para cerrar, desplegar y presentar QuickBid:
+[DEMO_FINAL_QUICKBID.md](../../-Backend-Desarrollo-de-Aplicaciones-I/quickbid/docs/DEMO_FINAL_QUICKBID.md).
+
 App móvil del proyecto académico **QuickBid**, desarrollada en React Native con TypeScript.
 
 ---
@@ -198,7 +201,11 @@ El proyecto compila solo para `arm64-v8a` (dispositivos físicos) y `x86_64` (em
 | `npm start` | Inicia el bundler de Metro |
 | `npm run android` | Compila e instala en Android (macOS/Linux) |
 | `npm run android:win` | Compila e instala en Android (Windows, gradlew directo) |
-| `npm run android:device` | **Windows con dispositivo físico** — hace `adb reverse` + build en un paso |
-| `npm run reverse` | Reenvía Metro (`8081`) y el backend (`8080`) al dispositivo/emulador |
+| `npm run android:public` | Render publico; reverse solo de Metro (`8081`) |
+| `npm run android:local` | Backend local; reverse de Metro (`8081`) y backend (`8080`) |
+| `npm run reverse:metro` | Reenvia solamente Metro (`8081`) |
+| `npm run reverse:local-backend` | Reenvia solamente el backend local (`8080`) |
+| `npm run android:device` | Script legacy para modo local; hace reverse de `8081` y `8080` |
+| `npm run reverse` | Script legacy para modo local; reenvia `8081` y `8080` |
 | `npm run lint` | Corre el linter |
 | `npm test` | Corre los tests |

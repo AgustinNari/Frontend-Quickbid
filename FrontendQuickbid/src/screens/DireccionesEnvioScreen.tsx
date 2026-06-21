@@ -23,6 +23,7 @@ import {
   spacing,
 } from '../theme';
 import { direccionesApi } from '../api/direcciones';
+import { userFacingError } from '../api/client';
 import { CrearDireccionRequest, DireccionEnvioDto } from '../types/direcciones';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'DireccionesEnvio'>;
@@ -271,7 +272,7 @@ function AddressCard({
   );
 }
 function message(error: unknown) {
-  return error instanceof Error ? error.message : 'Intenta nuevamente.';
+  return userFacingError(error, 'Intenta nuevamente.');
 }
 
 const styles = StyleSheet.create({

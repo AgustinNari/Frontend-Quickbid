@@ -277,7 +277,7 @@ function paymentStateVisual(medio: MedioPagoDto): {
   };
 }
 function message(error: unknown) {
-  return error instanceof Error ? error.message : 'Intenta nuevamente.';
+  return userFacingError(error, 'Intenta nuevamente.');
 }
 
 const styles = StyleSheet.create({

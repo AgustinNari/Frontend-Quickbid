@@ -78,9 +78,7 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
         } catch (accessLoadError) {
           setVerificacion(null);
           setAccessError(
-            accessLoadError instanceof Error
-              ? accessLoadError.message
-              : 'No pudimos verificar tu acceso.',
+            userFacingError(accessLoadError, 'No pudimos verificar tu acceso.'),
           );
         }
       } else {

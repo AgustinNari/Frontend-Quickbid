@@ -12,6 +12,7 @@ import { RootStackParamList } from '../../App';
 import BottomNavBar, { BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { subastasApi } from '../api/subastas';
+import { userFacingError } from '../api/client';
 import { mapSubastaDetalle } from '../mappers/subastas';
 import {
   MedioPagoInscripcionApi,
@@ -312,9 +313,7 @@ function estadoMedio(item: MedioPagoInscripcionApi) {
     : item.estado.replaceAll('_', ' ');
 }
 function message(error: unknown) {
-  return error instanceof Error
-    ? error.message
-    : 'No pudimos completar la operacion.';
+  return userFacingError(error, 'No pudimos completar la operacion.');
 }
 
 const styles = StyleSheet.create({

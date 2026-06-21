@@ -45,7 +45,7 @@ import BottomNavBar, {
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SEGMENTO_THEME } from '../components/SubastaCard';
 import { useAuth } from '../context/AuthContext';
-import { ApiError } from '../api/client';
+import { userFacingError } from '../api/client';
 import { createLiveRealtimeClient } from '../api/realtime';
 import { createBidIdempotencyKey, pujasApi } from '../api/pujas';
 import { subastasApi } from '../api/subastas';
@@ -1122,9 +1122,7 @@ function formatCountdown(seconds: number) {
 }
 
 function readableError(error: unknown, fallback: string) {
-  if (error instanceof ApiError) return error.message || fallback;
-  if (error instanceof Error) return error.message || fallback;
-  return fallback;
+  return userFacingError(error, fallback);
 }
 
 function bloqueoPujaMessage(puja: PujaActual) {

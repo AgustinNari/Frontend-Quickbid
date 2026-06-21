@@ -25,7 +25,7 @@ import BottomNavBar, {
 import { ScreenHeader } from '../components/ScreenHeader';
 import { EmptyState, Icon, Loader, Badge, Typography } from '../ui';
 import { consignacionesApi } from '../api/consignaciones';
-import { ApiError } from '../api/client';
+import { userFacingError } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import {
   ConsignacionResumenUi,
@@ -261,9 +261,10 @@ function ConsignacionItem({
 }
 
 function readableError(err: unknown) {
-  if (err instanceof ApiError) return err.message;
-  if (err instanceof Error) return err.message;
-  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
+  return userFacingError(
+    err,
+    'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
+  );
 }
 
 const itemStyles = StyleSheet.create({

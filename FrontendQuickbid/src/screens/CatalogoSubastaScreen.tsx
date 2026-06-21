@@ -25,6 +25,7 @@ import BottomNavBar, {
 import { ScreenHeader } from '../components/ScreenHeader';
 import { ItemCatalogoCard } from '../components/ItemCatalogoCard';
 import { subastasApi } from '../api/subastas';
+import { userFacingError } from '../api/client';
 import { mapItemCatalogo, mapSubastaDetalle } from '../mappers/subastas';
 import { ItemCatalogo, SubastaEstado } from '../types/subasta';
 import { useAuth } from '../context/AuthContext';
@@ -64,11 +65,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
       setSubastaEstado(detalle.estado);
     } catch (loadError) {
       setItems([]);
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : 'No pudimos cargar el catalogo.',
-      );
+      setError(userFacingError(loadError, 'No pudimos cargar el catalogo.'));
     } finally {
       setLoading(false);
     }

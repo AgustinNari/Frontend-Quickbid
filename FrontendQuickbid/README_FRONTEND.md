@@ -1,5 +1,8 @@
 # QuickBid Mobile Frontend
 
+Guia unica para cerrar, desplegar y presentar la demo completa:
+[DEMO_FINAL_QUICKBID.md](../../-Backend-Desarrollo-de-Aplicaciones-I/quickbid/docs/DEMO_FINAL_QUICKBID.md).
+
 Guia final para levantar, probar, presentar y entregar el frontend mobile de
 QuickBid.
 

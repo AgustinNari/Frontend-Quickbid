@@ -35,7 +35,7 @@ import BottomNavBar, {
 import { ScreenHeader } from '../components/ScreenHeader';
 import { formatPrecio } from '../utils/format';
 import { comprasApi } from '../api/compras';
-import { ApiError } from '../api/client';
+import { userFacingError } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import {
   CompraResumenUi,
@@ -325,9 +325,10 @@ function TabButton({
 }
 
 function readableError(err: unknown) {
-  if (err instanceof ApiError) return err.message;
-  if (err instanceof Error) return err.message;
-  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
+  return userFacingError(
+    err,
+    'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
+  );
 }
 
 const styles = StyleSheet.create({

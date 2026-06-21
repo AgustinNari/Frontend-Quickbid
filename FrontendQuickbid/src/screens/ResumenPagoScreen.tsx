@@ -24,7 +24,7 @@ import { formatPrecio } from '../utils/format';
 import { comprasApi, createIdempotencyKey } from '../api/compras';
 import { mediosPagoApi } from '../api/mediosPago';
 import { direccionesApi } from '../api/direcciones';
-import { ApiError } from '../api/client';
+import { userFacingError } from '../api/client';
 import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
 import { DireccionEnvioDto } from '../types/direcciones';
 import {
@@ -619,9 +619,10 @@ function medioTipoLabel(tipo: MedioPagoDto['tipo']) {
 }
 
 function readableError(err: unknown) {
-  if (err instanceof ApiError) return err.message;
-  if (err instanceof Error) return err.message;
-  return 'QuickBid no esta disponible. Probalo de nuevo en unos minutos.';
+  return userFacingError(
+    err,
+    'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
+  );
 }
 
 const hitSlop = { top: 10, bottom: 10, left: 10, right: 10 };
