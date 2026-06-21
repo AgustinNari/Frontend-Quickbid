@@ -25,6 +25,7 @@ type DocumentModule = {
     authorization: string,
     fallbackFilename: string | null,
   ): Promise<NativeDownloadedFile>;
+  canReadUri(uri: string): Promise<boolean>;
 };
 
 export const connectivityModule =
@@ -36,3 +37,12 @@ export const documentModule =
   Platform.OS === 'android'
     ? (NativeModules.QuickBidDocument as DocumentModule | undefined)
     : undefined;
+
+export async function canReadLocalUri(uri: string) {
+  if (!documentModule) return true;
+  try {
+    return await documentModule.canReadUri(uri);
+  } catch {
+    return false;
+  }
+}

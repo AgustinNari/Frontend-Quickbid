@@ -187,4 +187,12 @@ Para backend local seleccionar `API_MODE='localReverse'` y usar
 - [ ] Galería funciona sin permisos amplios de almacenamiento.
 - [ ] Un PDF real V14 abre el chooser Android desde compra y consignación.
 - [ ] El PDF informa nombre, tamaño y MIME; el JWT sólo viaja en `Authorization`.
+- [ ] En modo avión, un alta de consignación válida queda pendiente en este
+  dispositivo y no intenta sincronizarse sola.
+- [ ] Al volver a Wi-Fi, **Reintentar** envía y limpia el draft.
+- [ ] Al volver con datos móviles, **Reintentar** pide confirmación antes de las
+  fotos; cancelar conserva el pendiente.
+- [ ] **Eliminar** limpia el draft y **Continuar editando** restaura sus campos.
+- [ ] Si Android limpió una URI temporal, el envío se bloquea con un mensaje para
+  volver a elegir la foto.
 - [ ] Sin aplicación compatible o sin red aparece un error de usuario, no un error nativo.

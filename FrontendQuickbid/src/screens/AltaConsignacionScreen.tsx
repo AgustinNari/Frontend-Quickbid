@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   View,
   SafeAreaView,
@@ -42,6 +48,16 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useNetwork } from '../context/NetworkContext';
 import { pickImages } from '../mobile/mediaPicker';
+import { canReadLocalUri } from '../mobile/nativeMobile';
+import {
+  ConsignmentDraft,
+  ConsignmentDraftForm,
+  ConsignmentDraftStatus,
+  consignmentDraftStore,
+  createConsignmentDraft,
+  createDraftId,
+  retryConsignmentDraft,
+} from '../offline/consignmentDrafts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AltaConsignacion'>;
 
@@ -65,7 +81,9 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   const [minimoFotos, setMinimoFotos] = useState(6);
   const [requisitos, setRequisitos] = useState<ConsignacionRequisitoUi[]>([]);
   const { isGuest, estadoCuenta } = useAuth();
-  const { confirmHeavyAction } = useNetwork();
+  const network = useNetwork();
+  const { confirmHeavyAction } = network;
+  const offline = !network.isConnected || !network.isInternetReachable;
 
   const [aceptaTyc, setAceptaTyc] = useState(false);
   const [aceptaJurada, setAceptaJurada] = useState(false);
@@ -77,9 +95,75 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   const [esObraDeArte, setEsObraDeArte] = useState(false);
   const [autor, setAutor] = useState('');
   const [fotos, setFotos] = useState<ConsignacionFileInput[]>([]);
+  const [drafts, setDrafts] = useState<ConsignmentDraft[]>([]);
+  const [draftsLoaded, setDraftsLoaded] = useState(false);
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<
+    'idle' | 'pending' | 'saved' | 'error'
+  >('idle');
+  const autosaveVersion = useRef(0);
+  const completedDraft = useRef(false);
+  const lastSavedFingerprint = useRef('');
+
+  const form = useMemo<ConsignmentDraftForm>(
+    () => ({
+      titulo,
+      segmento,
+      descripcion,
+      historia,
+      fechaAproximada,
+      aceptaTyc,
+      aceptaJurada,
+      esObraDeArte,
+      autor,
+      fotos,
+    }),
+    [
+      aceptaJurada,
+      aceptaTyc,
+      autor,
+      descripcion,
+      esObraDeArte,
+      fechaAproximada,
+      fotos,
+      historia,
+      segmento,
+      titulo,
+    ],
+  );
+
+  const refreshDrafts = useCallback(async () => {
+    const stored = await consignmentDraftStore.list();
+    const recovered = await Promise.all(
+      stored.map(draft =>
+        draft.status === 'subiendo'
+          ? consignmentDraftStore.update(draft.id, {
+              status: 'fallido',
+              ultimoError:
+                'El envio se interrumpio. Podes reintentarlo manualmente.',
+            })
+          : Promise.resolve(draft),
+      ),
+    );
+    setDrafts(recovered.filter((draft): draft is ConsignmentDraft => !!draft));
+    setDraftsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    refreshDrafts().catch(() => {
+      setSaveState('error');
+      setDraftsLoaded(true);
+    });
+  }, [refreshDrafts]);
 
   const load = useCallback(async () => {
     if (isGuest) {
+      setLoading(false);
+      return;
+    }
+    if (offline) {
+      setPuedeContinuar(true);
+      setError(null);
       setLoading(false);
       return;
     }
@@ -91,17 +175,76 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       setMinimoFotos(response.minimoFotos);
       setRequisitos(response.requisitos.map(mapRequisito));
     } catch (err) {
-      setError(readableError(err));
+      if (offline) {
+        setPuedeContinuar(true);
+        setError(null);
+      } else {
+        setError(readableError(err));
+      }
     } finally {
       setLoading(false);
     }
-  }, [isGuest]);
+  }, [isGuest, offline]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const paso1Ok = puedeContinuar && aceptaTyc && aceptaJurada;
+  useEffect(() => {
+    if (!draftsLoaded || completedDraft.current || !hasDraftContent(form)) return;
+    const fingerprint = JSON.stringify(form);
+    if (fingerprint === lastSavedFingerprint.current) return;
+    const version = ++autosaveVersion.current;
+    setSaveState('pending');
+    const timer = setTimeout(async () => {
+      if (version !== autosaveVersion.current) return;
+      try {
+        const id = activeDraftId ?? createDraftId();
+        const existing = await consignmentDraftStore.get(id);
+        await consignmentDraftStore.save(
+          existing
+            ? {
+                ...existing,
+                status: 'borrador',
+                ultimoError: null,
+                updatedAt: new Date().toISOString(),
+                form,
+              }
+            : createConsignmentDraft(form, { id }),
+        );
+        if (!activeDraftId) setActiveDraftId(id);
+        lastSavedFingerprint.current = fingerprint;
+        setSaveState('saved');
+        await refreshDrafts();
+      } catch {
+        setSaveState('error');
+      }
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [activeDraftId, draftsLoaded, form, refreshDrafts]);
+
+  const persistCurrent = async (status: ConsignmentDraftStatus) => {
+    autosaveVersion.current += 1;
+    const id = activeDraftId ?? createDraftId();
+    const existing = await consignmentDraftStore.get(id);
+    const draft = existing
+      ? {
+          ...existing,
+          status,
+          ultimoError: null,
+          updatedAt: new Date().toISOString(),
+          form,
+        }
+      : createConsignmentDraft(form, { id, status });
+    await consignmentDraftStore.save(draft);
+    lastSavedFingerprint.current = JSON.stringify(form);
+    if (!activeDraftId) setActiveDraftId(id);
+    setSaveState('saved');
+    await refreshDrafts();
+    return draft;
+  };
+
+  const paso1Ok = (puedeContinuar || offline) && aceptaTyc && aceptaJurada;
   const paso2Ok =
     titulo.trim().length > 0 &&
     descripcion.trim().length > 0 &&
@@ -124,32 +267,106 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
 
   const handleEnviar = async () => {
     if (!segmento) return;
-    if (!(await confirmHeavyAction())) return;
+    if (offline) {
+      try {
+        await persistCurrent('pendiente_subida');
+        Alert.alert(
+          'Solicitud guardada',
+          'Guardamos tu solicitud en este dispositivo para enviarla cuando vuelva la conexion.',
+        );
+      } catch {
+        setSaveState('error');
+        Alert.alert('No se pudo guardar el borrador');
+      }
+      return;
+    }
     setSubmitting(true);
     try {
-      const created = await consignacionesApi.crear({
-        segmento,
-        aceptaTyC: aceptaTyc,
-        declaracionPropiedadYOrigenLicito: aceptaJurada,
-        titulo: titulo.trim(),
-        descripcion: descripcion.trim(),
-        historia: historia.trim() || undefined,
-        fechaAproximada: fechaAproximada.trim() || undefined,
-        esObraDeArte,
-        autor: esObraDeArte ? autor.trim() || undefined : undefined,
-        fotos,
-      });
-      const ui = mapConsignacionDetalle(created);
-      navigation.replace('ConsignacionExito', {
-        id: ui.id,
-        codigo: `#CONS-${ui.id}`,
-        titulo: ui.titulo,
-      });
+      const draft = await persistCurrent('pendiente_subida');
+      await retryAndOpenSuccess(draft.id);
     } catch (err) {
-      Alert.alert('No se pudo enviar la solicitud', readableError(err));
+      Alert.alert('No se pudo enviar la solicitud', retryError(err));
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const retryAndOpenSuccess = async (id: string) => {
+    const result = await retryConsignmentDraft(consignmentDraftStore, id, {
+      online: !offline,
+      connectionType: network.type,
+      confirmHeavyAction,
+      canReadUri: canReadLocalUri,
+      submit: consignacionesApi.crear,
+      readableError,
+    });
+    await refreshDrafts();
+    if (result.outcome === 'cancelled') return;
+    completedDraft.current = true;
+    const ui = mapConsignacionDetalle(result.value);
+    navigation.replace('ConsignacionExito', {
+      id: ui.id,
+      codigo: `#CONS-${ui.id}`,
+      titulo: ui.titulo,
+    });
+  };
+
+  const handleRetry = async (id: string) => {
+    if (offline) {
+      Alert.alert('Sin conexion', 'Conectate para reintentar el envio.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await retryAndOpenSuccess(id);
+    } catch (err) {
+      await refreshDrafts();
+      Alert.alert('No se pudo enviar la solicitud', retryError(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const continueEditing = (draft: ConsignmentDraft) => {
+    autosaveVersion.current += 1;
+    lastSavedFingerprint.current = JSON.stringify(draft.form);
+    setActiveDraftId(draft.id);
+    setAceptaTyc(draft.form.aceptaTyc);
+    setAceptaJurada(draft.form.aceptaJurada);
+    setTitulo(draft.form.titulo);
+    setSegmento(draft.form.segmento);
+    setDescripcion(draft.form.descripcion);
+    setHistoria(draft.form.historia);
+    setFechaAproximada(draft.form.fechaAproximada);
+    setEsObraDeArte(draft.form.esObraDeArte);
+    setAutor(draft.form.autor);
+    setFotos(draft.form.fotos);
+    setPaso(2);
+    if (draft.form.fotos.length > 0) {
+      Alert.alert(
+        'Revisa las fotos antes de enviar',
+        'Android puede limpiar archivos temporales. Si una foto ya no esta disponible, vas a tener que seleccionarla nuevamente.',
+      );
+    }
+  };
+
+  const deleteDraft = (id: string) => {
+    Alert.alert('Eliminar borrador', 'Esta accion no se puede deshacer.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          await consignmentDraftStore.remove(id);
+          if (activeDraftId === id) {
+            lastSavedFingerprint.current = JSON.stringify(form);
+            setActiveDraftId(null);
+            setSaveState('idle');
+          }
+          await refreshDrafts();
+        },
+      },
+    ]);
   };
 
   if (isGuest) {
@@ -211,6 +428,15 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.body}>
+              <DraftsPanel
+                drafts={drafts}
+                activeDraftId={activeDraftId}
+                offline={offline}
+                submitting={submitting}
+                onRetry={handleRetry}
+                onDelete={deleteDraft}
+                onContinue={continueEditing}
+              />
               <Typography style={styles.pasoLabel}>PASO {paso} DE 2</Typography>
               <Heading style={styles.titulo}>
                 {paso === 1 ? 'Consigna tu bien' : 'Datos del bien'}
@@ -220,11 +446,32 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
                   ? 'Revisa requisitos reales y acepta las condiciones para empezar.'
                   : 'Carga datos y fotos reales para enviar la solicitud.'}
               </Body>
+              {offline ? (
+                <Typography style={styles.offlineNote}>
+                  Estas sin conexion. Podes completar el formulario y guardarlo;
+                  el envio siempre se inicia manualmente.
+                </Typography>
+              ) : null}
+              {saveState !== 'idle' ? (
+                <Typography
+                  style={
+                    saveState === 'error'
+                      ? styles.saveError
+                      : styles.saveStatus
+                  }
+                >
+                  {saveState === 'pending'
+                    ? 'Cambios pendientes de guardar'
+                    : saveState === 'saved'
+                      ? 'Borrador guardado en este dispositivo'
+                      : 'No se pudo guardar el borrador'}
+                </Typography>
+              ) : null}
 
               {paso === 1 ? (
                 <Paso1
                   requisitos={requisitos}
-                  puedeContinuar={puedeContinuar}
+                  puedeContinuar={puedeContinuar || offline}
                   aceptaTyc={aceptaTyc}
                   aceptaJurada={aceptaJurada}
                   onToggleTyc={() => setAceptaTyc(v => !v)}
@@ -357,6 +604,85 @@ function Paso1({
         />
       </View>
     </>
+  );
+}
+
+function DraftsPanel({
+  drafts,
+  activeDraftId,
+  offline,
+  submitting,
+  onRetry,
+  onDelete,
+  onContinue,
+}: {
+  drafts: ConsignmentDraft[];
+  activeDraftId: string | null;
+  offline: boolean;
+  submitting: boolean;
+  onRetry: (id: string) => void;
+  onDelete: (id: string) => void;
+  onContinue: (draft: ConsignmentDraft) => void;
+}) {
+  const visible = drafts.filter(
+    draft =>
+      draft.status !== 'completado' &&
+      (draft.id !== activeDraftId || draft.status !== 'borrador'),
+  );
+  const pendingCount = drafts.filter(draft =>
+    ['pendiente_subida', 'fallido', 'subiendo'].includes(draft.status),
+  ).length;
+  if (visible.length === 0 && pendingCount === 0) return null;
+  return (
+    <View style={styles.draftsPanel}>
+      <Typography style={styles.sectionLabel}>
+        SOLICITUDES PENDIENTES: {pendingCount}
+      </Typography>
+      {pendingCount > 0 && !offline ? (
+        <Typography style={styles.pendingNotice}>
+          Volvio la conexion. Revisa y reintenta el envio cuando quieras.
+        </Typography>
+      ) : null}
+      {visible.map(draft => (
+        <View key={draft.id} style={styles.draftCard}>
+          <Typography style={styles.draftTitle} numberOfLines={1}>
+            {draft.form.titulo || 'Consignacion sin titulo'}
+          </Typography>
+          <Typography style={styles.draftMeta}>
+            {draftStatusLabel(draft.status)} · {draft.form.fotos.length} fotos
+          </Typography>
+          {draft.ultimoError ? (
+            <Typography style={styles.saveError}>{draft.ultimoError}</Typography>
+          ) : null}
+          <View style={styles.draftActions}>
+            {draft.status === 'pendiente_subida' ||
+            draft.status === 'fallido' ? (
+              <TouchableOpacity
+                disabled={offline || submitting}
+                onPress={() => onRetry(draft.id)}
+              >
+                <Typography
+                  style={[
+                    styles.draftAction,
+                    offline ? styles.draftActionDisabled : null,
+                  ]}
+                >
+                  Reintentar
+                </Typography>
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity onPress={() => onContinue(draft)}>
+              <Typography style={styles.draftAction}>
+                Continuar editando
+              </Typography>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => onDelete(draft.id)}>
+              <Typography style={styles.deleteAction}>Eliminar</Typography>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -560,6 +886,36 @@ function readableError(err: unknown) {
   );
 }
 
+function retryError(err: unknown) {
+  return err instanceof Error && err.message ? err.message : readableError(err);
+}
+
+function hasDraftContent(form: ConsignmentDraftForm) {
+  return Boolean(
+    form.titulo ||
+      form.segmento ||
+      form.descripcion ||
+      form.historia ||
+      form.fechaAproximada ||
+      form.aceptaTyc ||
+      form.aceptaJurada ||
+      form.esObraDeArte ||
+      form.autor ||
+      form.fotos.length,
+  );
+}
+
+function draftStatusLabel(status: ConsignmentDraftStatus) {
+  const labels: Record<ConsignmentDraftStatus, string> = {
+    borrador: 'Borrador',
+    pendiente_subida: 'Pendiente de envio',
+    subiendo: 'Enviando',
+    fallido: 'Envio fallido',
+    completado: 'Completado',
+  };
+  return labels[status];
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   scroll: { paddingBottom: spacing['3xl'] },
@@ -577,6 +933,44 @@ const styles = StyleSheet.create({
   },
   titulo: { fontSize: fontSize['3xl'], marginTop: -spacing.xs },
   subtitulo: { marginTop: -spacing.xs },
+  offlineNote: {
+    fontSize: fontSize.sm,
+    color: colors.warning,
+    backgroundColor: colors.warningSoft,
+    padding: spacing.sm,
+    borderRadius: radius.md,
+  },
+  saveStatus: { fontSize: fontSize.sm, color: colors.textMuted },
+  saveError: { fontSize: fontSize.sm, color: colors.danger },
+  draftsPanel: {
+    gap: spacing.sm,
+    padding: spacing.base,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceMuted,
+  },
+  pendingNotice: { fontSize: fontSize.sm, color: colors.textMuted },
+  draftCard: {
+    gap: spacing.xs,
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+  },
+  draftTitle: { fontWeight: fontWeight.semibold, color: colors.text },
+  draftMeta: { fontSize: fontSize.sm, color: colors.textMuted },
+  draftActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.base },
+  draftAction: {
+    fontSize: fontSize.sm,
+    color: colors.primary,
+    fontWeight: fontWeight.semibold,
+  },
+  draftActionDisabled: { color: colors.textSubtle },
+  deleteAction: {
+    fontSize: fontSize.sm,
+    color: colors.danger,
+    fontWeight: fontWeight.semibold,
+  },
   section: { gap: spacing.sm, marginTop: spacing.sm },
   sectionLabel: {
     fontSize: fontSize.xs,

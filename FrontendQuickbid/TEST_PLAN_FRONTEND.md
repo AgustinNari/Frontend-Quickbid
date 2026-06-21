@@ -480,6 +480,27 @@ reseteada o seed seguro preparado para consumirse.
 - [ ] Cámara pide `CAMERA`, explica el motivo y permite abrir Configuración después de `No volver a preguntar`.
 - [ ] Galería funciona sin `READ_MEDIA_IMAGES`/`READ_EXTERNAL_STORAGE` y sólo entrega imágenes seleccionadas.
 - [ ] Se mantienen URI, nombre fallback, MIME y límites 6–15 de consignación.
+
+### Borradores offline de consignación
+
+- [ ] Con Wi-Fi, completar parcialmente un alta, esperar un segundo, salir y
+  volver: aparece “Borrador guardado en este dispositivo” y se puede continuar.
+- [ ] Activar modo avión, completar los campos y pulsar Enviar: no hay request,
+  queda `pendiente_subida` y aparece el mensaje de guardado local.
+- [ ] Desactivar modo avión y conectar Wi-Fi: aparece el aviso y **Reintentar**;
+  sólo al pulsarlo se envía y, si termina bien, desaparece el draft.
+- [ ] Repetir con datos móviles: antes de leer/subir las fotos aparece la
+  confirmación; cancelar no cambia el pendiente ni llama al backend.
+- [ ] Forzar error de backend: queda `fallido`, conserva datos y muestra el
+  último error legible.
+- [ ] Cerrar la app con estado `subiendo`: al abrir se recupera como `fallido`
+  para reintento manual.
+- [ ] Limpiar la caché o invalidar una URI de foto: el reintento se detiene y
+  pide volver a seleccionarla desde **Continuar editando**.
+- [ ] Pulsar **Eliminar** y confirmar: se limpia la metadata de AsyncStorage.
+- [ ] Confirmar que pujas, pagos, compras, inscripciones, auth, WebSocket y admin
+  no muestran ni usan esta cola; realtime disabled no convierte esas acciones
+  en operaciones offline.
 - [ ] PDF autorizado abre chooser; muestra nombre, tamaño y tipo.
 - [ ] PDF inválido, red caída o ausencia de app compatible producen un mensaje legible sin revelar token o error nativo.
 - [ ] Repetir en emulador con cámara virtual y en celular físico con Wi-Fi/datos.

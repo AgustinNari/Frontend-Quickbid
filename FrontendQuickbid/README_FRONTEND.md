@@ -623,3 +623,25 @@ iniciando, evitando loaders indefinidos durante un cold start de Render.
 - **Límite null no es límite ilimitado:** un medio que requiere límite o saldo y no tiene `limite_monto` informado no puede pagar el envío de una devolución.
 
 Android muestra `QuickBid` en el launcher y usa un ícono vectorial liviano inspirado en el martillo del logo del proyecto. `AndroidManifest.xml` conserva la etiqueta `@string/app_name`; no se cambiaron package name, `applicationId` ni el nombre interno del componente React Native. Para verificarlo, desinstalar una build anterior si el launcher mantiene caché, ejecutar `npm run android:public` y comprobar nombre e ícono en el launcher. El recurso se puede ajustar sin generadores externos en `android/app/src/main/res/drawable/ic_launcher_quickbid.xml`.
+
+## Borradores offline de consignación
+
+`AltaConsignacionScreen` guarda con debounce, en AsyncStorage bajo
+`@quickbid/consignment-drafts/v1`, título, segmento, descripción, historia,
+fecha aproximada, declaraciones, autor/obra y metadata mínima de fotos (URI,
+nombre y MIME). No guarda access token, refresh token ni secretos. Los estados
+locales son `borrador`, `pendiente_subida`, `subiendo`, `fallido` y
+`completado`; al completar o eliminar se borra la metadata.
+
+El envío nunca se inicia silenciosamente: sin red queda
+`pendiente_subida`, y al volver la conexión el usuario debe pulsar
+**Reintentar**. Sobre datos móviles se reutiliza la confirmación de carga
+pesada. Esta cola no aplica a pujas, pagos, compras, inscripción, login,
+recuperación de clave, WebSocket ni acciones admin porque son operaciones
+económicas, autenticadas o dependientes de tiempo real.
+
+Las fotos seleccionadas por el picker pueden apuntar a caché temporal. Para no
+duplicar archivos, el MVP conserva las URIs y Android comprueba que aún sean
+legibles antes del reintento. El sistema operativo puede limpiar esa caché: en
+ese caso el draft queda `fallido` y se pide continuar editando para volver a
+seleccionar las fotos. No se promete persistencia permanente de imágenes.

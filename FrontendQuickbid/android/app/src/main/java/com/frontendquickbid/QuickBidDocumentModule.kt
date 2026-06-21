@@ -2,6 +2,7 @@ package com.frontendquickbid
 
 import android.content.ClipData
 import android.content.Intent
+import android.net.Uri
 import androidx.core.content.FileProvider
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
@@ -23,6 +24,24 @@ class QuickBidDocumentModule(
   override fun invalidate() {
     executor.shutdownNow()
     super.invalidate()
+  }
+
+  @ReactMethod
+  fun canReadUri(uriValue: String, promise: Promise) {
+    executor.execute {
+      try {
+        val uri = Uri.parse(uriValue)
+        val readable = when (uri.scheme?.lowercase()) {
+          "content" -> reactContext.contentResolver.openInputStream(uri)?.use { true } ?: false
+          "file" -> uri.path?.let { File(it).isFile && File(it).canRead() } ?: false
+          null, "" -> File(uriValue).isFile && File(uriValue).canRead()
+          else -> false
+        }
+        promise.resolve(readable)
+      } catch (_: Exception) {
+        promise.resolve(false)
+      }
+    }
   }
 
   @ReactMethod
