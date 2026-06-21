@@ -45,8 +45,9 @@ La navegacion respeta estos estados:
 - Java JDK y herramientas requeridas por React Native Android.
 - Android Studio con un emulador, o un dispositivo Android.
 - ADB disponible en `PATH`.
-- Backend QuickBid escuchando en `localhost:8080`.
-- PostgreSQL y configuracion del backend segun su propio `README.md`.
+- Backend QuickBid publico disponible o backend local escuchando en
+  `localhost:8080`.
+- Para backend local, PostgreSQL y configuracion segun su propio `README.md`.
 
 La guia oficial de entorno de React Native esta en:
 <https://reactnative.dev/docs/set-up-your-environment>.
@@ -174,22 +175,20 @@ reiniciar o recargar la app; si Metro conserva una version anterior, usar
 
 **Escenario D - Backend publico (demo/entrega)**
 
-- Reemplazar `PUBLIC_API_BASE_URL` por la URL HTTPS real entregada por el
-  hosting, sin barra final.
-- Seleccionar `API_MODE = 'public'` en `src/api/config.ts`.
+- La configuracion versionada usa
+  `https://quickbid-backend-demo.onrender.com`, sin barra final.
+- `API_MODE = 'public'` es el modo activo para la demo.
 - La app usa HTTPS y deriva automaticamente `wss://.../ws`.
 - No hace falta `adb reverse` para el puerto del backend.
-- El valor versionado `https://tu-backend-publico.example.com` es solamente un
-  placeholder reservado y no representa un deploy real.
 
 ## 8. Configuracion HTTP y WebSocket
 
 La configuracion central vive en `src/api/config.ts`.
 
-- `API_MODE = 'localReverse'`: default local con `adb reverse`.
+- `API_MODE = 'localReverse'`: alternativa local con `adb reverse`.
 - `API_MODE = 'emulator'`: emulador Android Studio sin reverse del backend.
-- `API_MODE = 'public'`: usa `PUBLIC_API_BASE_URL`, que debe reemplazarse antes
-  del build/demo.
+- `API_MODE = 'public'`: modo activo; usa `PUBLIC_API_BASE_URL` con el deploy de
+  Render.
 - `API_BASE_URL` es la unica base consumida por el cliente HTTP.
 - `WS_BASE_URL` se deriva de ella: HTTP usa `ws://` y HTTPS usa `wss://`.
 - STOMP envia `Authorization: Bearer <accessToken>` en el frame `CONNECT`.
@@ -308,7 +307,7 @@ subasta o al live. No redirige automaticamente.
 - listar compras y abrir un detalle;
 - revisar entrega y pago;
 - recorrer un caso de pago con multa;
-- consultar documentos mostrados como metadata.
+- consultar documentos y ejecutar una descarga autorizada controlada.
 
 ### Consignacion
 
@@ -397,8 +396,8 @@ operacion.
 - Jest puede fallar por configuracion ESM de React Navigation.
 - El lint puede mostrar warnings no bloqueantes preexistentes en mocks.
 - React Native puede mostrar un warning de deprecacion de `SafeAreaView`.
-- Los documentos de compras y consignaciones se muestran como metadata cuando
-  el backend no expone descarga binaria.
+- El backend entrega bytes en descargas autorizadas. La app confirma recepcion,
+  nombre, tipo y tamano; todavia no guarda ni abre el archivo nativamente.
 - No ejecutar pagos reales, pujas validas, acuerdos o transiciones destructivas
   sobre seeds salvo en un caso controlado.
 - En Android usar `adb reverse` o ajustar el host centralizado.
@@ -474,16 +473,18 @@ token tambien expiro o fue revocado, volver a iniciar sesion.
 Verificar:
 
 - backend disponible en el mismo host configurado para HTTP;
-- URL final `ws://<host>:8080/ws`;
+- URL final local `ws://<host>:8080/ws` o publica
+  `wss://quickbid-backend-demo.onrender.com/ws`;
 - access token vigente;
 - `Authorization: Bearer <accessToken>` en `connectHeaders`;
 - ausencia de SockJS;
 - estado de cuenta habilitado para navegar.
 
-### Documentos sin descarga binaria
+### Descarga de documentos
 
-El backend puede exponer solo metadata autorizada. La app muestra nombre,
-tipo, fecha u otros datos disponibles, sin inventar una descarga.
+El backend entrega bytes unicamente con autorizacion. La app informa nombre,
+tipo y tamano recibidos sin crashear; guardar o abrir el archivo con una app
+nativa queda fuera del alcance actual.
 
 ### Jest falla por ESM
 

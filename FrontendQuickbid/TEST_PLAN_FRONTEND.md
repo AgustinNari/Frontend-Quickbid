@@ -187,7 +187,7 @@ consumir seeds ni disparar transiciones reales.
 | SMK-13 | Activo - subastas | `aprobado@quickbid.demo` | Login activo | Abrir subastas, detalle, catalogo e item | Se ven datos autenticados, incluidos importes permitidos | No | No | `00_smoke_readonly.http` |
 | SMK-14 | Activo - inscripcion existente/verificacion | `aprobado@quickbid.demo` | Login activo | Abrir inscripcion o verificacion sin crear nueva si ya existe | La app muestra estado de inscripcion/verificacion | No, si no se confirma una nueva inscripcion | No | `00_smoke_readonly.http` |
 | SMK-15 | Activo - live snapshot | `aprobado@quickbid.demo` | Subasta en vivo seed | Abrir live o snapshot de puja actual | Se ve estado live y posibilidad de pujar segun reglas | No | No | `00_smoke_readonly.http` |
-| SMK-16 | Activo - compras | `aprobado@quickbid.demo` | Login activo | Abrir Mis Compras y detalle | Se listan compras y documentos metadata si existen | No | No | `README.md` |
+| SMK-16 | Activo - compras | `aprobado@quickbid.demo` | Login activo | Abrir Mis Compras y detalle | Se listan compras y documentos autorizados si existen | No | No | `README.md` |
 | SMK-17 | Activo - consignacion | `consignador@quickbid.demo` | Login activo | Abrir consignaciones y detalle seed | Se listan estados y detalle de consignacion | No | No | `05_consignacion_seeds_ramas_independientes.http` |
 | SMK-18 | Activo - logout | Cualquier activo | Login activo | Cerrar sesion | Se limpia sesion local y vuelve a auth/publico | No relevante | No | `README_FRONTEND.md` |
 | SMK-19 | Restriccion multa - login | `multa@quickbid.demo` | Usuario seed disponible | Login | Entra a navegacion permitida con restricciones | No | No | `00_smoke_readonly.http` |

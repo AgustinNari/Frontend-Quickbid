@@ -80,7 +80,7 @@ export default function LoginScreen({ navigation }: Props) {
     setLoading(true);
     try {
       const res = await authApi.login({ email: email.trim(), clave: password });
-      if (!res.data) throw new Error('Respuesta inválida del servidor.');
+      if (!res.data) throw new Error('Respuesta invalida de QuickBid.');
       await login(res.data);
       navigation.reset({
         index: 0,
@@ -97,7 +97,7 @@ export default function LoginScreen({ navigation }: Props) {
       const msg =
         e instanceof ApiError
           ? e.message
-          : 'No se pudo conectar con el servidor.';
+          : 'No pudimos iniciar sesion. Intenta nuevamente.';
       Alert.alert('Error', msg);
     } finally {
       setLoading(false);

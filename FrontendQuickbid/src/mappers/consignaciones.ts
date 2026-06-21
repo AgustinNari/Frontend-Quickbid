@@ -372,7 +372,7 @@ function nextStep(estado: ConsignacionEstadoBackend, requiresDocs: boolean) {
     return 'La devolucion quedo marcada como incompleta por vencimiento del plazo.';
   if (estado.includes('rechazo'))
     return 'La solicitud fue rechazada. Si corresponde, gestiona la devolucion.';
-  return 'Seguimiento actualizado por backend.';
+  return 'Seguimiento actualizado.';
 }
 
 function actionForState(estado: ConsignacionEstadoBackend) {

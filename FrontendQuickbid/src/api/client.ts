@@ -92,7 +92,7 @@ function fallbackForStatus(status: number) {
     return 'No tenes permiso para realizar esta accion con el estado actual de tu cuenta.';
   if (status === 409)
     return 'La operacion no se puede completar porque el estado cambio. Actualiza e intenta nuevamente.';
-  return 'Error del servidor';
+  return 'No pudimos completar la solicitud. Intenta nuevamente en unos minutos.';
 }
 
 async function safeFetch(input: RequestInfo, init?: RequestInit) {
@@ -124,7 +124,7 @@ async function parseEnvelope<T>(
   } catch {
     throw new ApiError(
       response.status,
-      'Error al interpretar la respuesta del servidor',
+      'No pudimos interpretar la respuesta de QuickBid.',
     );
   }
 }
