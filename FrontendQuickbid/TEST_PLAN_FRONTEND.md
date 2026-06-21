@@ -460,3 +460,11 @@ reseteada o seed seguro preparado para consumirse.
   muestra CTA activo.
 - Simular fetch de más de 20 segundos: debe aparecer “QuickBid está iniciando”.
 - Ejecutar `npm test`: cubre derivación `wss`, mapper documental y saneo de errores.
+
+## 14. Consignación y límite de devolución
+
+- **Qué define el usuario en consignación:** datos descriptivos, segmento/rubro, fotos y documentación; verificar que no aparezca “Categoría de subasta”.
+- **Qué define la empresa durante revisión:** categoría comercial y condiciones del acuerdo.
+- **Por qué el usuario no elige categoría de subasta:** evita que una clasificación comercial se tome como una preferencia del consignador; inspeccionar el multipart y confirmar que no contiene `categoriaSubasta`.
+- **Límite null no es límite ilimitado:** el pago de envío debe rechazar un medio verificado con `limite_monto = null` y aceptar uno vigente, en moneda correcta y con límite disponible suficiente.
+- Verificar en el launcher Android el nombre `QuickBid` y el nuevo ícono; si persiste el anterior, desinstalar la app para limpiar la caché del launcher y reinstalar.

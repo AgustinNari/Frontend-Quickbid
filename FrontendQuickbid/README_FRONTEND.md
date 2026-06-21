@@ -580,3 +580,12 @@ disponible se explica con un mensaje de usuario y nunca muestra rutas internas.
 
 El cliente corta solicitudes a los 20 segundos y muestra que QuickBid puede estar
 iniciando, evitando loaders indefinidos durante un cold start de Render.
+
+## Reglas finales de consignación y marca Android
+
+- **Qué define el usuario en consignación:** título, descripción, segmento o rubro, fotos y documentación correspondiente.
+- **Qué define la empresa durante revisión:** la categoría comercial de subasta (`comun`, `especial`, `plata`, `oro` o `platino`) y las condiciones posteriores del acuerdo.
+- **Por qué el usuario no elige categoría de subasta:** es una clasificación comercial de la empresa; el alta móvil no la muestra ni la envía y el backend ignora el parámetro antiguo si un cliente desactualizado lo manda.
+- **Límite null no es límite ilimitado:** un medio que requiere límite o saldo y no tiene `limite_monto` informado no puede pagar el envío de una devolución.
+
+Android muestra `QuickBid` en el launcher y usa un ícono vectorial liviano inspirado en el martillo del logo del proyecto. `AndroidManifest.xml` conserva la etiqueta `@string/app_name`; no se cambiaron package name, `applicationId` ni el nombre interno del componente React Native. Para verificarlo, desinstalar una build anterior si el launcher mantiene caché, ejecutar `npm run android:public` y comprobar nombre e ícono en el launcher. El recurso se puede ajustar sin generadores externos en `android/app/src/main/res/drawable/ic_launcher_quickbid.xml`.

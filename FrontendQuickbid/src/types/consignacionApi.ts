@@ -156,7 +156,6 @@ export type ConsignacionFileInput = {
 
 export type CrearConsignacionRequest = {
   segmento: string;
-  categoriaSubasta?: string;
   aceptaTyC: boolean;
   declaracionPropiedadYOrigenLicito: boolean;
   titulo: string;

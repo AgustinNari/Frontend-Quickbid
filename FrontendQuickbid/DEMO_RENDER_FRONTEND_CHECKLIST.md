@@ -168,3 +168,12 @@ auth, API keys, passwords y URLs privadas de PostgreSQL.
 Para modo público usar `npm run android:public`; no aplicar reverse `8080`.
 Para backend local seleccionar `API_MODE='localReverse'` y usar
 `npm run android:local`.
+
+## 10. Consignación y presentación final
+
+- [ ] El launcher muestra `QuickBid` y el ícono azul con martillo, sin cambiar package name ni `applicationId`.
+- [ ] **Qué define el usuario en consignación:** descripción, segmento/rubro, fotos y documentación.
+- [ ] **Qué define la empresa durante revisión:** categoría comercial de subasta y condiciones del acuerdo.
+- [ ] La pantalla de alta no muestra ni envía `categoriaSubasta`, porque esa categoría no es una elección del usuario.
+- [ ] Un cliente antiguo que envía categoría no logra imponerla: el backend aplica su default controlado.
+- [ ] **Límite null no es límite ilimitado:** devolución por envío rechaza el medio sin límite y acepta un medio vigente con límite suficiente.

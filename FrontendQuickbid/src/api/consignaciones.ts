@@ -44,8 +44,6 @@ export const consignacionesApi = {
   async crear(payload: CrearConsignacionRequest) {
     const form = new FormData();
     form.append('segmento', payload.segmento);
-    if (payload.categoriaSubasta)
-      form.append('categoriaSubasta', payload.categoriaSubasta);
     form.append('aceptaTyC', String(payload.aceptaTyC));
     form.append(
       'declaracionPropiedadYOrigenLicito',

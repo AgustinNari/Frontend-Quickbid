@@ -53,7 +53,6 @@ const SEGMENTOS: SubastaSegmento[] = [
   'diseno',
   'coleccion',
 ];
-const CATEGORIAS_SUBASTA = ['comun', 'especial', 'plata', 'oro', 'platino'];
 const MAX_FOTOS = 15;
 
 export default function AltaConsignacionScreen({ navigation }: Props) {
@@ -70,7 +69,6 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   const [aceptaJurada, setAceptaJurada] = useState(false);
   const [titulo, setTitulo] = useState('');
   const [segmento, setSegmento] = useState<SubastaSegmento | null>(null);
-  const [categoriaSubasta, setCategoriaSubasta] = useState('comun');
   const [descripcion, setDescripcion] = useState('');
   const [historia, setHistoria] = useState('');
   const [fechaAproximada, setFechaAproximada] = useState('');
@@ -136,7 +134,6 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
     try {
       const created = await consignacionesApi.crear({
         segmento,
-        categoriaSubasta,
         aceptaTyC: aceptaTyc,
         declaracionPropiedadYOrigenLicito: aceptaJurada,
         titulo: titulo.trim(),
@@ -244,8 +241,6 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
                   onTitulo={setTitulo}
                   segmento={segmento}
                   onSegmento={setSegmento}
-                  categoriaSubasta={categoriaSubasta}
-                  onCategoriaSubasta={setCategoriaSubasta}
                   descripcion={descripcion}
                   onDescripcion={setDescripcion}
                   historia={historia}
@@ -375,8 +370,6 @@ function Paso2({
   onTitulo,
   segmento,
   onSegmento,
-  categoriaSubasta,
-  onCategoriaSubasta,
   descripcion,
   onDescripcion,
   historia,
@@ -396,8 +389,6 @@ function Paso2({
   onTitulo: (t: string) => void;
   segmento: SubastaSegmento | null;
   onSegmento: (c: SubastaSegmento) => void;
-  categoriaSubasta: string;
-  onCategoriaSubasta: (c: string) => void;
   descripcion: string;
   onDescripcion: (t: string) => void;
   historia: string;
@@ -470,22 +461,6 @@ function Paso2({
               label={SEGMENTO_LABEL[c]}
               selected={c === segmento}
               onPress={() => onSegmento(c)}
-            />
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Typography style={styles.sectionLabel}>
-          CATEGORIA DE SUBASTA
-        </Typography>
-        <View style={styles.chips}>
-          {CATEGORIAS_SUBASTA.map(c => (
-            <Chip
-              key={c}
-              label={c.toUpperCase()}
-              selected={c === categoriaSubasta}
-              onPress={() => onCategoriaSubasta(c)}
             />
           ))}
         </View>
