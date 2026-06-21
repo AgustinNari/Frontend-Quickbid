@@ -128,8 +128,8 @@ export const consignacionesApi = {
     );
   },
 
-  async descargarArchivo(downloadUrl: string) {
-    return apiDownload(downloadUrl);
+  async descargarArchivo(downloadUrl: string, filename?: string) {
+    return apiDownload(downloadUrl, filename);
   },
 
   async aceptarAcuerdo(id: number, payload: AceptarAcuerdoRequest) {

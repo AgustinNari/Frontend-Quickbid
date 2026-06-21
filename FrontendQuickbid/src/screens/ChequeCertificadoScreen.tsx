@@ -14,7 +14,6 @@ import {
   Image,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { launchImageLibrary } from 'react-native-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import BottomNavBar, {
@@ -25,10 +24,12 @@ import { colors, spacing, radius, fontSize, controlHeight } from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { mediosPagoApi } from '../api/mediosPago';
 import { ApiError } from '../api/client';
+import { useNetwork } from '../context/NetworkContext';
+import { MobileImage, pickImages } from '../mobile/mediaPicker';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChequeCertificado'>;
 
-type Foto = { uri: string; name: string; type: string } | null;
+type Foto = MobileImage | null;
 
 function UploadIcon({ done }: { done: boolean }) {
   const c = done ? colors.primary : colors.primary;
@@ -90,16 +91,15 @@ export default function ChequeCertificadoScreen({ navigation }: Props) {
   const [reverso, setReverso] = useState<Foto>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
+  const { confirmHeavyAction } = useNetwork();
 
   async function pickFoto(lado: 'anverso' | 'reverso') {
-    const res = await launchImageLibrary({ mediaType: 'photo', quality: 0.8 });
-    if (res.didCancel || !res.assets?.[0]) return;
-    const asset = res.assets[0];
-    const foto: Foto = {
-      uri: asset.uri!,
-      name: asset.fileName ?? `${lado}.jpg`,
-      type: asset.type ?? 'image/jpeg',
-    };
+    const [foto] = await pickImages({
+      selectionLimit: 1,
+      quality: 0.8,
+      fallbackBaseName: `cheque-${lado}`,
+    });
+    if (!foto) return;
     if (lado === 'anverso') setAnverso(foto);
     else setReverso(foto);
   }
@@ -136,6 +136,7 @@ export default function ChequeCertificadoScreen({ navigation }: Props) {
       return;
     }
 
+    if (!(await confirmHeavyAction())) return;
     setLoading(true);
     try {
       await mediosPagoApi.crearCheque({

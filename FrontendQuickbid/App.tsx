@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { NetworkProvider } from './src/context/NetworkContext';
 
 import LoginScreen from './src/screens/LoginScreen';
 import SplashScreen from './src/screens/SplashScreen';
@@ -254,8 +255,10 @@ function AppNavigator() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppNavigator />
-    </AuthProvider>
+    <NetworkProvider>
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
+    </NetworkProvider>
   );
 }

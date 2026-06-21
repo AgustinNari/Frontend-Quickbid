@@ -450,7 +450,7 @@ reseteada o seed seguro preparado para consumirse.
 | Registro | Crear solicitudes descartables | Probar catalogo de paises sin enviar etapa completa |
 | Cambio de clave | Romper `Demo123!` | Usar clave actual incorrecta para prueba no destructiva |
 | WebSocket | Confundir transporte con operacion | Recordar que puja va por HTTP y STOMP solo notifica |
-| Documentos | Prometer un archivo no guardado | Usar `Verificar documento`; comprobar nombre, tipo y tamaño |
+| Documentos | Confundir caché temporal con Downloads | Usar `Abrir o compartir`; comprobar chooser, nombre, tipo y tamaño |
 | Android local | Backend inaccesible desde emulador | Aplicar reverse o usar `10.0.2.2` |
 
 ## 13. Robustez Render Free
@@ -468,3 +468,18 @@ reseteada o seed seguro preparado para consumirse.
 - **Por qué el usuario no elige categoría de subasta:** evita que una clasificación comercial se tome como una preferencia del consignador; inspeccionar el multipart y confirmar que no contiene `categoriaSubasta`.
 - **Límite null no es límite ilimitado:** el pago de envío debe rechazar un medio verificado con `limite_monto = null` y aceptar uno vigente, en moneda correcta y con límite disponible suficiente.
 - Verificar en el launcher Android el nombre `QuickBid` y el nuevo ícono; si persiste el anterior, desinstalar la app para limpiar la caché del launcher y reinstalar.
+
+## 15. Red, cámara, galería y documentos Android
+
+- [ ] Modo avión muestra `Sin conexión` sin bloquear navegación de lectura.
+- [ ] Al recuperar Internet aparece `Reconectando…` durante unos segundos.
+- [ ] Una falla real de API con red activa muestra `No se pudo contactar a QuickBid`.
+- [ ] Datos móviles muestran banner y confirmación antes de DNI, cheque, consignación, documentación, sala live y documentos.
+- [ ] Wi-Fi no muestra la confirmación de consumo móvil.
+- [ ] Cada carga ofrece cámara, galería y cancelar.
+- [ ] Cámara pide `CAMERA`, explica el motivo y permite abrir Configuración después de `No volver a preguntar`.
+- [ ] Galería funciona sin `READ_MEDIA_IMAGES`/`READ_EXTERNAL_STORAGE` y sólo entrega imágenes seleccionadas.
+- [ ] Se mantienen URI, nombre fallback, MIME y límites 6–15 de consignación.
+- [ ] PDF autorizado abre chooser; muestra nombre, tamaño y tipo.
+- [ ] PDF inválido, red caída o ausencia de app compatible producen un mensaje legible sin revelar token o error nativo.
+- [ ] Repetir en emulador con cámara virtual y en celular físico con Wi-Fi/datos.

@@ -1,4 +1,6 @@
 import { API_BASE_URL } from './config';
+import { documentModule } from '../mobile/nativeMobile';
+import { reportQuickBidReachability } from '../mobile/reachability';
 
 export interface ApiFieldError {
   field: string | null;
@@ -103,8 +105,11 @@ async function safeFetch(input: RequestInfo, init?: RequestInit) {
   const abortFromCaller = () => controller.abort();
   init?.signal?.addEventListener('abort', abortFromCaller, { once: true });
   try {
-    return await fetch(input, { ...init, signal: controller.signal });
+    const response = await fetch(input, { ...init, signal: controller.signal });
+    reportQuickBidReachability(true);
+    return response;
   } catch (error) {
+    reportQuickBidReachability(false);
     if (controller.signal.aborted) {
       throw new ApiError(
         0,
@@ -242,11 +247,38 @@ export type DownloadedFile = {
   filename: string | null;
   contentType: string;
   sizeBytes: number;
+  shared: boolean;
 };
 
-export async function apiDownload(path: string): Promise<DownloadedFile> {
+export async function apiDownload(
+  path: string,
+  fallbackFilename?: string,
+): Promise<DownloadedFile> {
+  const url = resolveDownloadUrl(path);
+  const nativeDocument = documentModule;
+  if (nativeDocument) {
+    const request = (accessToken: string | null) =>
+      nativeDocument.downloadAndShare(
+        url,
+        accessToken ? `Bearer ${accessToken}` : '',
+        fallbackFilename ?? null,
+      );
+    try {
+      return await request(tokens.accessToken);
+    } catch (error) {
+      if (nativeErrorCode(error) === 'HTTP_401' && tokens.refreshToken) {
+        const refreshedToken = await refreshAccessToken();
+        if (refreshedToken) return request(refreshedToken);
+      }
+      throw new ApiError(
+        0,
+        'No pudimos abrir o compartir el documento. Verificá tu conexión y que haya una app compatible.',
+      );
+    }
+  }
+
   const request = (accessToken: string | null) =>
-    safeFetch(`${API_BASE_URL}${path}`, {
+    safeFetch(url, {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     });
 
@@ -274,7 +306,24 @@ export async function apiDownload(path: string): Promise<DownloadedFile> {
       blob.type ||
       'application/octet-stream',
     sizeBytes: blob.size,
+    shared: false,
   };
+}
+
+export function resolveDownloadUrl(path: string) {
+  if (!path.startsWith('/') || /^\/\//.test(path)) {
+    throw new ApiError(400, 'La dirección del documento no es válida.');
+  }
+  if (/[?&](access_)?token=/i.test(path)) {
+    throw new ApiError(400, 'La dirección del documento no es segura.');
+  }
+  return `${API_BASE_URL}${path}`;
+}
+
+function nativeErrorCode(error: unknown) {
+  return typeof error === 'object' && error !== null && 'code' in error
+    ? String(error.code)
+    : null;
 }
 
 function filenameFromDisposition(value: string | null) {

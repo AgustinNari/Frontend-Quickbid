@@ -177,3 +177,14 @@ Para backend local seleccionar `API_MODE='localReverse'` y usar
 - [ ] La pantalla de alta no muestra ni envía `categoriaSubasta`, porque esa categoría no es una elección del usuario.
 - [ ] Un cliente antiguo que envía categoría no logra imponerla: el backend aplica su default controlado.
 - [ ] **Límite null no es límite ilimitado:** devolución por envío rechaza el medio sin límite y acepta un medio vigente con límite suficiente.
+
+## 11. Smoke mobile Android
+
+- [ ] Modo avión muestra `Sin conexión` y la recuperación muestra `Reconectando…`.
+- [ ] Con Wi-Fi apagado aparece `Usando datos móviles` y se puede continuar o cancelar una acción pesada.
+- [ ] DNI, cheque, fotos del bien y documentación ofrecen cámara/galería/cancelar.
+- [ ] Denegar cámara no crashea; bloquearla ofrece abrir Configuración.
+- [ ] Galería funciona sin permisos amplios de almacenamiento.
+- [ ] Un PDF real V14 abre el chooser Android desde compra y consignación.
+- [ ] El PDF informa nombre, tamaño y MIME; el JWT sólo viaja en `Authorization`.
+- [ ] Sin aplicación compatible o sin red aparece un error de usuario, no un error nativo.

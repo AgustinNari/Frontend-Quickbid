@@ -561,15 +561,49 @@ Las referencias visuales orientan la UI, pero no definen endpoints ni
 contratos.
 ## Documentos descargables
 
-CompraDetail y ConsignacionDetail muestran acciones de verificacion únicamente
-cuando el backend informa `downloadAvailable=true`. La descarga usa JWT en el
-header contra el `downloadUrl` relativo; nunca agrega tokens a la URL ni muestra
-rutas internas de storage.
+CompraDetail y ConsignacionDetail ofrecen `Abrir o compartir` únicamente cuando
+el backend informa `downloadAvailable=true`. En Android, `QuickBidDocument`
+descarga el archivo autenticado a `cacheDir/shared_documents`, obtiene una URI
+temporal mediante `FileProvider` y abre el chooser del sistema. El JWT viaja
+exclusivamente en `Authorization`; nunca se agrega a la URL ni a un query string.
 
-La app actual no incluye una dependencia nativa para persistir o abrir archivos.
-Por eso el CTA dice `Verificar documento`: valida la respuesta autenticada y
-muestra nombre, tamaño y tipo sin afirmar que guardó una copia. Un archivo no
-disponible se explica con un mensaje de usuario y nunca muestra rutas internas.
+El archivo queda en caché privada y Android puede eliminarlo. No se guarda en
+Downloads ni se pide permiso de almacenamiento. Si no hay una app compatible,
+la conexión falla o el documento no está disponible, se muestra un mensaje
+legible. En plataformas sin el módulo Android se conserva el fallback de
+recepción de bytes y metadata.
+
+## Capa mobile Android
+
+No se agregaron paquetes ni se modificó el lockfile. Se eligieron APIs nativas
+incluidas en Android y compatibles con la arquitectura actual de React Native:
+
+- `QuickBidConnectivity`: usa `ConnectivityManager` para informar offline,
+  Wi-Fi, datos móviles, Ethernet, VPN o conexión desconocida.
+- `QuickBidDocument`: usa `HttpURLConnection`, caché privada, `FileProvider` y
+  el chooser del sistema para PDFs/documentos.
+- `react-native-image-picker` 8.2.1 ya existente: cámara y Photo Picker/galería.
+
+Permisos declarados:
+
+- `INTERNET`: API, documentos y WebSocket.
+- `ACCESS_NETWORK_STATE`: monitor global de red.
+- `CAMERA`: se solicita únicamente después de elegir `Tomar foto`, con
+  explicación, rechazo controlado y acceso a Configuración si fue bloqueado.
+
+No se declaran `READ_MEDIA_IMAGES` ni `READ_EXTERNAL_STORAGE`: el Photo Picker
+moderno entrega acceso sólo a los elementos elegidos. Esto también evita pedir
+un permiso amplio en Android 13+; en versiones anteriores el picker compatible
+mantiene el acceso acotado. Las fotos de cámara quedan temporalmente en caché y
+no se guardan en la galería (`saveToPhotos=false`).
+
+Prueba manual recomendada:
+
+1. Modo avión: aparece `Sin conexión`; al volver la red, `Reconectando…`.
+2. Desactivar Wi-Fi: aparece `Usando datos móviles` y las cargas pesadas piden confirmación.
+3. En DNI, cheque, alta y documentación de consignación, probar cámara, galería y cancelar; denegar/bloquear cámara y reintentar.
+4. Abrir un PDF V14 desde compra o consignación y confirmar nombre, tamaño, tipo y chooser del sistema.
+5. En emulador, usar cámara virtual y Extended Controls. En celular físico, repetir con Wi-Fi y datos móviles reales.
 
 ## Scripts Android local y Render
 

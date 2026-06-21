@@ -8,7 +8,6 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import { launchImageLibrary, Asset } from 'react-native-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import {
@@ -41,6 +40,8 @@ import {
   mapRequisito,
 } from '../mappers/consignaciones';
 import { useAuth } from '../context/AuthContext';
+import { useNetwork } from '../context/NetworkContext';
+import { pickImages } from '../mobile/mediaPicker';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AltaConsignacion'>;
 
@@ -64,6 +65,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   const [minimoFotos, setMinimoFotos] = useState(6);
   const [requisitos, setRequisitos] = useState<ConsignacionRequisitoUi[]>([]);
   const { isGuest, estadoCuenta } = useAuth();
+  const { confirmHeavyAction } = useNetwork();
 
   const [aceptaTyc, setAceptaTyc] = useState(false);
   const [aceptaJurada, setAceptaJurada] = useState(false);
@@ -112,24 +114,17 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       Alert.alert('Limite alcanzado', `Podes cargar hasta ${MAX_FOTOS} fotos.`);
       return;
     }
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
+    const selected = await pickImages({
       selectionLimit: remaining,
       quality: 1,
+      fallbackBaseName: 'bien-consignado',
     });
-    if (result.didCancel) return;
-    if (result.errorMessage) {
-      Alert.alert('No se pudieron abrir las fotos', result.errorMessage);
-      return;
-    }
-    const selected = (result.assets ?? [])
-      .map(assetToFile)
-      .filter(Boolean) as ConsignacionFileInput[];
     setFotos(prev => [...prev, ...selected].slice(0, MAX_FOTOS));
   };
 
   const handleEnviar = async () => {
     if (!segmento) return;
+    if (!(await confirmHeavyAction())) return;
     setSubmitting(true);
     try {
       const created = await consignacionesApi.crear({
@@ -556,15 +551,6 @@ function Checkbox({
       <Body style={styles.checkLabel}>{label}</Body>
     </TouchableOpacity>
   );
-}
-
-function assetToFile(asset: Asset): ConsignacionFileInput | null {
-  if (!asset.uri) return null;
-  return {
-    uri: asset.uri,
-    name: asset.fileName ?? `foto-${Date.now()}.jpg`,
-    type: asset.type ?? 'image/jpeg',
-  };
 }
 
 function readableError(err: unknown) {

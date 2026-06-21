@@ -58,6 +58,7 @@ import {
 import { formatPrecio } from '../utils/format';
 import { MedioPagoInscripcionApi } from '../types/subastaApi';
 import { PujaActual, PujaEventoApi } from '../types/puja';
+import { useNetwork } from '../context/NetworkContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PujaEnVivo'>;
 
@@ -80,6 +81,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
     isAuthenticated,
     isGuest,
   } = useAuth();
+  const { type: connectionType, confirmHeavyAction } = useNetwork();
   const [activeTab, setActiveTab] = useState<NavTab>('subastas');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,13 +91,16 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>('idle');
   const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
+  const [networkConfirmed, setNetworkConfirmed] = useState(false);
   const pujaRef = useRef<PujaActual | null>(null);
+  const networkPromptHandled = useRef(false);
 
   const liveId = Number(subastaId);
   const realtimeSubastaId = puja?.subastaId ?? null;
   const realtimeItemId = puja?.item.id ?? null;
 
   const loadLive = useCallback(async () => {
+    if (!networkConfirmed) return;
     if (!isAuthenticated) {
       setLoading(false);
       return;
@@ -133,7 +138,16 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, liveId]);
+  }, [isAuthenticated, liveId, networkConfirmed]);
+
+  useEffect(() => {
+    if (networkPromptHandled.current || connectionType === 'unknown') return;
+    networkPromptHandled.current = true;
+    confirmHeavyAction().then(confirmed => {
+      if (confirmed) setNetworkConfirmed(true);
+      else navigation.goBack();
+    });
+  }, [confirmHeavyAction, connectionType, navigation]);
 
   useEffect(() => {
     loadLive();

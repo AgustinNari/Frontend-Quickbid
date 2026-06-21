@@ -1,6 +1,11 @@
 import { toWebSocketBaseUrl } from '../src/api/config';
-import { userFacingError, ApiError } from '../src/api/client';
+import {
+  userFacingError,
+  ApiError,
+  resolveDownloadUrl,
+} from '../src/api/client';
 import { mapDocumentoCompra } from '../src/mappers/compras';
+import { shouldWarnForHeavyAction } from '../src/context/NetworkContext';
 
 test('deriva WebSocket seguro desde Render', () => {
   expect(toWebSocketBaseUrl('https://quickbid.example')).toBe(
@@ -32,5 +37,33 @@ test('no expone errores tecnicos desconocidos', () => {
   );
   expect(userFacingError(new ApiError(409, 'Actualiza e intenta nuevamente.'))).toBe(
     'Actualiza e intenta nuevamente.',
+  );
+});
+
+test('deriva descarga autenticada sin poner tokens en la URL', () => {
+  const url = resolveDownloadUrl('/api/compras/1/documentos/2/descargar');
+  expect(url).toBe(
+    'https://quickbid-backend-demo.onrender.com/api/compras/1/documentos/2/descargar',
+  );
+  expect(url).not.toMatch(/token=/i);
+  expect(() =>
+    resolveDownloadUrl('/api/documentos/2?access_token=secreto'),
+  ).toThrow('La dirección del documento no es segura.');
+});
+
+test('advierte solo para acciones pesadas con datos moviles', () => {
+  expect(shouldWarnForHeavyAction('cellular')).toBe(true);
+  expect(shouldWarnForHeavyAction('wifi')).toBe(false);
+  expect(shouldWarnForHeavyAction('unknown')).toBe(false);
+});
+
+test('mantiene un fallback legible si falla abrir o compartir', () => {
+  const error = new ApiError(
+    0,
+    'No pudimos abrir o compartir el documento. Verificá tu conexión y que haya una app compatible.',
+  );
+  expect(userFacingError(error)).toContain('No pudimos abrir o compartir');
+  expect(userFacingError(new Error('ActivityNotFoundException'))).not.toContain(
+    'ActivityNotFoundException',
   );
 });

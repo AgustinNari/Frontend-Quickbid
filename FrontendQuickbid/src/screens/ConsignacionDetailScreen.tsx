@@ -8,7 +8,6 @@ import {
   Modal,
   TouchableOpacity,
 } from 'react-native';
-import { launchImageLibrary, Asset } from 'react-native-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import {
@@ -50,17 +49,17 @@ import {
   mapConsignacionDetalle,
   formatMoney,
 } from '../mappers/consignaciones';
-import {
-  ConsignacionDevolucionPreviewDto,
-  ConsignacionFileInput,
-} from '../types/consignacionApi';
+import { ConsignacionDevolucionPreviewDto } from '../types/consignacionApi';
 import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
 import { DireccionEnvioDto } from '../types/direcciones';
+import { useNetwork } from '../context/NetworkContext';
+import { pickImages } from '../mobile/mediaPicker';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConsignacionDetail'>;
 
 export default function ConsignacionDetailScreen({ navigation, route }: Props) {
   const { id } = route.params;
+  const { confirmHeavyAction } = useNetwork();
   const [activeTab, setActiveTab] = useState<NavTab>('consignar');
   const [loading, setLoading] = useState(true);
   const [uploadingDoc, setUploadingDoc] = useState(false);
@@ -144,24 +143,13 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
 
   const subirDocumentacion = async () => {
     if (!detalle) return;
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
+    const [file] = await pickImages({
       selectionLimit: 1,
       quality: 0.9,
+      fallbackBaseName: 'documentacion-origen',
     });
-    if (result.didCancel) return;
-    if (result.errorMessage) {
-      Alert.alert('No se pudo seleccionar el documento', result.errorMessage);
-      return;
-    }
-    const file = assetToFile(result.assets?.[0]);
-    if (!file) {
-      Alert.alert(
-        'Archivo invalido',
-        'No pudimos leer el archivo seleccionado.',
-      );
-      return;
-    }
+    if (!file) return;
+    if (!(await confirmHeavyAction())) return;
     setUploadingDoc(true);
     try {
       const updated = await consignacionesApi.subirDocumentacionOrigen(
@@ -196,18 +184,27 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
       );
       return;
     }
+    if (!(await confirmHeavyAction())) return;
     try {
       const downloaded = await consignacionesApi.descargarArchivo(
         file.downloadUrl,
+        file.filename,
       );
       Alert.alert(
-        'Documento verificado',
-        `${downloaded.filename ?? file.filename} - ${downloaded.sizeBytes} bytes - ${downloaded.contentType}. El archivo esta disponible; podes solicitar una copia desde soporte.`,
+        downloaded.shared ? 'Documento listo' : 'Documento recibido',
+        `${downloaded.filename ?? file.filename} - ${downloaded.sizeBytes} bytes - ${downloaded.contentType}.${
+          downloaded.shared
+            ? ' Se abrió el menú del sistema para elegir cómo usarlo.'
+            : ' El dispositivo confirmó la recepción del archivo.'
+        }`,
       );
-    } catch {
+    } catch (err) {
       Alert.alert(
         'Documento no disponible',
-        'El documento no esta disponible en este momento. Intenta generarlo nuevamente o contacta soporte.',
+        userFacingError(
+          err,
+          'No pudimos abrir o compartir el documento. Intentá nuevamente.',
+        ),
       );
     }
   };
@@ -922,7 +919,7 @@ function ArchivosSection({
               fullWidth={false}
               onPress={() => onOpen(file)}
             >
-              Verificar documento
+              Abrir o compartir
             </Button>
           ) : (
             <Typography style={styles.fileMeta}>No disponible</Typography>
@@ -1358,15 +1355,6 @@ function SegmentButton({
       </Typography>
     </TouchableOpacity>
   );
-}
-
-function assetToFile(asset?: Asset): ConsignacionFileInput | null {
-  if (!asset?.uri) return null;
-  return {
-    uri: asset.uri,
-    name: asset.fileName ?? `documento-${Date.now()}.jpg`,
-    type: asset.type ?? 'image/jpeg',
-  };
 }
 
 function readableError(err: unknown) {

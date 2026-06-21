@@ -45,11 +45,13 @@ import {
   tipoPagoForCompra,
   totalParaPago,
 } from '../mappers/compras';
+import { useNetwork } from '../context/NetworkContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CompraDetail'>;
 
 export default function CompraDetailScreen({ navigation, route }: Props) {
   const { compraId } = route.params;
+  const { confirmHeavyAction } = useNetwork();
   const [activeTab, setActiveTab] = useState<NavTab>('compras');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,11 +95,19 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
       );
       return;
     }
+    if (!(await confirmHeavyAction())) return;
     try {
-      const downloaded = await comprasApi.descargarDocumento(doc.downloadUrl);
+      const downloaded = await comprasApi.descargarDocumento(
+        doc.downloadUrl,
+        doc.filename,
+      );
       Alert.alert(
-        'Documento verificado',
-        `${downloaded.filename ?? doc.filename} - ${downloaded.sizeBytes} bytes - ${downloaded.contentType}. El archivo esta disponible; podes solicitar una copia desde soporte.`,
+        downloaded.shared ? 'Documento listo' : 'Documento recibido',
+        `${downloaded.filename ?? doc.filename} - ${downloaded.sizeBytes} bytes - ${downloaded.contentType}.${
+          downloaded.shared
+            ? ' Se abrió el menú del sistema para elegir cómo usarlo.'
+            : ' El dispositivo confirmó la recepción del archivo.'
+        }`,
       );
     } catch (err) {
       Alert.alert(
@@ -441,7 +451,7 @@ function DocumentosSection({
               onPress={() => onShow(doc)}
               fullWidth={false}
             >
-              Verificar documento
+              Abrir o compartir
             </Button>
           ) : (
             <Typography style={styles.docMeta}>Archivo no disponible</Typography>
@@ -489,7 +499,7 @@ function CompraCta({
       leftIcon={<Icon name="check-doc" size={18} />}
       disabled={documentos.length === 0}
     >
-      Ver datos del documento
+      Abrir documento
     </Button>
   );
 }

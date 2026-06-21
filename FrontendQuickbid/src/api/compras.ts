@@ -106,7 +106,7 @@ export const comprasApi = {
     );
   },
 
-  async descargarDocumento(downloadUrl: string) {
-    return apiDownload(downloadUrl);
+  async descargarDocumento(downloadUrl: string, filename?: string) {
+    return apiDownload(downloadUrl, filename);
   },
 };
