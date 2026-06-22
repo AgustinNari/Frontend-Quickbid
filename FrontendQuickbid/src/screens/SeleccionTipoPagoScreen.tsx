@@ -125,7 +125,7 @@ export default function SeleccionTipoPagoScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>Seleccionar tipo</Text>
         <Text style={styles.subtitle}>
-          Elige el método que deseas vincular hoy.
+          Elegí el método que deseás vincular hoy.
         </Text>
 
         {OPTIONS.map(opt => {

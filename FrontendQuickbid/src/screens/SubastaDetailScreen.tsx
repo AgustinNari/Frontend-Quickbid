@@ -120,8 +120,8 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
     }
     if (verificacion?.yaInscripto) {
       Alert.alert(
-        'Ya estas inscripto',
-        'Tu inscripcion para esta subasta ya esta activa.',
+        'Ya estás inscripto',
+        'Tu inscripción para esta subasta ya está activa.',
       );
       return;
     }
@@ -155,7 +155,7 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
           <EmptyState
             icon={<Icon name="alert" size={48} color={colors.textSubtle} />}
             title="No pudimos cargar la subasta"
-            description={error ?? 'La subasta no existe o no esta disponible.'}
+            description={error ?? 'La subasta no existe o no está disponible.'}
             actionLabel="Reintentar"
             onAction={() => loadDetalle()}
           />
@@ -200,7 +200,7 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
               <View style={styles.infoList}>
                 <SubastaInfoRow
                   icon="search"
-                  label="Ubicacion"
+                  label="Ubicación"
                   value={detalle.ubicacion}
                 />
                 {detalle.rematador ? (
@@ -261,9 +261,9 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
                   </Typography>
                 </View>
                 <Body muted style={styles.participationText}>
-                  Revisa el catalogo antes de inscribirte. Para ofertar, tu
+                  Revisá el catálogo antes de inscribirte. Para ofertar, tu
                   cuenta y un medio de pago compatible deben estar habilitados;
-                  la sala confirmara el acceso segun el estado real de la
+                  la sala confirmara el acceso según el estado real de la
                   subasta.
                 </Body>
               </Card>
@@ -287,7 +287,7 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
                 <View style={styles.accessBanner}>
                   <Icon name="alert" size={18} color={colors.danger} />
                   <Body style={styles.accessText}>
-                    Puedes ver la subasta, pero la restriccion por multa impide
+                    Puedes ver la subasta, pero la restricción por multa impide
                     inscribirte.
                   </Body>
                 </View>
@@ -295,7 +295,7 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
                 <View style={styles.accessBanner}>
                   <Icon name="alert" size={18} color={colors.danger} />
                   <Body style={styles.accessText}>
-                    No pudimos verificar la inscripcion: {accessError}
+                    No pudimos verificar la inscripción: {accessError}
                   </Body>
                 </View>
               ) : null}
@@ -369,16 +369,16 @@ function InscribirmeButton({
   onInscribirme: () => void;
 }) {
   const label = isGuest
-    ? 'Inicia sesion para inscribirte'
+    ? 'Iniciá sesión para inscribirte'
     : verificacion?.yaInscripto
-    ? 'Ya estas inscripto'
+    ? 'Ya estás inscripto'
     : verificacion?.cuentaRestringida
-    ? 'Inscripcion bloqueada por multa'
+    ? 'Inscripción bloqueada por multa'
     : verificacion?.cuentaBloqueada
     ? 'Cuenta bloqueada'
     : verificacion && !verificacion.puedeInscribirse
     ? 'Ver motivo de bloqueo'
-    : 'Inscribirme con metodo de pago';
+    : 'Inscribirme con método de pago';
   return (
     <Button
       variant="secondary"
@@ -441,21 +441,21 @@ function Divider() {
 
 function motivoInscripcion(value: VerificacionSubastaApi) {
   if (value.yaInscripto)
-    return 'Ya tienes una inscripcion activa para esta subasta.';
+    return 'Ya tenés una inscripción activa para esta subasta.';
   if (value.cuentaRestringida)
-    return 'La restriccion por multa impide nuevas inscripciones.';
-  if (value.cuentaBloqueada) return 'Tu cuenta esta bloqueada.';
+    return 'La restricción por multa impide nuevas inscripciones.';
+  if (value.cuentaBloqueada) return 'tu cuenta está bloqueada.';
   if (value.categoriaInsuficienteParaInscripcion)
-    return 'Tu categoria es insuficiente para esta subasta.';
+    return 'Tu categoría es insuficiente para esta subasta.';
   if (value.inscripcionCerradaPorTiempo)
-    return 'La inscripcion ya cerro por cercania al inicio.';
+    return 'La inscripción ya cerró por cercania al inicio.';
   if (value.subastaYaIniciada) return 'La subasta ya comenzo.';
   if (
     value.requiereMedioPagoParaInscripcion ||
     value.monedaIncompatibleParaInscripcion
   )
     return 'Necesitas un medio de pago compatible para inscribirte.';
-  return 'La inscripcion no esta disponible actualmente.';
+  return 'la inscripción no está disponible actualmente.';
 }
 
 const MESES = [

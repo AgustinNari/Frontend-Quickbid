@@ -64,7 +64,7 @@ export async function copyUriToPrivateDraftStorage(
   suggestedName: string,
 ) {
   if (!documentModule) {
-    throw new Error('El almacenamiento privado de borradores no esta disponible.');
+    throw new Error('El almacenamiento privado de borradores no está disponible.');
   }
   return documentModule.copyUriToPrivateDraftStorage(uri, suggestedName);
 }

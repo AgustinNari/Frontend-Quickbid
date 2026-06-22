@@ -204,10 +204,10 @@ function mapDevolucion(
     ...dto,
     modalidadLabel: dto.modalidad
       ? modalidadLabel(dto.modalidad)
-      : 'Pendiente de seleccion',
+      : 'Pendiente de selección',
     costoLabel: formatMoney(dto.costo, dto.moneda),
     estadoLabel: humanize(dto.estado),
-    comprobanteLabel: dto.pagoId ? `Comprobante de envio #${dto.pagoId}` : null,
+    comprobanteLabel: dto.pagoId ? `Comprobante de envío #${dto.pagoId}` : null,
   };
 }
 
@@ -222,30 +222,30 @@ function mapLiquidacion(
     montoNetoLabel: formatMoney(dto.montoNeto, moneda),
     estadoLabel: humanize(dto.estado),
     paidAtLabel: formatDate(dto.paidAt),
-    comprobanteLabel: `Liquidacion #${dto.id}`,
+    comprobanteLabel: `Liquidación #${dto.id}`,
   };
 }
 
 export function estadoLabel(estado: ConsignacionEstadoBackend) {
   const labels: Record<string, string> = {
-    pendiente_revision: 'Pendiente de revision',
+    pendiente_revision: 'Pendiente de revisión',
     rechazo_inicial: 'Rechazada',
-    documentacion_adicional: 'Documentacion adicional',
-    documentacion_recibida: 'Documentacion recibida',
-    recepcion_pendiente: 'Recepcion pendiente',
-    revision_fisica: 'Revision fisica',
-    revision_fisica_aprobada: 'Revision fisica aprobada',
-    rechazo_revision_fisica: 'Revision fisica rechazada',
+    documentacion_adicional: 'Documentación adicional',
+    documentacion_recibida: 'Documentación recibida',
+    recepcion_pendiente: 'Recepción pendiente',
+    revision_fisica: 'Revisión física',
+    revision_fisica_aprobada: 'Revisión física aprobada',
+    rechazo_revision_fisica: 'Revisión física rechazada',
     acuerdo_pendiente: 'Acuerdo pendiente',
     acuerdo_aceptado: 'Acuerdo aceptado',
     acuerdo_rechazado: 'Acuerdo rechazado',
-    devolucion_pendiente: 'Devolucion pendiente',
+    devolucion_pendiente: 'Devolución pendiente',
     publicada: 'Publicada',
     en_subasta: 'En subasta',
     vendida: 'Vendida',
     comprada_por_empresa: 'Comprada por empresa',
     liquidada: 'Liquidada',
-    devolucion_incompleta: 'Devolucion incompleta',
+    devolucion_incompleta: 'Devolución incompleta',
   };
   return labels[estado] ?? humanize(estado);
 }
@@ -285,12 +285,12 @@ function buildEtapas(
     'liquidacion',
   ];
   const labels = [
-    'Validacion',
-    'Recepcion',
-    'Revision fisica',
+    'Validación',
+    'Recepción',
+    'Revisión física',
     'Acuerdo',
     'En subasta',
-    'Liquidacion',
+    'Liquidación',
   ];
   const currentIndex = progressIndex(estado);
   const rejectedIndex = rejectedStage(estado);
@@ -361,29 +361,29 @@ function rejectedStage(estado: ConsignacionEstadoBackend) {
 
 function nextStep(estado: ConsignacionEstadoBackend, requiresDocs: boolean) {
   if (estado === 'documentacion_adicional' || requiresDocs)
-    return 'Adjunta documentacion de origen para continuar la revision.';
+    return 'Adjuntá documentación de origen para continuar la revisión.';
   if (estado === 'pendiente_revision')
-    return 'QuickBid esta revisando la solicitud y las fotos.';
+    return 'QuickBid está revisando la solicitud y las fotos.';
   if (estado === 'recepcion_pendiente')
-    return 'Coordina la entrega fisica del bien con el equipo.';
+    return 'Coordiná la entrega física del bien con el equipo.';
   if (estado === 'revision_fisica')
-    return 'El equipo esta verificando el estado fisico del bien.';
+    return 'El equipo está verificando el estado físico del bien.';
   if (estado === 'acuerdo_pendiente')
     return 'Hay un acuerdo disponible para aceptar o rechazar.';
   if (estado === 'acuerdo_aceptado')
-    return 'El bien esta listo para asignarse a una subasta.';
+    return 'El bien está listo para asignarse a una subasta.';
   if (estado === 'publicada' || estado === 'en_subasta')
-    return 'El bien ya esta publicado o en subasta.';
+    return 'El bien ya está publicado o en subasta.';
   if (estado === 'vendida' || estado === 'comprada_por_empresa')
-    return 'La venta esta registrada. QuickBid emitira la liquidacion cuando corresponda.';
+    return 'La venta está registrada. QuickBid emitirá la liquidación cuando corresponda.';
   if (estado === 'liquidada')
-    return 'La liquidacion fue registrada por QuickBid.';
+    return 'La liquidación fue registrada por QuickBid.';
   if (estado === 'devolucion_pendiente')
-    return 'Selecciona como queres recuperar el bien.';
+    return 'Seleccioná cómo querés recuperar el bien.';
   if (estado === 'devolucion_incompleta')
-    return 'La devolucion quedo marcada como incompleta por vencimiento del plazo.';
+    return 'La devolución quedó marcada como incompleta por vencimiento del plazo.';
   if (estado.includes('rechazo'))
-    return 'La solicitud fue rechazada. Si corresponde, gestiona la devolucion.';
+    return 'La solicitud fue rechazada. Si corresponde, gestioná la devolución.';
   return 'Seguimiento actualizado.';
 }
 
@@ -396,9 +396,9 @@ function actionForState(estado: ConsignacionEstadoBackend) {
 
 function accionLabel(action: string) {
   if (action === 'adjuntar_documentacion')
-    return 'Documentacion adicional requerida';
+    return 'Documentación adicional requerida';
   if (action === 'revisar_acuerdo') return 'Acuerdo pendiente';
-  if (action === 'gestionar_devolucion') return 'Devolucion pendiente';
+  if (action === 'gestionar_devolucion') return 'Devolución pendiente';
   return humanize(action);
 }
 
@@ -406,7 +406,7 @@ function requisitoLabel(code: string) {
   if (code === 'MEDIO_PAGO_REGISTRADO') return 'Medio de pago registrado';
   if (code === 'CUENTA_COBRO_REGISTRADA') return 'Cuenta bancaria para cobro';
   if (code === 'MEDIO_PAGO_APTO_PARA_ENVIO_DEVOLUCION')
-    return 'Medio apto para envio de devolucion';
+    return 'Medio apto para envío de devolución';
   return humanize(code);
 }
 
@@ -419,7 +419,7 @@ export function formatMoney(value: number, moneda: 'ARS' | 'USD') {
 
 function modalidadLabel(value: string) {
   if (value === 'retiro') return 'Retiro en sucursal';
-  if (value === 'envio') return 'Envio a domicilio';
+  if (value === 'envio') return 'Envío a domicilio';
   return humanize(value);
 }
 

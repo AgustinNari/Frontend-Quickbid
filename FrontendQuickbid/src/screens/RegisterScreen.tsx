@@ -109,14 +109,14 @@ export default function RegisterScreen({ navigation }: Props) {
     ) {
       Alert.alert(
         'Campos requeridos',
-        'Completa todos los campos para continuar.',
+        'Completá todos los campos para continuar.',
       );
       return;
     }
     if (!paisSeleccionado) {
       Alert.alert(
-        'Pais requerido',
-        'Busca y selecciona un pais de origen para continuar.',
+        'País requerido',
+        'Buscá y seleccioná un país de origen para continuar.',
       );
       return;
     }
@@ -151,7 +151,7 @@ export default function RegisterScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.title}>Registro de Datos</Text>
-          <Text style={styles.subtitle}>Paso 1 de 3: Informacion personal</Text>
+          <Text style={styles.subtitle}>Paso 1 de 3: Información personal</Text>
 
           <Text style={styles.label}>EMAIL</Text>
           <TextInput
@@ -170,7 +170,7 @@ export default function RegisterScreen({ navigation }: Props) {
             style={styles.input}
             value={nombre}
             onChangeText={setNombre}
-            placeholder="Ingresa tu nombre"
+            placeholder="Ingresá tu nombre"
             autoCorrect={false}
             placeholderTextColor={colors.textSubtle}
           />
@@ -180,7 +180,7 @@ export default function RegisterScreen({ navigation }: Props) {
             style={styles.input}
             value={apellido}
             onChangeText={setApellido}
-            placeholder="Ingresa tu apellido"
+            placeholder="Ingresá tu apellido"
             autoCorrect={false}
             placeholderTextColor={colors.textSubtle}
           />
@@ -190,12 +190,12 @@ export default function RegisterScreen({ navigation }: Props) {
             style={styles.input}
             value={domicilio}
             onChangeText={setDomicilio}
-            placeholder="Calle, numero, ciudad"
+            placeholder="Calle, número, ciudad"
             autoCorrect={false}
             placeholderTextColor={colors.textSubtle}
           />
 
-          <Text style={styles.label}>PAIS DE ORIGEN</Text>
+          <Text style={styles.label}>PAÍS DE ORIGEN</Text>
           <TouchableOpacity
             activeOpacity={0.75}
             onPress={toggleDropdownPais}
@@ -218,7 +218,7 @@ export default function RegisterScreen({ navigation }: Props) {
                         ? ` (${paisSeleccionado.nombreCorto})`
                         : ''
                     }`
-                  : 'Seleccionar pais de origen'}
+                  : 'Seleccionar país de origen'}
               </Text>
               {paisSeleccionado?.nacionalidad ? (
                 <Text style={styles.countryTriggerMeta}>
@@ -237,7 +237,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 style={styles.countrySearch}
                 value={busquedaPais}
                 onChangeText={cambiarBusquedaPais}
-                placeholder="Busca por nombre, codigo o nacionalidad"
+                placeholder="Buscá por nombre, código o nacionalidad"
                 autoCorrect={false}
                 autoFocus
                 placeholderTextColor={colors.textSubtle}
@@ -320,7 +320,7 @@ export default function RegisterScreen({ navigation }: Props) {
 function readableError(error: unknown) {
   return userFacingError(
     error,
-    'No se pudo cargar el catalogo de paises. Probalo de nuevo en unos minutos.',
+    'No se pudo cargar el catálogo de países. Probalo de nuevo en unos minutos.',
   );
 }
 

@@ -87,12 +87,12 @@ export default function InscripcionSubastaScreen({ navigation, route }: Props) {
   const confirmar = () => {
     if (!subasta || !selected || !verificacion?.puedeInscribirse) return;
     Alert.alert(
-      'Confirmar inscripcion',
+      'Confirmar inscripción',
       `${subasta.titulo}\n${paymentLabel(selected)}\n${
         subasta.moneda
       }\nEstado: ${estadoMedio(
         selected,
-      )}\n\nLa inscripcion no realiza ninguna puja.`,
+      )}\n\nLa inscripción no realiza ninguna puja.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Confirmar', onPress: enviar },
@@ -139,13 +139,13 @@ export default function InscripcionSubastaScreen({ navigation, route }: Props) {
           <EmptyState
             icon={<Icon name="alert" size={48} color={colors.textSubtle} />}
             title="No pudimos verificar tu acceso"
-            description={error ?? 'Intenta nuevamente.'}
+            description={error ?? 'Intentá nuevamente.'}
             actionLabel="Reintentar"
             onAction={cargar}
           />
         ) : (
           <View style={styles.body}>
-            <Heading>Metodo de pago</Heading>
+            <Heading>Método de pago</Heading>
             <Card variant="flat" padding="none" style={styles.auctionCard}>
               <View style={styles.cardContent}>
                 <Typography variant="h3">{subasta.titulo}</Typography>
@@ -163,18 +163,18 @@ export default function InscripcionSubastaScreen({ navigation, route }: Props) {
             ) : (
               <StatusBanner
                 tone="info"
-                text="Selecciona un medio compatible. El servidor validara las condiciones finales al confirmar."
+                text="Seleccioná un medio compatible. QuickBid validará las condiciones finales al confirmar."
               />
             )}
 
             <Typography style={styles.section}>
-              Medios compatibles para inscripcion
+              Medios compatibles para inscripción
             </Typography>
             {medios.length === 0 ? (
               <EmptyState
                 icon={<Icon name="card" size={42} color={colors.textSubtle} />}
                 title="Sin medios compatibles"
-                description={`Necesitas un medio en ${subasta.moneda} pendiente, verificado o vencido para solicitar la inscripcion.`}
+              description={`Necesitás un medio en ${subasta.moneda} pendiente, verificado o vencido para solicitar la inscripción.`}
                 actionLabel="Ir a metodos de pago"
                 onAction={() => navigation.navigate('MetodosPago')}
               />
@@ -201,11 +201,11 @@ export default function InscripcionSubastaScreen({ navigation, route }: Props) {
               loading={confirmando}
             >
               {verificacion.yaInscripto
-                ? 'Ya estas inscripto'
-                : 'Confirmar inscripcion'}
+                ? 'Ya estás inscripto'
+                : 'Confirmar inscripción'}
             </Button>
             <Button variant="secondary" onPress={cargar}>
-              Actualizar verificacion
+              Actualizar verificación
             </Button>
           </View>
         )}
@@ -238,15 +238,15 @@ function StatusBanner({
 
 function motivoBloqueo(value: VerificacionSubastaApi) {
   if (value.cuentaBloqueada)
-    return 'Tu cuenta esta bloqueada y no puede inscribirse.';
+    return 'tu cuenta está bloqueada y no puede inscribirse.';
   if (value.cuentaRestringida)
-    return 'Tu cuenta tiene una restriccion por multa. Puedes ver la subasta, pero no inscribirte.';
+    return 'Tu cuenta tiene una restricción por multa. Puedes ver la subasta, pero no inscribirte.';
   if (value.yaInscripto)
-    return 'Ya tienes una inscripcion activa para esta subasta.';
+    return 'Ya tenés una inscripción activa para esta subasta.';
   if (value.categoriaInsuficienteParaInscripcion)
-    return 'Tu categoria actual no alcanza la requerida por esta subasta.';
+    return 'Tu categoría actual no alcanza la requerida por esta subasta.';
   if (value.inscripcionCerradaPorTiempo)
-    return 'La inscripcion cerro porque faltan 60 minutos o menos para el inicio.';
+    return 'La inscripción cerró porque faltan 60 minutos o menos para el inicio.';
   if (value.subastaYaIniciada)
     return 'La subasta ya comenzo y no acepta nuevas inscripciones.';
   if (value.monedaIncompatibleParaInscripcion)
@@ -263,11 +263,11 @@ function paymentLabel(item: MedioPagoInscripcionApi) {
 }
 function estadoMedio(item: MedioPagoInscripcionApi) {
   return item.requiereRevalidacion
-    ? 'Requiere revision'
+    ? 'Requiere revisión'
     : item.estado.replaceAll('_', ' ');
 }
 function message(error: unknown) {
-  return userFacingError(error, 'No pudimos completar la operacion.');
+  return userFacingError(error, 'No pudimos completar la operación.');
 }
 
 const styles = StyleSheet.create({

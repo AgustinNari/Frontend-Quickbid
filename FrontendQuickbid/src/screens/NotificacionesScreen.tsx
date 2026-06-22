@@ -77,7 +77,7 @@ export default function NotificacionesScreen({ navigation }: Props) {
         ),
       );
     } catch (updateError) {
-      setError(userFacingError(updateError, 'No pudimos marcar la notificacion.'));
+      setError(userFacingError(updateError, 'No pudimos marcar la notificación.'));
     } finally {
       setUpdating(false);
     }
@@ -152,7 +152,7 @@ export default function NotificacionesScreen({ navigation }: Props) {
           {filtered.length === 0 ? (
             <EmptyState
               icon={<Icon name="bell" size={48} color={colors.textSubtle} />}
-              title="Estas al dia"
+              title="Estás al día"
               description="No hay notificaciones para este filtro."
             />
           ) : (

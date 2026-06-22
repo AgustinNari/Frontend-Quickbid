@@ -122,8 +122,8 @@ export default function MisComprasScreen({ navigation }: Props) {
           <EmptyState
             icon={<Icon name="lock" size={48} color={colors.textSubtle} />}
             title="Compras protegidas"
-            description="Inicia sesion para ver tus compras, pagos, multas y documentos."
-            actionLabel="Iniciar sesion"
+            description="Iniciá sesión para ver tus compras, pagos, multas y documentos."
+            actionLabel="Iniciar sesión"
             onAction={() => navigation.navigate('LimitedAccess')}
           />
         </View>
@@ -144,7 +144,7 @@ export default function MisComprasScreen({ navigation }: Props) {
           <EmptyState
             icon={<Icon name="alert" size={48} color={colors.danger} />}
             title="Cuenta bloqueada"
-            description="Tu cuenta no puede acceder a compras ni pagos desde la navegacion normal."
+            description="Tu cuenta no puede acceder a compras ni pagos desde la navegación normal."
             actionLabel="Ver estado de cuenta"
             onAction={() => navigation.navigate('LimitedAccess')}
           />
@@ -163,7 +163,7 @@ export default function MisComprasScreen({ navigation }: Props) {
           <View style={styles.restrictedBanner}>
             <Icon name="alert" size={18} color={colors.danger} />
             <Typography style={styles.restrictedText}>
-              Tu cuenta tiene una multa activa. Podes regularizarla desde tus
+              Tu cuenta tiene una multa activa. Podés regularizarla desde tus
               compras.
             </Typography>
           </View>
@@ -203,8 +203,8 @@ export default function MisComprasScreen({ navigation }: Props) {
         <View style={styles.errorWrap}>
           <EmptyState
             icon={<Icon name="bag" size={48} color={colors.textSubtle} />}
-            title="No hay compras aca"
-            description="Cuando ganes una puja, tus compras van a aparecer en esta seccion."
+            title="No hay compras acá"
+            description="Cuando ganes una puja, tus compras van a aparecer en esta sección."
             actionLabel="Ir a subastas"
             onAction={() => navigation.navigate('Subastas')}
           />
@@ -327,7 +327,7 @@ function TabButton({
 function readableError(err: unknown) {
   return userFacingError(
     err,
-    'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
+    'QuickBid no está disponible. Probalo de nuevo en unos minutos.',
   );
 }
 

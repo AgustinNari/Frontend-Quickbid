@@ -98,8 +98,8 @@ export default function ConsignacionesScreen({ navigation }: Props) {
           <EmptyState
             icon={<Icon name="lock" size={48} color={colors.textSubtle} />}
             title="Consignaciones protegidas"
-            description="Inicia sesion para crear solicitudes y consultar el seguimiento de tus bienes."
-            actionLabel="Iniciar sesion"
+            description="Iniciá sesión para crear solicitudes y consultar el seguimiento de tus bienes."
+            actionLabel="Iniciar sesión"
             onAction={() => navigation.navigate('LimitedAccess')}
           />
         </View>
@@ -142,7 +142,7 @@ export default function ConsignacionesScreen({ navigation }: Props) {
           <View style={styles.warningBox}>
             <Icon name="info" size={17} color={colors.warning} />
             <Typography style={styles.warningText}>
-              Tu cuenta tiene restriccion por multa, pero podes consultar y
+              Tu cuenta tiene restricción por multa, pero podés consultar y
               crear consignaciones.
             </Typography>
           </View>
@@ -183,8 +183,8 @@ export default function ConsignacionesScreen({ navigation }: Props) {
         <View style={styles.errorWrap}>
           <EmptyState
             icon={<Icon name="inbox" size={48} color={colors.textSubtle} />}
-            title="No hay consignaciones aca"
-            description="Cuando cargues una solicitud, el seguimiento va a aparecer en esta seccion."
+            title="No hay consignaciones acá"
+            description="Cuando cargues una solicitud, el seguimiento va a aparecer en esta sección."
             actionLabel="Consignar un bien"
             onAction={() => navigation.navigate('AltaConsignacion')}
           />
@@ -263,7 +263,7 @@ function ConsignacionItem({
 function readableError(err: unknown) {
   return userFacingError(
     err,
-    'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
+    'QuickBid no está disponible. Probalo de nuevo en unos minutos.',
   );
 }
 

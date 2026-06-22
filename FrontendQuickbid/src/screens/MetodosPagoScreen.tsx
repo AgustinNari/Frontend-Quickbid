@@ -60,7 +60,7 @@ export default function MetodosPagoScreen({ navigation }: Props) {
   const principal = (item: MedioPagoDto) =>
     Alert.alert(
       'Cambiar medio principal',
-      `Usar ${item.aliasVisible} como principal para ${item.moneda}?`,
+        `¿Usar ${item.aliasVisible} como principal para ${item.moneda}?`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -111,7 +111,7 @@ export default function MetodosPagoScreen({ navigation }: Props) {
         >
           <Text style={styles.title}>Metodos de pago</Text>
           <Text style={styles.subtitle}>
-            Gestiona tus medios y su estado de verificacion.
+            Gestioná tus medios y su estado de verificación.
           </Text>
           <Button
             size="sm"
@@ -134,7 +134,7 @@ export default function MetodosPagoScreen({ navigation }: Props) {
             <EmptyState
               icon={<Icon name="card" size={48} color={colors.textSubtle} />}
               title="Sin medios guardados"
-              description="Agrega un medio para enviarlo a verificacion."
+              description="Agregá un medio para enviarlo a verificación."
               actionLabel="Agregar medio"
               onAction={() => navigation.navigate('SeleccionTipoPago')}
             />
@@ -271,7 +271,7 @@ function paymentStateVisual(medio: MedioPagoDto): {
       return {
         tone: 'danger',
         label: 'VENCIDO',
-        description: 'Necesita revalidacion antes de volver a utilizarse.',
+        description: 'Necesita revalidación antes de volver a utilizarse.',
       };
     }
     return {
@@ -284,14 +284,14 @@ function paymentStateVisual(medio: MedioPagoDto): {
     return {
       tone: 'danger',
       label: 'RECHAZADO',
-      description: 'Revisa los datos o registra otro medio para poder operar.',
+      description: 'Revisá los datos o registrá otro medio para poder operar.',
     };
   }
   if (estado === 'vencido') {
     return {
       tone: 'danger',
       label: 'VENCIDO',
-      description: 'Necesita revalidacion antes de volver a utilizarse.',
+      description: 'Necesita revalidación antes de volver a utilizarse.',
     };
   }
   if (estado === 'pendiente_verificacion') {
@@ -299,18 +299,18 @@ function paymentStateVisual(medio: MedioPagoDto): {
       tone: 'warning',
       label: 'PENDIENTE',
       description:
-        'La verificacion sigue pendiente; todavia no esta habilitado para operar.',
+        'La verificación sigue pendiente; todavía no está habilitado para operar.',
     };
   }
   return {
     tone: 'neutral',
     label: estado.replaceAll('_', ' ').toUpperCase(),
     description:
-      'Este medio no esta habilitado para operar en su estado actual.',
+      'este medio no está habilitado para operar en su estado actual.',
   };
 }
 function message(error: unknown) {
-  return userFacingError(error, 'Intenta nuevamente.');
+  return userFacingError(error, 'Intentá nuevamente.');
 }
 
 const styles = StyleSheet.create({

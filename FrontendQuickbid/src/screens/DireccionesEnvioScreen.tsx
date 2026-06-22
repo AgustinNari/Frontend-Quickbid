@@ -78,7 +78,7 @@ export default function DireccionesEnvioScreen({ navigation }: Props) {
     if (required.some(value => !value.trim()))
       return Alert.alert(
         'Campos requeridos',
-        'Completa todos los campos obligatorios.',
+        'Completá todos los campos obligatorios.',
       );
     setSaving(true);
     try {
@@ -93,7 +93,7 @@ export default function DireccionesEnvioScreen({ navigation }: Props) {
     }
   };
   const principal = (item: DireccionEnvioDto) =>
-    Alert.alert('Direccion principal', `Usar ${item.alias} como principal?`, [
+    Alert.alert('Dirección principal', `¿Usar ${item.alias} como principal?`, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Confirmar',
@@ -108,7 +108,7 @@ export default function DireccionesEnvioScreen({ navigation }: Props) {
       },
     ]);
   const eliminar = (item: DireccionEnvioDto) =>
-    Alert.alert('Eliminar direccion', `Dar de baja ${item.alias}?`, [
+    Alert.alert('Eliminar dirección', `Dar de baja ${item.alias}?`, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Eliminar',
@@ -131,16 +131,16 @@ export default function DireccionesEnvioScreen({ navigation }: Props) {
         <Loader fullScreen label="Cargando direcciones..." />
       ) : (
         <ScrollView contentContainerStyle={styles.scroll}>
-          <Text style={styles.title}>Direcciones de envio</Text>
+          <Text style={styles.title}>Direcciones de envío</Text>
           <Text style={styles.subtitle}>
-            Gestiona hasta cinco direcciones activas.
+            Gestioná hasta cinco direcciones activas.
           </Text>
           <TouchableOpacity
             style={styles.add}
             onPress={() => setShowForm(value => !value)}
           >
             <Text style={styles.addText}>
-              {showForm ? 'Cancelar' : '+ Nueva direccion'}
+              {showForm ? 'Cancelar' : '+ Nueva dirección'}
             </Text>
           </TouchableOpacity>
           {showForm ? (
@@ -165,7 +165,7 @@ export default function DireccionesEnvioScreen({ navigation }: Props) {
                 <Icon name="check-doc" size={48} color={colors.textSubtle} />
               }
               title="Sin direcciones"
-              description="Agrega una direccion de envio."
+              description="Agregá una dirección de envío."
             />
           ) : (
             items.map(item => (
@@ -210,21 +210,21 @@ function AddressForm({
       {field('destinatario', 'Destinatario')}
       <View style={styles.fieldsRow}>
         <View style={styles.flex}>{field('calle', 'Calle')}</View>
-        <View style={styles.number}>{field('numero', 'Numero')}</View>
+        <View style={styles.number}>{field('numero', 'Número')}</View>
       </View>
       {field('piso', 'Piso / departamento (opcional)')}
-      {field('codigoPostal', 'Codigo postal')}
+      {field('codigoPostal', 'Código postal')}
       {field('localidad', 'Localidad')}
       {field('provincia', 'Provincia')}
-      {field('pais', 'Pais')}
-      {field('telefono', 'Telefono (opcional)')}
+      {field('pais', 'País')}
+      {field('telefono', 'Teléfono (opcional)')}
       <TouchableOpacity
         style={styles.submit}
         onPress={onSubmit}
         disabled={saving}
       >
         <Text style={styles.addText}>
-          {saving ? 'Guardando...' : 'Guardar direccion'}
+          {saving ? 'Guardando...' : 'Guardar dirección'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -272,7 +272,7 @@ function AddressCard({
   );
 }
 function message(error: unknown) {
-  return userFacingError(error, 'Intenta nuevamente.');
+  return userFacingError(error, 'Intentá nuevamente.');
 }
 
 const styles = StyleSheet.create({

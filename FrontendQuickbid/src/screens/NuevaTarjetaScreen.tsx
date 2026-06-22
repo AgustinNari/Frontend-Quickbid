@@ -116,7 +116,7 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
         cvv: cvv.trim(),
         vencimientoMes: mes,
         vencimientoAnio: anio,
-        marca: tipo === 'tarjeta_credito' ? 'Credito/Debito' : 'Debito',
+          marca: tipo === 'tarjeta_credito' ? 'Crédito/Débito' : 'Débito',
         nacional,
       });
       navigation.navigate('ValidandoPago');
@@ -124,7 +124,7 @@ export default function NuevaTarjetaScreen({ navigation }: Props) {
       const msg =
         e instanceof ApiError
           ? e.message
-          : 'No se pudo conectar con el servidor.';
+          : 'No se pudo contactar a QuickBid. Revisá tu conexión e intentá nuevamente.';
       Alert.alert('Error', msg);
     } finally {
       setLoading(false);

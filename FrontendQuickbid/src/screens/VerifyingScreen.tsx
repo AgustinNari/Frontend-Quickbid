@@ -127,7 +127,7 @@ export default function VerifyingScreen({ navigation }: Props) {
           activeOpacity={0.85}
           onPress={() => navigation.navigate('Login')}
         >
-          <Text style={styles.btnText}>Volver al Login</Text>
+          <Text style={styles.btnText}>Volver al inicio de sesión</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

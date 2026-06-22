@@ -155,7 +155,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
       .catch(err => {
         if (active) {
           setPreviewDevolucion(null);
-          Alert.alert('No pudimos calcular la devolucion', readableError(err));
+          Alert.alert('No pudimos calcular la devolución', readableError(err));
         }
       })
       .finally(() => {
@@ -190,11 +190,11 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
       setDetalle(mapConsignacionDetalle(updated));
       setDocumentacionOrigen(null);
       Alert.alert(
-        'Documentacion enviada',
-        'La solicitud vuelve a revision manual.',
+        'Documentación enviada',
+        'La solicitud vuelve a revisión manual.',
       );
     } catch (err) {
-      Alert.alert('No se pudo subir documentacion', readableError(err));
+      Alert.alert('No se pudo subir documentación', readableError(err));
     } finally {
       setUploadingDoc(false);
     }
@@ -209,7 +209,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
     if (!file.downloadAvailable || !file.downloadUrl) {
       Alert.alert(
         'Archivo no disponible',
-        'El documento no esta disponible en este momento. Intenta generarlo nuevamente o contacta soporte.',
+        'El documento no está disponible en este momento. Intentá generarlo nuevamente o contactá a soporte.',
       );
       return;
     }
@@ -270,13 +270,13 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
       await refreshDetalle();
       setReturnModal(false);
       Alert.alert(
-        'Devolucion registrada',
+        'Devolución registrada',
         modalidadDevolucion === 'envio'
-          ? 'Ahora podes pagar el envio de devolucion.'
-          : 'QuickBid registro el retiro en sucursal.',
+          ? 'Ahora podés pagar el envío de devolución.'
+          : 'QuickBid registró el retiro en sucursal.',
       );
     } catch (err) {
-      Alert.alert('No se pudo gestionar la devolucion', readableError(err));
+      Alert.alert('No se pudo gestionar la devolución', readableError(err));
     } finally {
       setActionLoading(false);
     }
@@ -285,8 +285,8 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
   const gestionarDevolucion = () => {
     if (modalidadDevolucion === 'envio' && !direccionEnvioId) {
       Alert.alert(
-        'Direccion requerida',
-        'Agrega o selecciona una direccion guardada para continuar.',
+        'Dirección requerida',
+        'Agregá o seleccioná una dirección guardada para continuar.',
       );
       return;
     }
@@ -308,15 +308,15 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
     );
     const resumen =
       modalidadDevolucion === 'envio'
-        ? `Modalidad: envio a domicilio\nDireccion: ${
+          ? `Modalidad: envío a domicilio\nDirección: ${
             selected
               ? direccionLabel(selected)
-              : previewDevolucion.direccionResumen ?? 'direccion seleccionada'
-          }\nCosto de devolucion: ${costo}\nTotal estimado: ${total}`
-        : `Modalidad: retiro en sucursal\nCosto de devolucion: ${costo}\nTotal estimado: ${total}`;
+              : previewDevolucion.direccionResumen ?? 'dirección seleccionada'
+            }\nCosto de devolución: ${costo}\nTotal estimado: ${total}`
+          : `Modalidad: retiro en sucursal\nCosto de devolución: ${costo}\nTotal estimado: ${total}`;
     Alert.alert(
-      'Confirmar devolucion',
-      `${resumen}\n\nLuego no podras cambiar la modalidad de devolucion.`,
+      'Confirmar devolución',
+        `${resumen}\n\nLuego no podrás cambiar la modalidad de devolución.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Confirmar', onPress: persistirDevolucion },
@@ -364,7 +364,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
         `Estado del pago: ${humanize(pago.estado)}.`,
       );
     } catch (err) {
-      Alert.alert('No se pudo pagar el envio', readableError(err));
+      Alert.alert('No se pudo pagar el envío', readableError(err));
     } finally {
       setActionLoading(false);
     }
@@ -375,12 +375,12 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
       <ScreenHeader onBack={() => navigation.goBack()} />
 
       {loading ? (
-        <Loader fullScreen label="Cargando consignacion..." />
+        <Loader fullScreen label="Cargando consignación..." />
       ) : error ? (
         <View style={styles.errorWrap}>
           <EmptyState
             icon={<Icon name="alert" size={48} color={colors.danger} />}
-            title="No pudimos abrir la consignacion"
+            title="No pudimos abrir la consignación"
             description={error}
             actionLabel="Reintentar"
             onAction={load}
@@ -390,8 +390,8 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
         <View style={styles.errorWrap}>
           <EmptyState
             icon={<Icon name="inbox" size={48} color={colors.textSubtle} />}
-            title="No encontramos la consignacion"
-            description="La consignacion que intentas abrir no existe o no pertenece a tu cuenta."
+            title="No encontramos la consignación"
+            description="La consignación que intentás abrir no existe o no pertenece a tu cuenta."
             actionLabel="Volver"
             onAction={() => navigation.goBack()}
           />
@@ -435,7 +435,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
             <InfoCard title="DATOS DEL BIEN">
               <InfoRow label="Segmento" value={detalle.segmento} />
               <InfoRow
-                label="Categoria subasta"
+                label="Categoría subasta"
                 value={detalle.categoriaSubasta}
               />
               <InfoRow
@@ -447,7 +447,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                 value={
                   detalle.productoId
                     ? `#${detalle.productoId}`
-                    : 'Aun no materializado'
+                    : 'Aún no materializado'
                 }
               />
               <Body style={styles.description}>{detalle.descripcion}</Body>
@@ -482,12 +482,12 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                 <View style={styles.rechazoHeader}>
                   <Icon name="alert" size={18} color={colors.warning} />
                   <Typography style={styles.rechazoTitulo}>
-                    Documentacion de origen requerida
+                    Documentación de origen requerida
                   </Typography>
                 </View>
                 <Body style={styles.rechazoMotivo}>
-                  Adjunta factura o comprobante como imagen para continuar
-                  con la revision.
+                  Adjuntá factura o comprobante como imagen para continuar
+                  con la revisión.
                 </Body>
                 {documentacionOrigen ? (
                   <ImageUploadPreview
@@ -508,7 +508,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                   }
                 >
                   {documentacionOrigen
-                    ? 'Enviar documentacion'
+                    ? 'Enviar documentación'
                     : 'Seleccionar foto de documento'}
                 </Button>
               </View>
@@ -581,7 +581,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
             ) : null}
 
             {detalle.devolucion ? (
-              <InfoCard title="DEVOLUCION">
+              <InfoCard title="DEVOLUCIÓN">
                 <InfoRow
                   label="Estado"
                   value={detalle.devolucion.estadoLabel}
@@ -591,12 +591,12 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                   value={detalle.devolucion.modalidadLabel}
                 />
                 <InfoRow
-                  label="Costo envio"
+                  label="Costo envío"
                   value={detalle.devolucion.costoLabel}
                 />
                 {detalle.devolucion.direccionResumen ? (
                   <InfoRow
-                    label="Direccion"
+                    label="Dirección"
                     value={detalle.devolucion.direccionResumen}
                   />
                 ) : null}
@@ -608,12 +608,12 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                     size="sm"
                     onPress={() => descargarArchivo(devolucionDocumento)}
                   >
-                    Abrir comprobante de envio
+                    Abrir comprobante de envío
                   </Button>
                 ) : detalle.devolucion.modalidad === 'envio' &&
                   detalle.devolucion.pagoId ? (
                   <Typography style={styles.emptyDocs}>
-                    Pago registrado. El comprobante todavia no esta disponible.
+                    Pago registrado. El comprobante todavía no está disponible.
                   </Typography>
                 ) : null}
                 {detalle.estado === 'devolucion_pendiente' &&
@@ -623,7 +623,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                     onPress={abrirDevolucion}
                     loading={actionLoading}
                   >
-                    Gestionar devolucion
+                    Gestionar devolución
                   </Button>
                 ) : null}
                 {detalle.estado === 'devolucion_pendiente' &&
@@ -637,20 +637,20 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                       <Icon name="lock" size={16} color={colors.textInverse} />
                     }
                   >
-                    Pagar envio de devolucion
+                    Pagar envío de devolución
                   </Button>
                 ) : null}
               </InfoCard>
             ) : null}
 
             {detalle.liquidacion ? (
-              <InfoCard title="LIQUIDACION">
+              <InfoCard title="LIQUIDACIÓN">
                 <InfoRow
                   label="Venta"
                   value={detalle.liquidacion.montoBrutoLabel}
                 />
                 <InfoRow
-                  label="Comision"
+                  label="Comisión"
                   value={detalle.liquidacion.comisionLabel}
                 />
                 <InfoRow
@@ -675,9 +675,9 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                 />
               </InfoCard>
             ) : ['vendida', 'comprada_por_empresa'].includes(detalle.estado) ? (
-              <InfoCard title="LIQUIDACION">
+              <InfoCard title="LIQUIDACIÓN">
                 <Typography style={styles.emptyDocs}>
-                  Liquidacion pendiente de emision por QuickBid.
+                  Liquidación pendiente de emisión por QuickBid.
                 </Typography>
               </InfoCard>
             ) : null}
@@ -848,20 +848,20 @@ function DocumentActions({
           opensDetail
         />
         <DocumentButton
-          label="Poliza"
+          label="Póliza"
           enabled={polizaDisponible}
           onPress={onPoliza}
           opensDetail
         />
         <DocumentButton
-          label="Liquidacion"
+          label="Liquidación"
           enabled={liquidacionDisponible}
           onPress={onLiquidacion}
         />
       </View>
       {!polizaDisponible ? (
         <Typography style={styles.emptyDocs}>
-          La poliza aun no fue registrada para esta consignacion.
+          La póliza aún no fue registrada para esta consignación.
         </Typography>
       ) : null}
     </View>
@@ -993,10 +993,10 @@ function ReturnModal({
     >
       <View style={styles.modalBackdrop}>
         <View style={styles.modalSheet}>
-          <Typography style={styles.modalEyebrow}>DEVOLUCION</Typography>
-          <Heading style={styles.modalTitle}>Gestionar devolucion</Heading>
+          <Typography style={styles.modalEyebrow}>DEVOLUCIÓN</Typography>
+          <Heading style={styles.modalTitle}>Gestionar devolución</Heading>
           <Body style={styles.modalText}>
-            Elegi como queres recuperar el bien.
+            Elegí cómo querés recuperar el bien.
           </Body>
           <View style={styles.segmented}>
             <SegmentButton
@@ -1005,7 +1005,7 @@ function ReturnModal({
               onPress={() => onModalidad('retiro')}
             />
             <SegmentButton
-              label="Envio"
+              label="Envío"
               selected={modalidad === 'envio'}
               onPress={() => onModalidad('envio')}
             />
@@ -1016,7 +1016,7 @@ function ReturnModal({
                 <View style={styles.infoSoftBox}>
                   <Icon name="alert" size={18} color={colors.warning} />
                   <Typography style={styles.infoSoftText}>
-                    No tenes direcciones guardadas para recibir la devolucion.
+                    No tenés direcciones guardadas para recibir la devolución.
                   </Typography>
                 </View>
               ) : (
@@ -1041,7 +1041,7 @@ function ReturnModal({
             <View style={styles.infoSoftBox}>
               <Icon name="info" size={18} color={colors.info} />
               <Typography style={styles.infoSoftText}>
-                Retiro en sucursal no genera pago de envio.
+                Retiro en sucursal no genera pago de envío.
               </Typography>
             </View>
           )}
@@ -1050,7 +1050,7 @@ function ReturnModal({
               label="Modalidad"
               value={
                 modalidad === 'envio'
-                  ? 'Envio a domicilio'
+                  ? 'Envío a domicilio'
                   : 'Retiro en sucursal'
               }
             />
@@ -1085,7 +1085,7 @@ function ReturnModal({
                 (modalidad === 'envio' && !direccionEnvioId)
               }
             >
-              Confirmar devolucion
+              Confirmar devolución
             </Button>
             <Button variant="ghost" onPress={onClose} disabled={loading}>
               Volver
@@ -1129,11 +1129,11 @@ function PaymentModal({
       <View style={styles.modalBackdrop}>
         <View style={styles.modalSheet}>
           <Typography style={styles.modalEyebrow}>
-            PAGO DE DEVOLUCION
+            PAGO DE DEVOLUCIÓN
           </Typography>
-          <Heading style={styles.modalTitle}>Envio de devolucion</Heading>
+          <Heading style={styles.modalTitle}>Envío de devolución</Heading>
           <View style={styles.modalSummary}>
-            <InfoRow label="Concepto" value="Envio por devolucion" />
+            <InfoRow label="Concepto" value="Envío por devolución" />
             <InfoRow
               label="Monto"
               value={devolucion?.costoLabel ?? 'Sin dato'}
@@ -1144,7 +1144,7 @@ function PaymentModal({
             <View style={styles.infoSoftBox}>
               <Icon name="alert" size={18} color={colors.warning} />
               <Typography style={styles.infoSoftText}>
-                No hay medios verificados compatibles para pagar este envio.
+                No hay medios verificados compatibles para pagar este envío.
               </Typography>
             </View>
           ) : (
@@ -1214,7 +1214,7 @@ function SegmentButton({
 function readableError(err: unknown) {
   return userFacingError(
     err,
-    'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
+    'QuickBid no está disponible. Probalo de nuevo en unos minutos.',
   );
 }
 

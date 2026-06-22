@@ -241,7 +241,7 @@ export default function IdentityScreen({ route, navigation }: Props) {
       const msg =
         e instanceof ApiError
           ? e.message
-          : 'No se pudo conectar con el servidor.';
+          : 'No se pudo contactar a QuickBid. Revisá tu conexión e intentá nuevamente.';
       Alert.alert('Error', msg);
     } finally {
       setLoading(false);

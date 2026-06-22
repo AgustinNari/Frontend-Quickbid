@@ -121,12 +121,12 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
     : 'Acceso limitado';
 
   const description = isBlocked
-    ? 'Tu cuenta tiene un bloqueo permanente. Podes cerrar sesion, pero no navegar ni operar funciones normales.'
+    ? 'Tu cuenta tiene un bloqueo permanente. Podés cerrar sesión, pero no navegar ni operar funciones normales.'
     : isRestricted
-    ? 'Podes navegar normalmente, pero las acciones economicas estan deshabilitadas mientras exista una multa activa.'
+    ? 'Podés navegar normalmente, pero las acciones económicas estan deshabilitadas mientras exista una multa activa.'
     : isGuest || isGuestOnboarding
-    ? 'Podes explorar subastas y catalogos publicos. Para pujar, consignar, comprar o gestionar pagos necesitas una cuenta habilitada.'
-    : 'Para participar en subastas y realizar acciones economicas necesitas una cuenta habilitada.';
+    ? 'Podés explorar subastas y catálogos públicos. Para pujar, consignar, comprar o gestionar pagos necesitás una cuenta habilitada.'
+    : 'Para participar en subastas y realizar acciones económicas necesitas una cuenta habilitada.';
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -153,10 +153,10 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
             />
             <Text style={[styles.statusText, { color: statusColor }]}>
               {isBlocked
-                ? 'La navegacion normal esta bloqueada'
+                ? 'La navegación normal está bloqueada'
                 : isRestricted
-                ? 'Las acciones economicas estan bloqueadas'
-                : 'Estas navegando con acceso limitado'}
+                ? 'Las acciones económicas estan bloqueadas'
+                : 'Estás navegando con acceso limitado'}
             </Text>
           </View>
           <FeatureItem
@@ -172,7 +172,7 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
               isRestricted
                 ? 'Regulariza la multa desde tus compras para volver a inscribirte y pujar.'
                 : isBlocked
-                ? 'Las funciones protegidas no estan disponibles para esta sesion limitada.'
+                ? 'Las funciones protegidas no están disponibles para esta sesión limitada.'
                 : 'Las operaciones requieren una cuenta registrada y habilitada.'
             }
           />
@@ -181,8 +181,8 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
             title={isGuest || isGuestOnboarding ? 'Explorar como observador' : 'Estado de cuenta'}
             description={
               isGuest || isGuestOnboarding
-                ? 'Podes recorrer contenido publico. Una cuenta y un medio de pago habilitan precios y acciones protegidas.'
-                : 'QuickBid usa el estado de tu cuenta para habilitar cada accion.'
+                ? 'Podés recorrer contenido publico. Una cuenta y un medio de pago habilitan precios y acciones protegidas.'
+                : 'QuickBid usá el estado de tu cuenta para habilitar cada acción.'
             }
           />
         </Card>
@@ -196,7 +196,7 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
               navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
             }}
           >
-            Cerrar sesion
+            Cerrar sesión
           </Button>
         ) : isGuestOnboarding ? (
           <>
@@ -205,7 +205,7 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
               onPress={() =>
                 Alert.alert(
                   'Necesitas una cuenta',
-                  'Para agregar un medio de pago primero inicia sesion o crea una cuenta.',
+                  'Para agregar un medio de pago primero iniciá sesión o crea una cuenta.',
                   [
                     { text: 'Cancelar', style: 'cancel' },
                     {
@@ -213,7 +213,7 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
                       onPress: () => navigation.navigate('Register'),
                     },
                     {
-                      text: 'Iniciar sesion',
+                      text: 'Iniciar sesión',
                       onPress: () => navigation.navigate('Login'),
                     },
                   ],
@@ -242,7 +242,7 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
                 navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
               }}
             >
-              Iniciar sesion
+              Iniciar sesión
             </Button>
             <Button
               variant="secondary"

@@ -89,7 +89,7 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
       const msg =
         e instanceof ApiError
           ? e.message
-          : 'No se pudo conectar con el servidor.';
+          : 'No se pudo contactar a QuickBid. Revisá tu conexión e intentá nuevamente.';
       Alert.alert('Error', msg);
     } finally {
       setLoadingLink(false);
@@ -115,7 +115,7 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
       const msg =
         e instanceof ApiError
           ? e.message
-          : 'No se pudo conectar con el servidor.';
+          : 'No se pudo contactar a QuickBid. Revisá tu conexión e intentá nuevamente.';
       Alert.alert('Error', msg);
     } finally {
       setLoadingVerificar(false);

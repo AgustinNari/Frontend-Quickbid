@@ -91,7 +91,7 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
     if (!doc.downloadAvailable || !doc.downloadUrl) {
       Alert.alert(
         'Archivo no disponible',
-        'El documento no esta disponible en este momento. Intenta generarlo nuevamente o contacta soporte.',
+        'El documento no está disponible en este momento. Intentá generarlo nuevamente o contactá a soporte.',
       );
       return;
     }
@@ -114,7 +114,7 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
         'Documento no disponible',
         userFacingError(
           err,
-          'El documento no esta disponible en este momento. Intenta generarlo nuevamente o contacta soporte.',
+          'El documento no está disponible en este momento. Intentá generarlo nuevamente o contactá a soporte.',
         ),
       );
     }
@@ -133,7 +133,7 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
     }
     Alert.alert(
       'Documentos',
-      'Todavia no hay documentos disponibles para esta compra.',
+      'Todavía no hay documentos disponibles para esta compra.',
     );
   };
 
@@ -158,7 +158,7 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
           <EmptyState
             icon={<Icon name="inbox" size={48} color={colors.textSubtle} />}
             title="No encontramos la compra"
-            description="La compra que intentas abrir no existe o no pertenece a tu cuenta."
+            description="La compra que intentás abrir no existe o no pertenece a tu cuenta."
             actionLabel="Volver"
             onAction={() => navigation.goBack()}
           />
@@ -259,7 +259,7 @@ function DesgloseEconomico({ compra }: { compra: CompraDetalleUi }) {
     return (
       <View style={styles.econCard}>
         <Typography style={styles.econLabel}>
-          A PAGAR (ARTICULO + MULTA)
+          A PAGAR (ARTÍCULO + MULTA)
         </Typography>
         <EconRow
           label="Oferta ganadora"
@@ -284,26 +284,26 @@ function DesgloseEconomico({ compra }: { compra: CompraDetalleUi }) {
     return (
       <View style={styles.econCard}>
         <Typography style={styles.econLabel}>
-          A PAGAR (COMISIONES + ENVIO)
+          A PAGAR (COMISIONES + ENVÍO)
         </Typography>
         <EconRow
-          label="Articulo"
+          label="Artículo"
           value={`${formatPrecio(
             compra.montoAdjudicacion,
             moneda,
           )} · adjudicado`}
         />
         <EconRow
-          label="Comision comprador"
+          label="Comisión comprador"
           value={formatPrecio(compra.comisionComprador, moneda)}
         />
         <EconRow
-          label="Envio"
+          label="Envío"
           value={formatPrecio(compra.entrega?.costoEnvio ?? 0, moneda)}
         />
         {!compra.entrega ? (
           <Typography style={styles.helpText}>
-            Elegis envio o retiro antes de confirmar el pago.
+            Elegís envío o retiro antes de confirmar el pago.
           </Typography>
         ) : null}
         <View style={styles.econDivider} />
@@ -328,11 +328,11 @@ function DesgloseEconomico({ compra }: { compra: CompraDetalleUi }) {
         value={formatPrecio(compra.montoAdjudicacion, moneda)}
       />
       <EconRow
-        label="Comision comprador"
+        label="Comisión comprador"
         value={formatPrecio(compra.comisionComprador, moneda)}
       />
       <EconRow
-        label="Envio"
+        label="Envío"
         value={formatPrecio(compra.entrega?.costoEnvio ?? 0, moneda)}
       />
       <View style={styles.econDivider} />
@@ -401,14 +401,14 @@ function EntregaSection({ compra }: { compra: CompraDetalleUi }) {
           />
           {compra.direccionSnapshotLabel ? (
             <EconRow
-              label="Direccion registrada"
+              label="Dirección registrada"
               value={compra.direccionSnapshotLabel}
             />
           ) : null}
         </>
       ) : editable ? (
         <Typography style={styles.helpText}>
-          La seleccion se hace en el resumen de pago antes de confirmar.
+          La selección se hace en el resumen de pago antes de confirmar.
         </Typography>
       ) : null}
     </View>
@@ -435,7 +435,7 @@ function DocumentosSection({
       {error ? <Typography style={styles.helpText}>{error}</Typography> : null}
       {!error && documentos.length === 0 ? (
         <Typography style={styles.helpText}>
-          No hay documentos disponibles todavia.
+          No hay documentos disponibles todavía.
         </Typography>
       ) : null}
       {documentos.map(doc => (
@@ -473,13 +473,13 @@ function documentDescription(
   compra: CompraDetalleUi,
 ) {
   if (doc.tipo === 'recibo_multa') {
-    return 'Documenta el articulo adjudicado y la multa pagada. No incluye comision ni entrega pendientes.';
+    return 'Documenta el artículo adjudicado y la multa pagada. No incluye comisión ni entrega pendientes.';
   }
   if (doc.tipo === 'factura_compra' && compra.multa?.estado === 'pagada') {
-    return 'Comprobante de extras: comision y entrega o retiro. El articulo ya fue documentado con la multa.';
+    return 'Comprobante de extras: comisión y entrega o retiro. El artículo ya fue documentado con la multa.';
   }
   if (doc.tipo === 'factura_compra') {
-    return 'Incluye articulo, comision y entrega o retiro segun corresponda.';
+    return 'Incluye artículo, comisión y entrega o retiro según corresponda.';
   }
   return 'Documento emitido por QuickBid para esta compra.';
 }
@@ -500,7 +500,7 @@ function CompraCta({
         onPress={onPress}
         leftIcon={<Icon name="alert" color={colors.textInverse} size={18} />}
       >
-        Pagar articulo + multa
+        Pagar artículo + multa
       </Button>
     );
   }
@@ -563,7 +563,7 @@ function EconRow({
 function readableError(err: unknown) {
   return userFacingError(
     err,
-    'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
+    'QuickBid no está disponible. Probalo de nuevo en unos minutos.',
   );
 }
 

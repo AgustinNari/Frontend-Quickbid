@@ -84,7 +84,7 @@ export default function HistorialScreen({ navigation }: Props) {
             <EmptyState
               icon={<Icon name="clock" size={48} color={colors.textSubtle} />}
               title="Sin actividad"
-              description="Todavia no tenes pujas ni compras en tu historial."
+              description="todavía no tenés pujas ni compras en tu historial."
             />
           ) : (
             <>
@@ -102,7 +102,7 @@ export default function HistorialScreen({ navigation }: Props) {
                   disabled={loadingMore}
                 >
                   <Text style={styles.moreText}>
-                    {loadingMore ? 'Cargando...' : 'Ver mas'}
+                    {loadingMore ? 'Cargando...' : 'Ver más'}
                   </Text>
                 </TouchableOpacity>
               ) : null}

@@ -80,7 +80,7 @@ export default function LoginScreen({ navigation }: Props) {
     setLoading(true);
     try {
       const res = await authApi.login({ email: email.trim(), clave: password });
-      if (!res.data) throw new Error('Respuesta invalida de QuickBid.');
+      if (!res.data) throw new Error('Respuesta inválida de QuickBid.');
       await login(res.data);
       navigation.reset({
         index: 0,
@@ -97,7 +97,7 @@ export default function LoginScreen({ navigation }: Props) {
       const msg =
         e instanceof ApiError
           ? e.message
-          : 'No pudimos iniciar sesion. Intenta nuevamente.';
+          : 'No pudimos iniciar sesión. Intentá nuevamente.';
       Alert.alert('Error', msg);
     } finally {
       setLoading(false);
@@ -119,7 +119,7 @@ export default function LoginScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.title}>Entrar a QuickBid</Text>
-          <Text style={styles.subtitle}>Ingresa tus credenciales.</Text>
+          <Text style={styles.subtitle}>Ingresá tus credenciales.</Text>
 
           <Text style={styles.label}>CORREO ELECTRÓNICO</Text>
           <View style={styles.inputRow}>
@@ -178,7 +178,7 @@ export default function LoginScreen({ navigation }: Props) {
               })
             }
           >
-            <Text style={styles.btnText}>Continuar como Invitado</Text>
+            <Text style={styles.btnText}>Continuar como invitado</Text>
           </TouchableOpacity>
 
           <View style={styles.footer}>

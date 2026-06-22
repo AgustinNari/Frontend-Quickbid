@@ -27,12 +27,12 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Security'>;
 function passwordPolicyMessage(password: string) {
   if (password.length < 8) return 'La clave debe tener al menos 8 caracteres.';
   if (!/[a-z]/.test(password))
-    return 'La clave debe incluir al menos una minuscula.';
+    return 'La clave debe incluir al menos una minúscula.';
   if (!/[A-Z]/.test(password))
-    return 'La clave debe incluir al menos una mayuscula.';
-  if (!/\d/.test(password)) return 'La clave debe incluir al menos un numero.';
+    return 'La clave debe incluir al menos una mayúscula.';
+  if (!/\d/.test(password)) return 'La clave debe incluir al menos un número.';
   if (!/[^A-Za-z0-9]/.test(password))
-    return 'La clave debe incluir al menos un simbolo.';
+    return 'La clave debe incluir al menos un símbolo.';
   return null;
 }
 
@@ -121,7 +121,7 @@ export default function SecurityScreen({ route, navigation }: Props) {
         if (!setupToken?.trim()) {
           Alert.alert(
             'Token requerido',
-            'El enlace de registro no incluye un token valido.',
+            'El enlace de registro no incluye un token válido.',
           );
           return;
         }
@@ -130,7 +130,7 @@ export default function SecurityScreen({ route, navigation }: Props) {
           claveNueva: password,
           claveConfirmacion: confirm,
         });
-        if (!res.data) throw new Error('Respuesta inválida del servidor.');
+        if (!res.data) throw new Error('Respuesta inválida de QuickBid.');
         await login(res.data);
         navigation.reset({
           index: 0,
@@ -150,7 +150,7 @@ export default function SecurityScreen({ route, navigation }: Props) {
         if (!recoveryToken?.trim()) {
           Alert.alert(
             'Token requerido',
-            'El enlace de recuperacion no incluye un token valido.',
+            'El enlace de recuperacion no incluye un token válido.',
           );
           return;
         }
@@ -160,7 +160,7 @@ export default function SecurityScreen({ route, navigation }: Props) {
           'Tu contraseña fue cambiada. Iniciá sesión.',
           [
             {
-              text: 'Ir al Login',
+              text: 'Ir al inicio de sesión',
               onPress: () =>
                 navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
             },
@@ -171,7 +171,7 @@ export default function SecurityScreen({ route, navigation }: Props) {
       const msg =
         e instanceof ApiError
           ? e.message
-          : 'No se pudo conectar con el servidor.';
+          : 'No se pudo contactar a QuickBid. Revisá tu conexión e intentá nuevamente.';
       Alert.alert('Error', msg);
     } finally {
       setLoading(false);
@@ -217,8 +217,8 @@ export default function SecurityScreen({ route, navigation }: Props) {
             </TouchableOpacity>
           </View>
           <Text style={styles.hint}>
-            Minimo 8 caracteres, una minuscula, una mayuscula, un numero y un
-            simbolo.
+            Mínimo 8 caracteres, una minúscula, una mayúscula, un número y un
+            símbolo.
           </Text>
 
           <Text style={styles.label}>REPETIR CONTRASEÑA</Text>

@@ -270,7 +270,7 @@ function parseDireccionSnapshot(raw: string): string | null {
 
 function tipoDocumentoLabel(tipo: string) {
   if (tipo === 'factura_compra') return 'Factura / comprobante de compra';
-  if (tipo === 'recibo_multa') return 'Recibo de articulo + multa';
+  if (tipo === 'recibo_multa') return 'Recibo de artículo + multa';
   return humanize(tipo);
 }
 

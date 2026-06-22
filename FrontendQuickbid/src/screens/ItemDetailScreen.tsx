@@ -107,7 +107,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
           <EmptyState
             icon={<Icon name="alert" size={48} color={colors.textSubtle} />}
             title="No pudimos cargar el lote"
-            description={error ?? 'El lote no existe o no esta disponible.'}
+            description={error ?? 'El lote no existe o no está disponible.'}
             actionLabel="Reintentar"
             onAction={() => loadItem()}
           />
@@ -348,7 +348,7 @@ function TabDetalles({ item }: { item: ItemDetalle }) {
 function TabHistoria({ item }: { item: ItemDetalle }) {
   const hasContent = item.descripcion || item.autor || item.procedencia;
   if (!hasContent) {
-    return <TabEmpty mensaje="Este lote aun no tiene historia cargada." />;
+    return <TabEmpty mensaje="Este lote aún no tiene historia cargada." />;
   }
   return (
     <View style={styles.tabPanel}>

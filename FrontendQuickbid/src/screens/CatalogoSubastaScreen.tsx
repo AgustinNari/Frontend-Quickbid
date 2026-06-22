@@ -65,7 +65,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
       setSubastaEstado(detalle.estado);
     } catch (loadError) {
       setItems([]);
-      setError(userFacingError(loadError, 'No pudimos cargar el catalogo.'));
+      setError(userFacingError(loadError, 'No pudimos cargar el catálogo.'));
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
         <View style={styles.emptyWrap}>
           <EmptyState
             icon={<Icon name="alert" size={48} color={colors.textSubtle} />}
-            title="No pudimos cargar el catalogo"
+            title="No pudimos cargar el catálogo"
             description={error}
             actionLabel="Reintentar"
             onAction={() => loadCatalogo()}
@@ -128,7 +128,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
               <View style={styles.guestNotice}>
                 <Icon name="info" size={16} color={colors.primary} />
                 <Body muted style={styles.guestNoticeText}>
-                  Inicia sesion para consultar importes y participar.
+                  Iniciá sesión para consultar importes y participar.
                 </Body>
               </View>
             ) : null}

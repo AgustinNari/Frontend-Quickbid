@@ -247,7 +247,7 @@ export async function retryConsignmentDraft<T>(
   const draft = await store.get(id);
   if (!draft) throw new Error('El borrador ya no existe en este dispositivo.');
   if (!dependencies.online) {
-    throw new Error('Necesitas conexion para reintentar el envio.');
+    throw new Error('Necesitás conexión para reintentar el envío.');
   }
   if (
     draft.form.fotos.length > 0 &&
@@ -287,7 +287,7 @@ export async function retryConsignmentDraft<T>(
     if (draft.form.documentacionOrigen && dependencies.submitDocumentation) {
       if (!documentationReadable) {
         documentationWarning =
-          'La solicitud fue enviada. La documentacion de origen puede cargarse luego desde el detalle.';
+          'La solicitud fue enviada. La documentación de origen puede cargarse luego desde el detalle.';
       } else {
         try {
           await dependencies.submitDocumentation(
@@ -296,7 +296,7 @@ export async function retryConsignmentDraft<T>(
           );
         } catch {
           documentationWarning =
-            'La solicitud fue enviada. La documentacion de origen puede cargarse luego desde el detalle.';
+            'La solicitud fue enviada. La documentación de origen puede cargarse luego desde el detalle.';
         }
       }
     }

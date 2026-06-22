@@ -89,14 +89,14 @@ function readableError(
 
 function fallbackForStatus(status: number) {
   if (status === 400)
-    return 'La solicitud tiene datos invalidos. Revisa la informacion e intenta nuevamente.';
+    return 'La solicitud tiene datos inválidos. Revisá la información e intentá nuevamente.';
   if (status === 401)
-    return 'Tu sesion expiro o no estas autenticado. Inicia sesion para continuar.';
+    return 'Tu sesión expiró o no estás autenticado. Iniciá sesión para continuar.';
   if (status === 403)
-    return 'No tenes permiso para realizar esta accion con el estado actual de tu cuenta.';
+    return 'No tenés permiso para realizar esta acción con el estado actual de tu cuenta.';
   if (status === 409)
-    return 'La operacion no se puede completar porque el estado cambio. Actualiza e intenta nuevamente.';
-  return 'No pudimos completar la solicitud. Intenta nuevamente en unos minutos.';
+    return 'La operación no se puede completar porque el estado cambió. Actualizá e intentá nuevamente.';
+  return 'No pudimos completar la solicitud. Intentá nuevamente en unos minutos.';
 }
 
 async function safeFetch(input: RequestInfo, init?: RequestInit) {
@@ -113,7 +113,7 @@ async function safeFetch(input: RequestInfo, init?: RequestInit) {
     if (controller.signal.aborted) {
       throw new ApiError(
         0,
-        'QuickBid esta iniciando o tarda mas de lo esperado. Reintenta en unos segundos.',
+        'QuickBid está iniciando o tarda más de lo esperado. Reintentá en unos segundos.',
       );
     }
     if (__DEV__) {
@@ -126,7 +126,7 @@ async function safeFetch(input: RequestInfo, init?: RequestInit) {
     }
     throw new ApiError(
       0,
-      'No se pudo conectar con QuickBid. Verifica tu conexion o intenta nuevamente en unos minutos.',
+      'No se pudo conectar con QuickBid. Verificá tu conexión o intentá nuevamente en unos minutos.',
     );
   } finally {
     clearTimeout(timeout);
@@ -136,7 +136,7 @@ async function safeFetch(input: RequestInfo, init?: RequestInit) {
 
 export function userFacingError(
   error: unknown,
-  fallback = 'No pudimos completar la operacion. Intenta nuevamente.',
+  fallback = 'No pudimos completar la operación. Intentá nuevamente.',
 ) {
   return error instanceof ApiError && error.message ? error.message : fallback;
 }

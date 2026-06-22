@@ -83,27 +83,27 @@ const MAX_FOTOS = 15;
 const STEP_COPY = {
   1: {
     title: 'Requisitos para consignar',
-    subtitle: 'Revisa que tu cuenta tenga todo lo necesario para comenzar.',
+    subtitle: 'Revisá que tu cuenta tenga todo lo necesario para comenzar.',
   },
   2: {
-    title: 'Terminos y declaracion',
+    title: 'Términos y declaración',
     subtitle: 'Conoce las condiciones y confirma tu responsabilidad.',
   },
   3: {
     title: 'Datos y fotos',
-    subtitle: 'Identifica el bien con informacion y fotos claras.',
+    subtitle: 'Identificá el bien con información y fotos claras.',
   },
   4: {
     title: 'Historia y detalles',
-    subtitle: 'Agrega procedencia y atributos que ayuden a evaluarlo.',
+    subtitle: 'Agregá procedencia y atributos que ayuden a evaluarlo.',
   },
   5: {
-    title: 'Documentacion de origen',
-    subtitle: 'Adjunta un comprobante si lo tenes, o continua sin el.',
+    title: 'Documentación de origen',
+    subtitle: 'Adjuntá un comprobante si lo tenés, o continuá sin él.',
   },
   6: {
     title: 'Revisar y enviar',
-    subtitle: 'Confirma el resumen antes de enviar la solicitud.',
+    subtitle: 'Confirmá el resumen antes de enviar la solicitud.',
   },
 } as const;
 
@@ -234,7 +234,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
             ? draftStore.update(draft.id, {
                 status: 'fallido',
                 ultimoError:
-                  'El envio se interrumpio. Podes reintentarlo manualmente.',
+                  'El envío se interrumpió. Podés reintentarlo manualmente.',
               })
             : Promise.resolve(draft),
         ),
@@ -324,7 +324,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   }, [activeDraftId, draftStore, draftsLoaded, form, refreshDrafts]);
 
   const persistCurrent = async (status: ConsignmentDraftStatus) => {
-    if (!draftStore) throw new Error('Inicia sesion para guardar el borrador.');
+    if (!draftStore) throw new Error('Iniciá sesión para guardar el borrador.');
     autosaveVersion.current += 1;
     const id = activeDraftId ?? createDraftId();
     const existing = await draftStore.get(id);
@@ -396,7 +396,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   const elegirFotos = async () => {
     const remaining = MAX_FOTOS - fotos.length;
     if (remaining <= 0) {
-      Alert.alert('Limite alcanzado', `Podes cargar hasta ${MAX_FOTOS} fotos.`);
+      Alert.alert('Límite alcanzado', `Podés cargar hasta ${MAX_FOTOS} fotos.`);
       return;
     }
     const selected = await pickImages({
@@ -467,7 +467,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
         await persistCurrent('pendiente_subida');
         Alert.alert(
           'Solicitud guardada',
-          'Guardamos tu solicitud en este dispositivo para enviarla cuando vuelva la conexion.',
+          'Guardamos tu solicitud en este dispositivo para enviarla cuando vuelva la conexión.',
         );
       } catch {
         setSaveState('error');
@@ -487,7 +487,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   };
 
   const retryAndOpenSuccess = async (id: string) => {
-    if (!draftStore) throw new Error('Inicia sesion para enviar el borrador.');
+    if (!draftStore) throw new Error('Iniciá sesión para enviar el borrador.');
     const result = await retryConsignmentDraft(draftStore, id, {
       online: !offline,
       connectionType: network.type,
@@ -519,7 +519,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
 
   const handleRetry = async (id: string) => {
     if (offline) {
-      Alert.alert('Sin conexion', 'Conectate para reintentar el envio.');
+      Alert.alert('Sin conexión', 'Conectate para reintentar el envío.');
       return;
     }
     setSubmitting(true);
@@ -553,14 +553,14 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
     setPaso(3);
     if (draft.form.fotos.some(photo => photo.persistedLocal !== true)) {
       Alert.alert(
-        'Revisa las fotos antes de enviar',
-        'Una o mas fotos no estan en el almacenamiento privado. Si ya no estan disponibles, vas a tener que seleccionarlas nuevamente.',
+        'Revisá las fotos antes de enviar',
+        'Una o más fotos no están en el almacenamiento privado. Si ya no están disponibles, vas a tener que seleccionarlas nuevamente.',
       );
     }
   };
 
   const deleteDraft = (id: string) => {
-    Alert.alert('Eliminar borrador', 'Esta accion no se puede deshacer.', [
+    Alert.alert('Eliminar borrador', 'Esta acción no se puede deshacer.', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Eliminar',
@@ -606,8 +606,8 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
           <EmptyState
             icon={<Icon name="lock" size={48} color={colors.textSubtle} />}
             title="Acceso limitado"
-            description="Inicia sesion para consignar bienes."
-            actionLabel="Iniciar sesion"
+            description="Iniciá sesión para consignar bienes."
+            actionLabel="Iniciar sesión"
             onAction={() => navigation.navigate('LimitedAccess')}
           />
         </View>
@@ -681,8 +681,8 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
               </Body>
               {offline ? (
                 <Typography style={styles.offlineNote}>
-                  Estas sin conexion. Podes completar el formulario y guardarlo;
-                  el envio siempre se inicia manualmente.
+                  Estás sin conexión. Podés completar el formulario y guardarlo;
+                  el envío siempre se inicia manualmente.
                 </Typography>
               ) : null}
               {saveState !== 'idle' ? (
@@ -848,7 +848,7 @@ function RequisitosStep({
         </View>
         {!puedeContinuar ? (
           <Typography style={styles.errorText}>
-            Faltan requisitos obligatorios. Revisa tus medios de pago y cuenta
+            Faltan requisitos obligatorios. Revisá tus medios de pago y cuenta
             bancaria.
           </Typography>
         ) : null}
@@ -862,7 +862,7 @@ function RequisitosStep({
       <View style={styles.infoBox}>
         <Icon name="info" size={18} color={colors.info} />
         <Body style={styles.infoText}>
-          QuickBid revisara identidad, datos del bien y condiciones necesarias
+          QuickBid revisará identidad, datos del bien y condiciones necesarias
           antes de proponer un acuerdo.
         </Body>
       </View>
@@ -903,13 +903,13 @@ function DraftsPanel({
       </Typography>
       {pendingCount > 0 && !offline ? (
         <Typography style={styles.pendingNotice}>
-          Volvio la conexion. Revisa y reintenta el envio cuando quieras.
+          Volvió la conexión. Revisá y reintentá el envío cuando quieras.
         </Typography>
       ) : null}
       {visible.map(draft => (
         <View key={draft.id} style={styles.draftCard}>
           <Typography style={styles.draftTitle} numberOfLines={1}>
-            {draft.form.titulo || 'Consignacion sin titulo'}
+            {draft.form.titulo || 'Consignación sin título'}
           </Typography>
           <Typography style={styles.draftMeta}>
             {draftStatusLabel(draft.status)} · {draft.form.fotos.length} fotos
@@ -1000,7 +1000,7 @@ function DatosFotosStep({
             style={[styles.uploadCount, fotosOk ? styles.uploadCountOk : null]}
           >
             Cargadas: {fotos.length}/{minimoFotos}
-            {fotosOk ? ' · minimo cumplido' : ''}
+            {fotosOk ? ' · mínimo cumplido' : ''}
           </Typography>
         </TouchableOpacity>
         {fotos.length > 0 ? (
@@ -1092,7 +1092,7 @@ function DatosFotosStep({
       </View>
 
       <TextField
-        label="TITULO"
+        label="TÍTULO"
         placeholder="Ej: Reloj Cartier Santos 1978"
         value={titulo}
         onChangeText={onTitulo}
@@ -1113,11 +1113,11 @@ function DatosFotosStep({
       </View>
 
       <View style={styles.section}>
-        <Typography style={styles.sectionLabel}>DESCRIPCION</Typography>
+        <Typography style={styles.sectionLabel}>DESCRIPCIÓN</Typography>
         <TextInput
           value={descripcion}
           onChangeText={onDescripcion}
-          placeholder="Marca, modelo, estado de conservacion, procedencia..."
+          placeholder="Marca, modelo, estado de conservación, procedencia..."
           placeholderTextColor={colors.textSubtle}
           multiline
           textAlignVertical="top"
@@ -1145,28 +1145,28 @@ function TerminosStep({
       <View style={styles.termsCard}>
         <Typography style={styles.termsTitle}>Condiciones principales</Typography>
         <Body style={styles.termsText}>
-          El bien sera revisado para validar identidad, autenticidad, estado y
-          procedencia. La solicitud no garantiza aceptacion ni venta.
+          El bien será revisado para validar identidad, autenticidad, estado y
+          procedencia. La solicitud no garantiza aceptación ni venta.
         </Body>
         <Body style={styles.termsText}>
-          QuickBid definira categoria comercial, precio base, comision, plazos y
-          demas condiciones luego de la revision. Podras aceptar o rechazar el
-          acuerdo cuando este disponible.
+          QuickBid definirá categoría comercial, precio base, comisión, plazos y
+          demás condiciones luego de la revisión. Podrás aceptar o rechazar el
+          acuerdo cuando esté disponible.
         </Body>
         <Body style={styles.termsText}>
-          Sos responsable por la veracidad de la informacion y por declarar que
-          el bien te pertenece y tiene origen licito.
+          Sos responsable por la veracidad de la información y por declarar que
+          el bien te pertenece y tiene origen lícito.
         </Body>
       </View>
       <Checkbox
         checked={aceptaTyc}
         onPress={onToggleTyc}
-        label="Lei y acepto los Terminos y Condiciones de consignacion."
+        label="Lei y acepto los Términos y Condiciones de consignación."
       />
       <Checkbox
         checked={aceptaJurada}
         onPress={onToggleJurada}
-        label="Declaro bajo juramento que el bien es de mi propiedad y de origen licito."
+        label="Declaro bajo juramento que el bien es de mi propiedad y de origen lícito."
       />
     </>
   );
@@ -1199,7 +1199,7 @@ function HistoriaStep({
     <>
       <TextField
         label="HISTORIA / PROCEDENCIA"
-        placeholder="Origen, procedencia o anecdota del objeto"
+        placeholder="Origen, procedencia o anécdota del objeto"
         value={historia}
         onChangeText={onHistoria}
       />
@@ -1255,7 +1255,7 @@ function DocumentationStep({
         <Icon name="info" size={18} color={colors.info} />
         <Body style={styles.infoText}>
           Una factura, ticket o comprobante puede ayudar a validar la procedencia.
-          Es opcional durante el alta y puede solicitarse mas adelante.
+          Es opcional durante el alta y puede solicitarse más adelante.
         </Body>
       </View>
       {documentacion ? (
@@ -1266,7 +1266,7 @@ function DocumentationStep({
         />
       ) : (
         <Button variant="secondary" onPress={onPick}>
-          Agregar documentacion
+          Agregar documentación
         </Button>
       )}
     </>
@@ -1287,36 +1287,36 @@ function ReviewStep({
   const cover = form.portadaUri ?? form.fotos[0]?.uri;
   return (
     <View style={styles.reviewCard}>
-      <ReviewRow label="Titulo" value={form.titulo || 'Sin completar'} />
+      <ReviewRow label="Título" value={form.titulo || 'Sin completar'} />
       <ReviewRow
         label="Segmento"
         value={form.segmento ? SEGMENTO_LABEL[form.segmento] : 'Sin completar'}
       />
       <ReviewRow
         label="Fotos"
-        value={`${form.fotos.length} cargadas (minimo ${minimoFotos})`}
+                  value={`${form.fotos.length} cargadas (mínimo ${minimoFotos})`}
       />
       <ReviewRow
         label="Portada"
         value={cover ? 'Seleccionada' : 'Sin seleccionar'}
       />
       <ReviewRow
-        label="Documentacion"
+        label="Documentación"
         value={form.documentacionOrigen?.name ?? 'Omitida por ahora'}
       />
       <ReviewRow
         label="Borrador"
         value={
           offline
-            ? 'Se guardara pendiente de envio manual'
+            ? 'Se guardará pendiente de envío manual'
             : saveState === 'saved'
               ? 'Guardado en este dispositivo'
               : 'Guardado automatico activo'
         }
       />
       <Body muted style={styles.reviewNote}>
-        Enviar inicia la revision. QuickBid definira categoria, precio base,
-        comision y condiciones; no estas publicando directamente en una subasta.
+        Enviar inicia la revisión. QuickBid definirá categoría, precio base,
+        comisión y condiciones; no estás publicando directamente en una subasta.
       </Body>
     </View>
   );
@@ -1383,7 +1383,7 @@ function Checkbox({
 function readableError(err: unknown) {
   return userFacingError(
     err,
-    'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
+    'QuickBid no está disponible. Probalo de nuevo en unos minutos.',
   );
 }
 
@@ -1411,9 +1411,9 @@ function hasDraftContent(form: ConsignmentDraftForm) {
 function draftStatusLabel(status: ConsignmentDraftStatus) {
   const labels: Record<ConsignmentDraftStatus, string> = {
     borrador: 'Borrador',
-    pendiente_subida: 'Pendiente de envio',
+    pendiente_subida: 'Pendiente de envío',
     subiendo: 'Enviando',
-    fallido: 'Envio fallido',
+    fallido: 'Envío fallido',
     completado: 'Completado',
   };
   return labels[status];

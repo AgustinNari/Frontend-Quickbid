@@ -39,7 +39,7 @@ export default function CuentaBancariaScreen({ navigation }: Props) {
     if (!titular.trim() || !cbu.trim() || !entidad.trim()) {
       Alert.alert(
         'Campos requeridos',
-        'Completa titular, CBU/CVU y entidad bancaria.',
+        'Completá titular, CBU/CVU y entidad bancaria.',
       );
       return;
     }
@@ -64,7 +64,7 @@ export default function CuentaBancariaScreen({ navigation }: Props) {
       const msg =
         e instanceof ApiError
           ? e.message
-          : 'No se pudo conectar con el servidor.';
+          : 'No se pudo contactar a QuickBid. Revisá tu conexión e intentá nuevamente.';
       Alert.alert('Error', msg);
     } finally {
       setLoading(false);

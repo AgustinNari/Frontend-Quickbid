@@ -26,33 +26,33 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Ayuda'>;
 const TOPICS = [
   {
     title: 'Consignaciones',
-    subtitle: 'Como cargar y vender un bien',
+    subtitle: 'Cómo cargar y vender un bien',
     content:
-      'Carga fotos y datos claros del bien. Vas a poder seguir la revision, aceptar el acuerdo y, si corresponde, elegir retiro o una direccion guardada para la devolucion.',
+      'Cargá fotos y datos claros del bien. Vas a poder seguir la revisión, aceptar el acuerdo y, si corresponde, elegir retiro o una dirección guardada para la devolución.',
   },
   {
     title: 'Pujas y subastas',
     subtitle: 'Reglas, incrementos y resultados',
     content:
-      'La inscripcion reserva tu acceso, pero no realiza una puja. En vivo debes elegir un medio verificado, compatible con la moneda y con limite suficiente para el monto ofertado.',
+      'La inscripción reserva tu acceso, pero no realiza una puja. En vivo debes elegir un medio verificado, compatible con la moneda y con límite suficiente para el monto ofertado.',
   },
   {
     title: 'Pagos y cobros',
     subtitle: 'Medios, comisiones y comprobantes',
     content:
-      'Cada pago muestra solo medios compatibles y vigentes. Los cobros por una venta se informan en el detalle de la consignacion; los pagos y envios de esta version son simulados.',
+      'Cada pago muestra solo medios compatibles y vigentes. Los cobros por una venta se informan en el detalle de la consignación; los pagos y envíos de esta versión son simulados.',
   },
   {
     title: 'Cuenta y seguridad',
-    subtitle: 'Acceso, contrasena y datos',
+    subtitle: 'Acceso, contraseña y datos',
     content:
-      'Desde Perfil podes actualizar tus datos, direcciones y medios de pago. Nunca compartas tu contrasena ni codigos recibidos por correo.',
+      'Desde Perfil podés actualizar tus datos, direcciones y medios de pago. Nunca compartas tu contraseña ni codigos recibidos por correo.',
   },
   {
-    title: 'Sistema de categorias',
-    subtitle: 'Como acumular puntos',
+    title: 'Sistema de categorías',
+    subtitle: 'Cómo acumular puntos',
     content:
-      'Tu categoria depende de la actividad y los puntos registrados por QuickBid. Algunas subastas exigen una categoria minima; la pantalla de acceso explica cuando no se cumple.',
+      'Tu categoría depende de la actividad y los puntos registrados por QuickBid. Algunas subastas exigen una categoría mínima; la pantalla de acceso explica cuando no se cumple.',
   },
 ];
 
@@ -66,8 +66,8 @@ export default function AyudaScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.title}>Ayuda y soporte</Text>
-        <Text style={styles.subtitle}>En que podemos ayudarte?</Text>
-        <Text style={styles.section}>CATEGORIAS FRECUENTES</Text>
+        <Text style={styles.subtitle}>¿En qué podemos ayudarte?</Text>
+        <Text style={styles.section}>CATEGORÍAS FRECUENTES</Text>
         {TOPICS.map(topic => {
           const isExpanded = expanded === topic.title;
           return (
@@ -101,12 +101,12 @@ export default function AyudaScreen({ navigation }: Props) {
           );
         })}
         <View style={styles.contact}>
-          <Text style={styles.contactTitle}>Tenes otra consulta?</Text>
+          <Text style={styles.contactTitle}>Tenés otra consulta?</Text>
           <Text style={styles.contactText}>
             Contactanos en ayuda@quickbid.com
           </Text>
           <Text style={styles.contactNote}>
-            La asistencia se gestiona por correo; no hay chat en esta version.
+            La asistencia se gestiona por correo; no hay chat en esta versión.
           </Text>
         </View>
       </ScrollView>

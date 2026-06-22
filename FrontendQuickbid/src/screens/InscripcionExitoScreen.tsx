@@ -27,17 +27,17 @@ export default function InscripcionExitoScreen({ navigation, route }: Props) {
     ? colors.warning
     : colors.success;
   const title = rejected
-    ? 'Inscripcion rechazada'
+    ? 'Inscripción rechazada'
     : pending
     ? 'Solicitud recibida'
     : value.existente
     ? 'Ya estabas inscripto'
-    : 'Inscripcion aprobada';
+    : 'Inscripción aprobada';
   const description = rejected
-    ? 'La solicitud no pudo aprobarse. Revisa el estado de tu medio de pago e intenta nuevamente.'
+    ? 'La solicitud no pudo aprobarse. Revisá el estado de tu medio de pago e intentá nuevamente.'
     : pending
-    ? 'Tu inscripcion quedo pendiente mientras el equipo revisa o revalida el medio de pago seleccionado.'
-    : 'Tu inscripcion esta aprobada. Cumplis las condiciones para participar.';
+    ? 'Tu inscripción quedó pendiente mientras el equipo revisá o revalida el medio de pago seleccionado.'
+    : 'tu inscripción está aprobada. Cumplís las condiciones para participar.';
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -59,7 +59,7 @@ export default function InscripcionExitoScreen({ navigation, route }: Props) {
         <Card variant="flat" padding="none" style={styles.card}>
           <Resumen label="Subasta" value={value.subastaTitulo} />
           <Divider />
-          <Resumen label="Metodo de pago" value={value.medioPagoLabel} />
+          <Resumen label="Método de pago" value={value.medioPagoLabel} />
           <Divider />
           <Resumen label="Moneda" value={value.moneda} />
           <Divider />

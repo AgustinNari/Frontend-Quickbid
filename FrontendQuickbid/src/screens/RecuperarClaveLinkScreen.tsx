@@ -23,7 +23,7 @@ export default function RecuperarClaveLinkScreen({ route, navigation }: Props) {
 
     Alert.alert(
       'Enlace incompleto',
-      'El enlace de recuperacion no incluye un token valido. Podes pedir un nuevo enlace o pegar el token manualmente.',
+      'El enlace de recuperacion no incluye un token válido. Podés pedir un nuevo enlace o pegar el token manualmente.',
       [
         {
           text: 'Continuar',

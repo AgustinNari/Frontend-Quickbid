@@ -73,9 +73,9 @@ export default function AcuerdoConsignacionScreen({ navigation, route }: Props) 
           }),
         ),
       );
-      Alert.alert('Acuerdo aceptado', 'QuickBid registro tu aceptacion.');
+      Alert.alert('Acuerdo aceptado', 'QuickBid registró tu aceptación.');
     } catch (actionError) {
-      Alert.alert('No se pudo aceptar', userFacingError(actionError, 'Intenta nuevamente.'));
+      Alert.alert('No se pudo aceptar', userFacingError(actionError, 'Intentá nuevamente.'));
     } finally {
       setActing(false);
     }
@@ -83,7 +83,7 @@ export default function AcuerdoConsignacionScreen({ navigation, route }: Props) 
 
   const reject = () => {
     if (!detalle) return;
-    Alert.alert('Rechazar acuerdo', 'El rechazo puede iniciar una devolucion del bien.', [
+    Alert.alert('Rechazar acuerdo', 'El rechazo puede iniciar una devolución del bien.', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Rechazar',
@@ -99,7 +99,7 @@ export default function AcuerdoConsignacionScreen({ navigation, route }: Props) 
           } catch (actionError) {
             Alert.alert(
               'No se pudo rechazar',
-              userFacingError(actionError, 'Intenta nuevamente.'),
+              userFacingError(actionError, 'Intentá nuevamente.'),
             );
           } finally {
             setActing(false);
@@ -119,7 +119,7 @@ export default function AcuerdoConsignacionScreen({ navigation, route }: Props) 
           <EmptyState
             icon={<Icon name="alert" size={46} color={colors.textSubtle} />}
             title="No pudimos abrir el acuerdo"
-            description={error ?? 'La consignacion no esta disponible.'}
+            description={error ?? 'La consignación no está disponible.'}
             actionLabel="Reintentar"
             onAction={load}
           />
@@ -128,8 +128,8 @@ export default function AcuerdoConsignacionScreen({ navigation, route }: Props) 
         <View style={styles.emptyWrap}>
           <EmptyState
             icon={<Icon name="check-doc" size={46} color={colors.textSubtle} />}
-            title="Acuerdo aun no disponible"
-            description="El acuerdo aparecera cuando finalice la evaluacion del bien."
+            title="Acuerdo aún no disponible"
+            description="El acuerdo aparecerá cuando finalice la evaluación del bien."
             actionLabel="Volver al detalle"
             onAction={() => navigation.goBack()}
           />
@@ -137,8 +137,8 @@ export default function AcuerdoConsignacionScreen({ navigation, route }: Props) 
       ) : (
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.headingBlock}>
-            <Typography style={styles.eyebrow}>CONTRATO DE CONSIGNACION</Typography>
-            <Heading>Acuerdo de consignacion</Heading>
+            <Typography style={styles.eyebrow}>CONTRATO DE CONSIGNACIÓN</Typography>
+            <Heading>Acuerdo de consignación</Heading>
             <Badge
               tone={isPending ? 'warning' : detalle.estado === 'acuerdo_rechazado' ? 'danger' : 'success'}
               variant="soft"
@@ -169,11 +169,11 @@ export default function AcuerdoConsignacionScreen({ navigation, route }: Props) 
               emphasized
             />
             <DataRow
-              label="Comision comprador"
+              label="Comisión comprador"
               value={detalle.comisionCompradorPct != null ? `${detalle.comisionCompradorPct}%` : 'Pendiente de definicion'}
             />
             <DataRow
-              label="Comision vendedor"
+              label="Comisión vendedor"
               value={detalle.comisionVendedorPct != null ? `${detalle.comisionVendedorPct}%` : 'No informada'}
             />
             {detalle.subastaFechaHoraLabel ? (
@@ -184,13 +184,13 @@ export default function AcuerdoConsignacionScreen({ navigation, route }: Props) 
           <Card variant="flat" style={styles.legalCard}>
             <Typography style={styles.sectionTitle}>Resumen y condiciones</Typography>
             <Body style={styles.legalText}>
-              {detalle.acuerdoTexto ?? 'El texto completo del acuerdo aun no fue informado.'}
+              {detalle.acuerdoTexto ?? 'El texto completo del acuerdo aún no fue informado.'}
             </Body>
             <Body muted style={styles.condition}>
-              La categoria comercial y las condiciones finales son definidas por QuickBid.
+              La categoría comercial y las condiciones finales son definidas por QuickBid.
             </Body>
             <Body muted style={styles.condition}>
-              La aceptacion registra conformidad con comisiones y plazos informados.
+              La aceptación registra conformidad con comisiones y plazos informados.
             </Body>
           </Card>
 
@@ -203,7 +203,7 @@ export default function AcuerdoConsignacionScreen({ navigation, route }: Props) 
               />
               <CheckRow
                 checked={acceptedTerms}
-                label="Acepto clausulas, comisiones y plazos"
+                label="Acepto cláusulas, comisiones y plazos"
                 onPress={() => setAcceptedTerms(value => !value)}
               />
               <Button onPress={accept} disabled={!read || !acceptedTerms} loading={acting}>
@@ -226,7 +226,7 @@ export default function AcuerdoConsignacionScreen({ navigation, route }: Props) 
             <View style={styles.notice}>
               <Icon name="info" size={18} color={colors.info} />
               <Body style={styles.noticeText}>
-                El estado y las condiciones estan visibles. El documento PDF aun no esta disponible.
+                El estado y las condiciones están visibles. El documento PDF aún no está disponible.
               </Body>
             </View>
           )}

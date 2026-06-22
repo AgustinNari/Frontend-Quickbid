@@ -65,12 +65,12 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
     },
     onStompError: frame => {
       logRealtime(`broker error: ${frame.headers.message ?? frame.body}`);
-      options.onError?.('No pudimos mantener la actualizacion en vivo.');
+      options.onError?.('No pudimos mantener la actualización en vivo.');
     },
     onWebSocketError: event => {
       logRealtime(`websocket error: ${String(event)}`);
       if (active)
-        options.onError?.('No pudimos conectar la actualizacion en vivo.');
+        options.onError?.('No pudimos conectar la actualización en vivo.');
     },
     onWebSocketClose: event => {
       logRealtime(`websocket closed: ${event.code} ${event.reason}`);
@@ -81,7 +81,7 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
       if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
         active = false;
         options.onError?.(
-          'La actualizacion en vivo sigue sin responder. Reintenta desde la sala.',
+          'La actualización en vivo sigue sin responder. Reintentá desde la sala.',
         );
         client.deactivate({ force: true }).catch(() => {
           logRealtime('realtime shutdown after retry limit failed');
@@ -95,7 +95,7 @@ export function createLiveRealtimeClient(options: LiveRealtimeOptions) {
     try {
       options.onEvent(JSON.parse(message.body) as PujaEventoApi);
     } catch {
-      options.onError?.('Recibimos una actualizacion invalida.');
+      options.onError?.('Recibimos una actualización inválida.');
     }
   }
 

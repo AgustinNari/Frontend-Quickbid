@@ -127,7 +127,7 @@ export default function EstadisticasScreen({ navigation }: Props) {
               <Text style={styles.sectionLabel}>ACTIVIDAD MENSUAL</Text>
               {data.actividadMensual.length === 0 ? (
                 <Text style={styles.emptyText}>
-                  Sin actividad para este periodo.
+                  Sin actividad para este período.
                 </Text>
               ) : (
                 <View style={styles.chart}>

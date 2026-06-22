@@ -27,21 +27,21 @@ export default function CambiarClaveScreen({ navigation }: Props) {
     if (!claveActual.trim() || !claveNueva.trim() || !confirmacion.trim()) {
       Alert.alert(
         'Campos requeridos',
-        'Completa los tres campos para continuar.',
+        'Completá los tres campos para continuar.',
       );
       return;
     }
     if (!PASSWORD_POLICY.test(claveNueva)) {
       Alert.alert(
-        'Clave no valida',
-        'Usa al menos 8 caracteres, con mayuscula, minuscula, numero y simbolo.',
+        'Clave no válida',
+        'Usá al menos 8 caracteres, con mayúscula, minúscula, número y símbolo.',
       );
       return;
     }
     if (claveNueva !== confirmacion) {
       Alert.alert(
         'Las claves no coinciden',
-        'Verifica que la nueva contrasena y su confirmacion sean iguales.',
+        'Verificá que la nueva contraseña y su confirmación sean iguales.',
       );
       return;
     }
@@ -58,14 +58,14 @@ export default function CambiarClaveScreen({ navigation }: Props) {
       setConfirmacion('');
       Alert.alert(
         'Clave actualizada',
-        'Tu contrasena fue cambiada y tu sesion sigue activa.',
+        'Tu contraseña fue cambiada y tu sesión sigue activa.',
         [{ text: 'Aceptar', onPress: () => navigation.goBack() }],
       );
     } catch (error) {
       const message =
         error instanceof ApiError
           ? error.message
-          : 'No se pudo actualizar la contrasena.';
+          : 'No se pudo actualizar la contraseña.';
       Alert.alert('No se pudo cambiar la clave', message);
     } finally {
       setLoading(false);
@@ -83,9 +83,9 @@ export default function CambiarClaveScreen({ navigation }: Props) {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          <Heading>Cambiar contrasena</Heading>
+          <Heading>Cambiar contraseña</Heading>
           <Body muted style={styles.subtitle}>
-            Ingresa tu clave actual y elegi una nueva. Tu sesion permanecera
+            Ingresá tu clave actual y elegí una nueva. Tu sesión permanecera
             activa.
           </Body>
 
@@ -101,7 +101,7 @@ export default function CambiarClaveScreen({ navigation }: Props) {
             value={claveNueva}
             onChangeText={setClaveNueva}
             secureTextEntry
-            helperText="Minimo 8 caracteres, con mayuscula, minuscula, numero y simbolo."
+            helperText="Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo."
             leftIcon={<Icon name="lock" color={colors.textSubtle} />}
           />
           <TextField

@@ -93,8 +93,8 @@ export default function CompraExitoScreen({ navigation, route }: Props) {
             <View style={styles.resumenCol}>
               <Typography style={styles.resumenLabel}>
                 {esMulta
-                  ? 'PAGADO (ARTICULO + MULTA)'
-                  : 'PAGADO (COMISIONES + ENVIO)'}
+                  ? 'PAGADO (ARTÍCULO + MULTA)'
+                  : 'PAGADO (COMISIONES + ENVÍO)'}
               </Typography>
               <Typography style={styles.resumenMonto}>
                 {formatPrecio(total, moneda)}
@@ -117,8 +117,8 @@ export default function CompraExitoScreen({ navigation, route }: Props) {
             </Typography>
           ) : (
             <Typography style={styles.documentoNota}>
-              Si el documento no aparece todavia, revisa Mis Compras para
-              actualizar la informacion.
+              Si el documento no aparece todavía, revisá Mis Compras para
+              actualizar la información.
             </Typography>
           )}
 
@@ -126,7 +126,7 @@ export default function CompraExitoScreen({ navigation, route }: Props) {
             <Icon name="info" size={18} color={colors.info} />
             <Body style={styles.infoText}>
               {esMulta
-                ? 'Pagaste el articulo junto con la multa. Si no quedan otras multas, la sesion se refresca para reflejar la cuenta activa.'
+                ? 'Pagaste el artículo junto con la multa. Si no quedan otras multas, la sesión se refresca para reflejar la cuenta activa.'
                 : 'El pago de extras fue aprobado. La entrega o retiro queda disponible para seguimiento en Mis Compras.'}
             </Body>
           </View>

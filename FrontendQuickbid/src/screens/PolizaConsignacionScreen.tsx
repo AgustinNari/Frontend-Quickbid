@@ -34,7 +34,7 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
         ),
       );
     } catch (loadError) {
-      setError(userFacingError(loadError, 'No pudimos cargar la poliza.'));
+      setError(userFacingError(loadError, 'No pudimos cargar la póliza.'));
     } finally {
       setLoading(false);
     }
@@ -56,7 +56,7 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
     } catch (downloadError) {
       Alert.alert(
         'Documento no disponible',
-        userFacingError(downloadError, 'No pudimos abrir o compartir la poliza.'),
+        userFacingError(downloadError, 'No pudimos abrir o compartir la póliza.'),
       );
     }
   };
@@ -65,13 +65,13 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={() => navigation.goBack()} />
       {loading ? (
-        <Loader fullScreen label="Cargando poliza..." />
+        <Loader fullScreen label="Cargando póliza..." />
       ) : error || !detalle ? (
         <View style={styles.emptyWrap}>
           <EmptyState
             icon={<Icon name="alert" size={46} color={colors.textSubtle} />}
-            title="No pudimos abrir la poliza"
-            description={error ?? 'La consignacion no esta disponible.'}
+            title="No pudimos abrir la póliza"
+            description={error ?? 'La consignación no está disponible.'}
             actionLabel="Reintentar"
             onAction={load}
           />
@@ -80,8 +80,8 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
         <View style={styles.emptyWrap}>
           <EmptyState
             icon={<Icon name="check-doc" size={46} color={colors.textSubtle} />}
-            title="Poliza aun no registrada"
-            description="Cuando QuickBid asigne una poliza al bien, sus datos apareceran en esta pantalla."
+            title="Póliza aún no registrada"
+            description="Cuando QuickBid asigne una póliza al bien, sus datos aparecerán en esta pantalla."
             actionLabel="Volver al detalle"
             onAction={() => navigation.goBack()}
           />
@@ -94,8 +94,8 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
             </View>
             <View style={styles.titleCopy}>
               <Typography style={styles.eyebrow}>PROTECCION DEL BIEN</Typography>
-              <Heading>Poliza de consignacion</Heading>
-              <Badge tone="success" variant="soft">POLIZA REGISTRADA</Badge>
+              <Heading>Póliza de consignación</Heading>
+              <Badge tone="success" variant="soft">PÓLIZA REGISTRADA</Badge>
             </View>
           </View>
 
@@ -106,7 +106,7 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
           </Card>
 
           <Card variant="flat" style={styles.dataCard}>
-            <DataRow label="Numero de poliza" value={detalle.poliza.numero || 'No informado'} />
+            <DataRow label="Número de póliza" value={detalle.poliza.numero || 'No informado'} />
             <DataRow label="Aseguradora" value={detalle.poliza.compania || 'No informada'} />
             <DataRow
               label="Importe asegurado"
@@ -114,12 +114,12 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
               emphasized
             />
             <DataRow
-              label="Ubicacion actual"
+              label="Ubicación actual"
               value={detalle.poliza.ubicacionFisica ?? detalle.ubicacionFisica ?? 'Pendiente de registro'}
             />
             <DataRow
               label="Tipo"
-              value={detalle.poliza.combinada ? 'Poliza combinada' : 'Poliza individual'}
+              value={detalle.poliza.combinada ? 'Póliza combinada' : 'Póliza individual'}
             />
           </Card>
 
@@ -128,13 +128,13 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
               onPress={() => openDocument(document)}
               leftIcon={<Icon name="check-doc" size={18} color={colors.textInverse} />}
             >
-              Abrir / compartir poliza
+              Abrir / compartir póliza
             </Button>
           ) : (
             <View style={styles.notice}>
               <Icon name="info" size={18} color={colors.info} />
               <Body style={styles.noticeText}>
-                Los datos de la poliza estan registrados. El documento PDF aun no esta disponible.
+                Los datos de la póliza están registrados. El documento PDF aún no está disponible.
               </Body>
             </View>
           )}

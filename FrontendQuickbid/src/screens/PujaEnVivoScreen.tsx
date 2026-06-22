@@ -183,7 +183,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       tone: 'info',
       title: 'Debes permanecer en la sala',
       message:
-        'Tenes la mejor oferta. Debes permanecer en la sala hasta que te superen o finalice la retencion.',
+        'Tenés la mejor oferta. Debes permanecer en la sala hasta que te superen o finalice la retención.',
     });
   }, []);
 
@@ -249,15 +249,15 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
               ? `Tu oferta de ${formatPrecio(
                   event.monto,
                   event.moneda === 'USD' ? 'USD' : 'ARS',
-                )} quedo registrada.`
-              : 'Tu oferta quedo registrada.',
+          )} quedó registrada.`
+              : 'Tu oferta quedó registrada.',
         });
       } else if (event.tipo === 'PUJA_SUPERADA') {
         setFeedback({
           tone: 'info',
           title: 'Tu puja fue superada',
           message:
-            'Otro postor acaba de superar tu oferta. Podes ofertar otra vez si el lote sigue abierto.',
+            'Otro postor acaba de superar tu oferta. Podés ofertar otra vez si el lote sigue abierto.',
         });
       } else if (event.tipo === 'PUJA_RECHAZADA') {
         setFeedback({
@@ -265,15 +265,15 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
           title: 'Puja rechazada',
           message:
             event.message ??
-            'No pudimos registrar la oferta. Actualiza la sala e intenta nuevamente.',
+            'No pudimos registrar la oferta. Actualizá la sala e intentá nuevamente.',
         });
       } else if (event.tipo === 'LOTE_CERRADO') {
         setFeedback({
           tone: 'info',
           title: 'Lote cerrado',
           message: event.proximoLoteProgramadoAt
-            ? 'Este lote ya cerro. El proximo lote comienza en instantes.'
-            : 'Este lote ya cerro. La subasta esta por finalizar.',
+            ? 'Este lote ya cerró. El próximo lote comienza en instantes.'
+            : 'Este lote ya cerró. la subasta está por finalizar.',
         });
       } else if (event.tipo === 'LOTE_GANADO') {
         const current = pujaRef.current;
@@ -353,7 +353,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       setFeedback({
         tone: 'info',
         title: 'Acceso limitado',
-        message: 'Inicia sesion para ver la sala live y ofertar.',
+        message: 'Iniciá sesión para ver la sala en vivo y ofertar.',
       });
       return;
     }
@@ -362,7 +362,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
         tone: 'danger',
         title: 'Puja bloqueada',
         message:
-          'Tu cuenta tiene una restriccion por multa. Podes mirar la sala, pero no pujar.',
+          'Tu cuenta tiene una restricción por multa. Podés mirar la sala, pero no pujar.',
       });
       return;
     }
@@ -370,14 +370,14 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       setFeedback({
         tone: 'danger',
         title: 'Cuenta bloqueada',
-        message: 'Tu cuenta esta bloqueada y no puede operar en subastas.',
+        message: 'tu cuenta está bloqueada y no puede operar en subastas.',
       });
       return;
     }
     if (!canPerformEconomicActions || !puja.puedePujar) {
       setFeedback({
         tone: 'info',
-        title: 'No podes pujar ahora',
+        title: 'No podés pujar ahora',
         message: puja.motivoNoPuedePujar ?? bloqueoPujaMessage(puja),
       });
       return;
@@ -426,7 +426,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
         message: `${formatPrecio(
           response.monto,
           response.moneda === 'USD' ? 'USD' : 'ARS',
-        )} quedo registrada.`,
+            )} quedó registrada.`,
       });
     } catch (bidError) {
       const message = readableError(bidError, 'No pudimos registrar la puja.');
@@ -451,8 +451,8 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
         <EmptyState
           icon={<Icon name="lock" size={48} color={colors.textSubtle} />}
           title="Acceso limitado"
-          description="El live muestra importes y eventos protegidos. Inicia sesion para entrar a la sala de puja."
-          actionLabel="Ir al login"
+          description="La sala en vivo muestra importes y eventos protegidos. Iniciá sesión para entrar a la sala de puja."
+          actionLabel="Ir al inicio de sesión"
           onAction={() => navigation.navigate('Login')}
         />
       </LiveShell>
@@ -475,7 +475,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
         <View style={styles.errorWrap}>
           <EmptyState
             icon={<Icon name="clock" size={48} color={colors.textSubtle} />}
-            title={error ? 'Live no disponible' : 'No hay lote activo'}
+            title={error ? 'Conexión en vivo no disponible' : 'No hay lote activo'}
             description={
               error ?? 'Esta subasta no tiene un lote activo en este momento.'
             }
@@ -495,7 +495,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
                 <StatusBanner
                   tone="danger"
                   icon="alert"
-                  text="La actualizacion en vivo no esta disponible. Podes refrescar antes de ofertar."
+                  text="La actualización en vivo no está disponible. Podés refrescar antes de ofertar."
                   actionLabel="Reintentar"
                   onAction={refreshSnapshot}
                 />
@@ -504,7 +504,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
                 <StatusBanner
                   tone="danger"
                   icon="alert"
-                  text="Cuenta restringida por multa: podes mirar el live, pero no pujar."
+                  text="Cuenta restringida por multa: podés mirar la sala en vivo, pero no pujar."
                 />
               ) : null}
               {!puja.puedePujar ? (
@@ -518,7 +518,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
                 <StatusBanner
                   tone="info"
                   icon="info"
-                  text="Tenes la mejor oferta. Debes permanecer en la sala hasta que te superen o finalice la retencion."
+                  text="Tenés la mejor oferta. Debes permanecer en la sala hasta que te superen o finalice la retención."
                 />
               ) : null}
               <ItemEnVivoCard puja={puja} />
@@ -546,7 +546,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
                           })
                   }
                 >
-                  Ver detalle del articulo
+                  Ver detalle del artículo
                 </Button>
                 <Button
                   variant="secondary"
@@ -561,7 +561,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
                           })
                   }
                 >
-                  Ver catalogo
+                  Ver catálogo
                 </Button>
               </View>
             </View>
@@ -748,7 +748,7 @@ function MejorOfertaBlock({
       ) : (
         <>
           <Typography style={styles.postorText}>
-            Todavia nadie pujo. La primera oferta puede ser el precio base.
+            todavía nadie pujo. La primera oferta puede ser el precio base.
           </Typography>
           <Typography style={styles.mejorOfertaValue}>
             {formatPrecio(puja.precioBase, puja.moneda)}
@@ -756,7 +756,7 @@ function MejorOfertaBlock({
         </>
       )}
       <Typography style={styles.versionText}>
-        Ultima actualizacion reciente
+        Ultima actualización reciente
       </Typography>
       {secondsRemaining != null ? (
         <View style={styles.countdownRow}>
@@ -785,14 +785,14 @@ function PujarButton({
   if (puja.loteCerrado) {
     return (
       <Button variant="secondary" disabled>
-        {puja.proximoLoteAt ? 'Lote cerrado - esperando proximo lote' : 'Lote cerrado'}
+        {puja.proximoLoteAt ? 'Lote cerrado - esperando próximo lote' : 'Lote cerrado'}
       </Button>
     );
   }
   if (puja.esGanadorActual) {
     return (
       <Button variant="secondary" disabled>
-        Tenes la oferta ganadora
+        Tenés la oferta ganadora
       </Button>
     );
   }
@@ -816,7 +816,7 @@ function HistorialReciente({ puja }: { puja: PujaActual }) {
       <Card variant="flat" padding="none" style={styles.historialCard}>
         {puja.historialReciente.length === 0 ? (
           <Body muted style={styles.emptyHistory}>
-            Todavia no hay ofertas para este lote.
+            Todavía no hay ofertas para este lote.
           </Body>
         ) : (
           puja.historialReciente.map((item, index) => (
@@ -912,7 +912,7 @@ function BidModal({
   const confirm = () => {
     const amount = parsedAmount;
     if (amount == null) {
-      setError('Ingresa un monto valido.');
+      setError('Ingresá un monto válido.');
       return;
     }
     if (amount <= 0) {
@@ -921,7 +921,7 @@ function BidModal({
     }
     if (amount < limites.minimo) {
       setError(
-        `El minimo para esta oferta es ${formatPrecio(
+          `El mínimo para esta oferta es ${formatPrecio(
           limites.minimo,
           puja.moneda,
         )}.`,
@@ -930,7 +930,7 @@ function BidModal({
     }
     if (limites.maximo != null && amount > limites.maximo) {
       setError(
-        `El maximo para esta oferta es ${formatPrecio(
+          `El máximo para esta oferta es ${formatPrecio(
           limites.maximo,
           puja.moneda,
         )}.`,
@@ -938,7 +938,7 @@ function BidModal({
       return;
     }
     if (!selectedPayment) {
-      setError('Necesitas un medio de pago verificado compatible.');
+      setError('Necesitás un medio de pago verificado compatible.');
       return;
     }
     onConfirm(amount, selectedPayment.id);
@@ -981,12 +981,12 @@ function BidModal({
 
           <View style={styles.limitsRow}>
             <LimitCol
-              label="Monto minimo"
+              label="Monto mínimo"
               value={formatPrecio(limites.minimo, puja.moneda)}
             />
             <View style={styles.limitDivider} />
             <LimitCol
-              label="Monto maximo"
+          label="Monto máximo"
               value={
                 limites.maximo != null
                   ? formatPrecio(limites.maximo, puja.moneda)
@@ -1044,11 +1044,11 @@ function PaymentSelector({
 }) {
   return (
     <View style={styles.paymentWrap}>
-      <Typography style={styles.paymentTitle}>Metodo de pago</Typography>
+      <Typography style={styles.paymentTitle}>Método de pago</Typography>
       {medios.length === 0 ? (
         <View style={styles.emptyPayment}>
           <Body muted>
-            No hay medios verificados con limite suficiente para este monto.
+            No hay medios verificados con límite suficiente para este monto.
           </Body>
           <Button variant="secondary" size="sm" onPress={onManage}>
             Gestionar medios de pago
@@ -1096,7 +1096,7 @@ function SubmittingOverlay({
           {puja ? (
             <View style={styles.overlaySummary}>
               <Typography style={styles.overlaySummaryLabel}>
-                ARTICULO
+                ARTÍCULO
               </Typography>
               <Typography style={styles.overlaySummaryValue} numberOfLines={1}>
                 {puja.item.titulo}
@@ -1175,12 +1175,12 @@ function bloqueoPujaMessage(puja: PujaActual) {
   if (puja.subastaFinalizada) return 'La subasta ya finalizo.';
   if (puja.loteCerrado) {
     return puja.proximoLoteAt
-      ? 'El lote ya esta cerrado. El proximo lote comienza en instantes.'
-      : 'El lote ya esta cerrado.';
+      ? 'El lote ya está cerrado. El próximo lote comienza en instantes.'
+      : 'El lote ya está cerrado.';
   }
   if (puja.mediosParaPujar.length === 0)
     return 'Necesitas un medio de pago verificado vigente compatible para pujar.';
-  return 'No cumplis las condiciones para pujar en este momento.';
+  return 'No cumplís las condiciones para pujar en este momento.';
 }
 
 const hitSlop = { top: 10, bottom: 10, left: 10, right: 10 };

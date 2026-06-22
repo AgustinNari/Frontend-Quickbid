@@ -66,7 +66,7 @@ export default function PerfilScreen({ navigation }: Props) {
           <EmptyState
             icon={<Icon name="alert" size={48} color={colors.textSubtle} />}
             title="No pudimos cargar tu perfil"
-            description={error ?? 'El perfil no esta disponible.'}
+          description={error ?? 'El perfil no está disponible.'}
             actionLabel="Reintentar"
             onAction={cargar}
           />
@@ -111,7 +111,7 @@ export default function PerfilScreen({ navigation }: Props) {
             <Text style={styles.progressText}>
               {perfil.progreso.siguienteCategoria
                 ? `${perfil.progreso.puntosFaltantes} puntos para ${perfil.progreso.siguienteCategoria}`
-                : 'Categoria maxima alcanzada'}
+          : 'Categoría máxima alcanzada'}
             </Text>
             <Text style={styles.accountState}>
               Cuenta: {perfil.estadoCuenta.replaceAll('_', ' ')}
@@ -130,7 +130,7 @@ export default function PerfilScreen({ navigation }: Props) {
             <MenuRow
               icon="star"
               title="Estadísticas"
-              subtitle="Rendimiento por periodo"
+              subtitle="Rendimiento por período"
               onPress={() => navigation.navigate('Estadisticas')}
             />
             <Divider />
@@ -154,14 +154,14 @@ export default function PerfilScreen({ navigation }: Props) {
             <MenuRow
               icon="check-doc"
               title="Dirección de envío"
-              subtitle="Gestiona tus direcciones"
+              subtitle="Gestioná tus direcciones"
               onPress={() => navigation.navigate('DireccionesEnvio')}
             />
             <Divider />
             <MenuRow
               icon="lock"
               title="Seguridad"
-              subtitle="Cambia tu contrasena"
+              subtitle="Cambia tu contraseña"
               onPress={() => navigation.navigate('CambiarClave')}
             />
           </View>

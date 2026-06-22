@@ -172,7 +172,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
         );
       } catch (err) {
         setPreviewEntrega(null);
-        Alert.alert('No pudimos calcular el envio', readableError(err));
+        Alert.alert('No pudimos calcular el envío', readableError(err));
       } finally {
         setPreviewLoading(false);
       }
@@ -199,8 +199,8 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
     if (!compra) return;
     if (modo === 'envio' && !direccionSeleccionada) {
       Alert.alert(
-        'Direccion requerida',
-        'Agrega una direccion de envio antes de elegir envio a domicilio.',
+        'Dirección requerida',
+        'Agregá una dirección de envío antes de elegir envío a domicilio.',
         [
           {
             text: 'Ir a direcciones',
@@ -221,18 +221,18 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
       : null;
     const detalleConfirmacion =
       entregaSeleccionada === 'envio'
-        ? `Modalidad: envio a domicilio\nDireccion: ${direccion}\nCosto de envio: ${formatPrecio(
+        ? `Modalidad: envío a domicilio\nDirección: ${direccion}\nCosto de envío: ${formatPrecio(
             costoEnvioActual,
             compra.moneda,
           )}\nTotal estimado: ${formatPrecio(total, compra.moneda)}`
-        : `Modalidad: retiro en sede\nCosto de envio: ${formatPrecio(
+        : `Modalidad: retiro en sede\nCosto de envío: ${formatPrecio(
             costoEnvioActual,
             compra.moneda,
           )}\nTotal estimado: ${formatPrecio(total, compra.moneda)}`;
 
     Alert.alert(
       'Confirmar entrega',
-      `${detalleConfirmacion}\n\nLuego no podras cambiar la modalidad de entrega.`,
+        `${detalleConfirmacion}\n\nLuego no podrás cambiar la modalidad de entrega.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -248,8 +248,8 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
     if (tipo === 'comisiones' && !compra.entrega) {
       if (!entregaSeleccionada || previewLoading || !previewEntrega) {
         Alert.alert(
-          'Elegi entrega',
-          'Selecciona envio o retiro para ver el total antes de confirmar.',
+          'Elegí entrega',
+          'Seleccioná envío o retiro para ver el total antes de confirmar.',
         );
         return;
       }
@@ -286,7 +286,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
         Alert.alert(
           'Pago fallido',
           pago.errorLabel ??
-            'No pudimos aprobar el pago. Revisa el medio seleccionado o el limite disponible.',
+            'No pudimos aprobar el pago. Revisá el medio seleccionado o el límite disponible.',
         );
         await load();
         return;
@@ -382,7 +382,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
           ) : null}
 
           <View style={styles.section}>
-            <Typography style={styles.sectionLabel}>METODO DE PAGO</Typography>
+            <Typography style={styles.sectionLabel}>MÉTODO DE PAGO</Typography>
             <View style={styles.medioWrap}>
               {medios.length > 0 ? (
                 <DropdownSelector
@@ -434,19 +434,19 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
               ) : (
                 <>
                   <Row
-                    label="Comision comprador"
+                    label="Comisión comprador"
                     value={formatPrecio(
                       compra.comisionComprador,
                       compra.moneda,
                     )}
                   />
                   <Row
-                    label="Envio"
+                    label="Envío"
                     value={formatPrecio(costoEnvioActual, compra.moneda)}
                   />
                   {!compra.entrega && !previewEntrega ? (
                     <Typography style={styles.helpText}>
-                      Elegi envio o retiro para ver el total antes de confirmar.
+                      Elegí envío o retiro para ver el total antes de confirmar.
                     </Typography>
                   ) : null}
                 </>
@@ -458,7 +458,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
                     Total a pagar
                   </Typography>
                   <Typography style={styles.totalNota}>
-                    Segun el estado actual de la compra
+                    Según el estado actual de la compra
                   </Typography>
                 </View>
                 <Typography style={styles.totalValue}>
@@ -527,8 +527,8 @@ function EntregaPicker({
         {compra.entrega ? (
           <Typography style={styles.helpText}>
             {compra.entrega.tipo === 'envio'
-              ? compra.direccionSnapshotLabel ?? 'Direccion de envio confirmada'
-              : 'Retiro sin direccion de envio'}
+              ? compra.direccionSnapshotLabel ?? 'Dirección de envío confirmada'
+              : 'Retiro sin dirección de envío'}
           </Typography>
         ) : (
           <View style={styles.entregaActions}>
@@ -548,13 +548,13 @@ function EntregaPicker({
               onPress={() => onPick('envio')}
               fullWidth={false}
             >
-              {selected === 'envio' ? 'Envio seleccionado' : 'Enviar'}
+              {selected === 'envio' ? 'Envío seleccionado' : 'Enviar'}
             </Button>
           </View>
         )}
         {!compra.entrega && selected ? (
           <Typography style={styles.helpText}>
-            Costo de envio:{' '}
+            Costo de envío:{' '}
             {preview
               ? formatPrecio(preview.costoEnvio, preview.moneda)
               : 'Calculando...'}
@@ -563,7 +563,7 @@ function EntregaPicker({
         {!compra.entrega && selected === 'envio' && direcciones.length > 0 ? (
           <View style={styles.addressList}>
             <Typography style={styles.addressPrompt}>
-              Elegi la direccion de entrega
+              Elegí la dirección de entrega
             </Typography>
             <DropdownSelector
               testID="delivery-address-dropdown"
@@ -583,7 +583,7 @@ function EntregaPicker({
           </View>
         ) : !compra.entrega && selected === 'envio' ? (
           <Button variant="secondary" size="sm" onPress={onManage}>
-            Agregar direccion
+            Agregar dirección
           </Button>
         ) : null}
       </View>
@@ -615,7 +615,7 @@ function Row({
 function readableError(err: unknown) {
   return userFacingError(
     err,
-    'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
+    'QuickBid no está disponible. Probalo de nuevo en unos minutos.',
   );
 }
 
