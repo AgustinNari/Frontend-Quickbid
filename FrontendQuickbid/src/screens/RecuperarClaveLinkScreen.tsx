@@ -23,7 +23,7 @@ export default function RecuperarClaveLinkScreen({ route, navigation }: Props) {
 
     Alert.alert(
       'Enlace incompleto',
-      'El enlace de recuperacion no incluye un token válido. Podés pedir un nuevo enlace o pegar el token manualmente.',
+      'El enlace de recuperación no incluye un código válido. Podés pedir un nuevo enlace o pegar el código manualmente.',
       [
         {
           text: 'Continuar',
@@ -37,7 +37,7 @@ export default function RecuperarClaveLinkScreen({ route, navigation }: Props) {
     <SafeAreaView style={styles.safe}>
       <View style={styles.content}>
         <ActivityIndicator color={colors.primary} />
-        <Text style={styles.text}>Abriendo recuperacion...</Text>
+        <Text style={styles.text}>Abriendo recuperación...</Text>
       </View>
     </SafeAreaView>
   );

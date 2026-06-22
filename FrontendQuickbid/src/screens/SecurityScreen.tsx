@@ -120,8 +120,8 @@ export default function SecurityScreen({ route, navigation }: Props) {
         const setupToken = params.setupToken;
         if (!setupToken?.trim()) {
           Alert.alert(
-            'Token requerido',
-            'El enlace de registro no incluye un token válido.',
+            'Código requerido',
+            'El enlace de registro no incluye un código válido.',
           );
           return;
         }
@@ -149,8 +149,8 @@ export default function SecurityScreen({ route, navigation }: Props) {
         ).token;
         if (!recoveryToken?.trim()) {
           Alert.alert(
-            'Token requerido',
-            'El enlace de recuperacion no incluye un token válido.',
+            'Código requerido',
+            'El enlace de recuperación no incluye un código válido.',
           );
           return;
         }

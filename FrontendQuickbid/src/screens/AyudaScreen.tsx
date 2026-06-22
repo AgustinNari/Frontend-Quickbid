@@ -34,7 +34,7 @@ const TOPICS = [
     title: 'Pujas y subastas',
     subtitle: 'Reglas, incrementos y resultados',
     content:
-      'La inscripción reserva tu acceso, pero no realiza una puja. En vivo debes elegir un medio verificado, compatible con la moneda y con límite suficiente para el monto ofertado.',
+      'La inscripción reserva tu acceso, pero no realiza una puja. En vivo debés elegir un medio verificado, compatible con la moneda y con límite suficiente para el monto ofertado.',
   },
   {
     title: 'Pagos y cobros',

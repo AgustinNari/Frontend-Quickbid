@@ -994,7 +994,7 @@ function DatosFotosStep({
         >
           <Icon name="camera" size={28} color={colors.primary} />
           <Typography style={styles.uploadText}>
-            Toca para seleccionar imagenes
+            Tocá para seleccionar imágenes
           </Typography>
           <Typography
             style={[styles.uploadCount, fotosOk ? styles.uploadCountOk : null]}

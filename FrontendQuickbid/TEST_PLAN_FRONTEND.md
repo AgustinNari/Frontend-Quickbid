@@ -520,8 +520,9 @@ reseteada o seed seguro preparado para consumirse.
   izquierda/derecha y restaurar orden/portada tras reiniciar.
 - [ ] Arrancar directamente con datos móviles y pasar Wi-Fi→datos: la alerta
   aparece una sola vez por sesión; el banner y confirmaciones pesadas continúan.
-- [ ] Abrir links nuevos con `#token=` y uno histórico con `?token=`; ambos deben
-  llegar a la pantalla correcta sin mostrar el token.
+- [ ] Abrir el link HTTPS del mail y su botón hacia la app; probar además deep
+  links con `?token=` y `#token=`. Todos deben llegar a la pantalla correcta sin
+  mostrar el código en la interfaz.
 
 ### Preview de imágenes y límites de pago
 

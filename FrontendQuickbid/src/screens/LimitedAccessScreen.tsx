@@ -123,10 +123,10 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
   const description = isBlocked
     ? 'Tu cuenta tiene un bloqueo permanente. Podés cerrar sesión, pero no navegar ni operar funciones normales.'
     : isRestricted
-    ? 'Podés navegar normalmente, pero las acciones económicas estan deshabilitadas mientras exista una multa activa.'
+    ? 'Podés navegar normalmente, pero las acciones económicas están deshabilitadas mientras exista una multa activa.'
     : isGuest || isGuestOnboarding
     ? 'Podés explorar subastas y catálogos públicos. Para pujar, consignar, comprar o gestionar pagos necesitás una cuenta habilitada.'
-    : 'Para participar en subastas y realizar acciones económicas necesitas una cuenta habilitada.';
+    : 'Para participar en subastas y realizar acciones económicas necesitás una cuenta habilitada.';
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -155,7 +155,7 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
               {isBlocked
                 ? 'La navegación normal está bloqueada'
                 : isRestricted
-                ? 'Las acciones económicas estan bloqueadas'
+                ? 'Las acciones económicas están bloqueadas'
                 : 'Estás navegando con acceso limitado'}
             </Text>
           </View>
@@ -170,7 +170,7 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
             }
             description={
               isRestricted
-                ? 'Regulariza la multa desde tus compras para volver a inscribirte y pujar.'
+                ? 'Regularizá la multa desde tus compras para volver a inscribirte y pujar.'
                 : isBlocked
                 ? 'Las funciones protegidas no están disponibles para esta sesión limitada.'
                 : 'Las operaciones requieren una cuenta registrada y habilitada.'
@@ -181,8 +181,8 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
             title={isGuest || isGuestOnboarding ? 'Explorar como observador' : 'Estado de cuenta'}
             description={
               isGuest || isGuestOnboarding
-                ? 'Podés recorrer contenido publico. Una cuenta y un medio de pago habilitan precios y acciones protegidas.'
-                : 'QuickBid usá el estado de tu cuenta para habilitar cada acción.'
+                ? 'Podés recorrer contenido público. Una cuenta y un medio de pago habilitan precios y acciones protegidas.'
+                : 'QuickBid usa el estado de tu cuenta para habilitar cada acción.'
             }
           />
         </Card>
@@ -204,8 +204,8 @@ export default function LimitedAccessScreen({ navigation, route }: Props) {
               style={styles.actionButton}
               onPress={() =>
                 Alert.alert(
-                  'Necesitas una cuenta',
-                  'Para agregar un medio de pago primero iniciá sesión o crea una cuenta.',
+                  'Necesitás una cuenta',
+                  'Para agregar un medio de pago primero iniciá sesión o creá una cuenta.',
                   [
                     { text: 'Cancelar', style: 'cancel' },
                     {

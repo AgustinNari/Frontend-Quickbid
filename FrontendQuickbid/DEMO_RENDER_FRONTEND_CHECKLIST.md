@@ -212,7 +212,8 @@ Para backend local seleccionar `API_MODE='localReverse'` y usar
   configuración de red.
 - [ ] El launcher usa el símbolo S/martillo real de `navBarLogo.png`.
 - [ ] PDFs muestran referencia, titular, estado, montos/moneda y comisiones.
-- [ ] Mails nuevos usan `#token=`; un link histórico `?token=` sigue abriendo.
+- [ ] El mail abre el link HTTPS y su botón inicia la app; deep links con
+  `?token=` y `#token=` llegan a la pantalla correcta.
 - [ ] Pago con envio permite alternar direcciones y cotiza la elegida.
 - [ ] Devolucion muestra alias, domicilio, provincia y badge **PRINCIPAL**.
 - [ ] Inscripcion, puja y pagos permiten elegir medios compatibles sin duplicar

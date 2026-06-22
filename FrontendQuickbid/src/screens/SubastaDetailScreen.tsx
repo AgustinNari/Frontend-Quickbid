@@ -263,7 +263,7 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
                 <Body muted style={styles.participationText}>
                   Revisá el catálogo antes de inscribirte. Para ofertar, tu
                   cuenta y un medio de pago compatible deben estar habilitados;
-                  la sala confirmara el acceso según el estado real de la
+                  la sala confirmará el acceso según el estado real de la
                   subasta.
                 </Body>
               </Card>
@@ -287,7 +287,7 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
                 <View style={styles.accessBanner}>
                   <Icon name="alert" size={18} color={colors.danger} />
                   <Body style={styles.accessText}>
-                    Puedes ver la subasta, pero la restricción por multa impide
+                    Podés ver la subasta, pero la restricción por multa impide
                     inscribirte.
                   </Body>
                 </View>
@@ -444,18 +444,18 @@ function motivoInscripcion(value: VerificacionSubastaApi) {
     return 'Ya tenés una inscripción activa para esta subasta.';
   if (value.cuentaRestringida)
     return 'La restricción por multa impide nuevas inscripciones.';
-  if (value.cuentaBloqueada) return 'tu cuenta está bloqueada.';
+  if (value.cuentaBloqueada) return 'Tu cuenta está bloqueada.';
   if (value.categoriaInsuficienteParaInscripcion)
     return 'Tu categoría es insuficiente para esta subasta.';
   if (value.inscripcionCerradaPorTiempo)
-    return 'La inscripción ya cerró por cercania al inicio.';
-  if (value.subastaYaIniciada) return 'La subasta ya comenzo.';
+    return 'La inscripción ya cerró por cercanía al inicio.';
+  if (value.subastaYaIniciada) return 'La subasta ya comenzó.';
   if (
     value.requiereMedioPagoParaInscripcion ||
     value.monedaIncompatibleParaInscripcion
   )
-    return 'Necesitas un medio de pago compatible para inscribirte.';
-  return 'la inscripción no está disponible actualmente.';
+    return 'Necesitás un medio de pago compatible para inscribirte.';
+  return 'La inscripción no está disponible actualmente.';
 }
 
 const MESES = [

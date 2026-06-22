@@ -181,9 +181,9 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
   const explainNavigationLock = useCallback(() => {
     setFeedback({
       tone: 'info',
-      title: 'Debes permanecer en la sala',
+      title: 'Debés permanecer en la sala',
       message:
-        'Tenés la mejor oferta. Debes permanecer en la sala hasta que te superen o finalice la retención.',
+        'Tenés la mejor oferta. Debés permanecer en la sala hasta que te superen o finalice la retención.',
     });
   }, []);
 
@@ -518,7 +518,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
                 <StatusBanner
                   tone="info"
                   icon="info"
-                  text="Tenés la mejor oferta. Debes permanecer en la sala hasta que te superen o finalice la retención."
+                  text="Tenés la mejor oferta. Debés permanecer en la sala hasta que te superen o finalice la retención."
                 />
               ) : null}
               <ItemEnVivoCard puja={puja} />
@@ -756,7 +756,7 @@ function MejorOfertaBlock({
         </>
       )}
       <Typography style={styles.versionText}>
-        Ultima actualización reciente
+        Última actualización reciente
       </Typography>
       {secondsRemaining != null ? (
         <View style={styles.countdownRow}>
@@ -1179,7 +1179,7 @@ function bloqueoPujaMessage(puja: PujaActual) {
       : 'El lote ya está cerrado.';
   }
   if (puja.mediosParaPujar.length === 0)
-    return 'Necesitas un medio de pago verificado vigente compatible para pujar.';
+    return 'Necesitás un medio de pago verificado vigente compatible para pujar.';
   return 'No cumplís las condiciones para pujar en este momento.';
 }
 

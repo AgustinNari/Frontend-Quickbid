@@ -137,7 +137,7 @@ export default function RecuperacionCuentaScreen({ navigation }: Props) {
 
   function handleContinuar() {
     if (!token.trim()) {
-      Alert.alert('Token requerido', 'Ingresá el token recibido por email.');
+      Alert.alert('Código requerido', 'Ingresá el código recibido por email.');
       return;
     }
     navigation.navigate('Security', {
@@ -202,14 +202,14 @@ export default function RecuperacionCuentaScreen({ navigation }: Props) {
 
           {linkEnviado && (
             <>
-              <Text style={styles.label}>Token de recuperación</Text>
+              <Text style={styles.label}>Código de recuperación</Text>
               <View style={styles.inputRow}>
                 <MailIcon />
                 <TextInput
                   style={styles.input}
                   value={token}
                   onChangeText={setToken}
-                  placeholder="Pegá el token del email"
+                  placeholder="Pegá el código del email"
                   placeholderTextColor={colors.textSubtle}
                   autoCapitalize="none"
                   autoCorrect={false}

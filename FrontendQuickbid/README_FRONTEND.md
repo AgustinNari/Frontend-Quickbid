@@ -679,9 +679,10 @@ Además del banner, la primera detección de datos móviles por sesión muestra 
 alerta destacada con Continuar y acceso a configuración Android. Las
 confirmaciones específicas para cargas pesadas se mantienen.
 
-Los links nuevos de registro y recuperación transportan el token en fragmento
-`#token=` para evitar query strings. La app lo normaliza internamente y conserva
-compatibilidad con enlaces históricos `?token=` hasta que expiren.
+Los mails nuevos de registro y recuperación abren primero el enlace HTTPS del
+backend. El botón de esa página inicia el deep link de la app con `?token=`. La
+app también normaliza enlaces con `#token=` y conserva compatibilidad con ambos
+formatos.
 
 ## Seleccion de direcciones, pagos y ayuda
 

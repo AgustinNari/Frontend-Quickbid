@@ -29,7 +29,7 @@ export default function CompletarRegistroLinkScreen({
 
     Alert.alert(
       'Enlace incompleto',
-      'El enlace de registro no incluye un token válido. Podés pedir un nuevo enlace o pegar el token manualmente.',
+      'El enlace de registro no incluye un código válido. Podés pedir un nuevo enlace o pegar el código manualmente.',
       [
         {
           text: 'Continuar',

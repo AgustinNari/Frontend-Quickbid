@@ -83,7 +83,7 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
       setLinkEnviado(true);
       Alert.alert(
         'Enlace enviado',
-        'Revisá tu correo y pegá el token aquí abajo.',
+        'Revisá tu correo y pegá el código aquí abajo.',
       );
     } catch (e) {
       const msg =
@@ -100,7 +100,7 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
     if (!tokenInput.trim()) {
       Alert.alert(
         'Campo requerido',
-        'Ingresá el token que recibiste por email.',
+        'Ingresá el código que recibiste por email.',
       );
       return;
     }
@@ -167,7 +167,7 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
               <ActivityIndicator color={colors.textInverse} />
             ) : (
               <Text style={styles.btnText}>
-                {linkEnviado ? 'Enlace enviado ✓' : 'Enviar Enlace de Acceso'}
+                {linkEnviado ? 'Enlace enviado ✓' : 'Enviar enlace de acceso'}
               </Text>
             )}
           </TouchableOpacity>
@@ -179,19 +179,19 @@ export default function EnlaceRegistroScreen({ navigation }: Props) {
                   <InfoIcon />
                 </View>
                 <Text style={styles.infoText}>
-                  Revisá tu correo y copiá el token de verificación. En
-                  modo local necesitas habilitar un proveedor de correo de prueba.
+                  Revisá tu correo y copiá el código de verificación si la app
+                  no se abre automáticamente.
                 </Text>
               </View>
 
-              <Text style={styles.label}>Token de verificación</Text>
+              <Text style={styles.label}>Código de verificación</Text>
               <View style={styles.inputRow}>
                 <MailIcon />
                 <TextInput
                   style={styles.input}
                   value={tokenInput}
                   onChangeText={setTokenInput}
-                  placeholder="Pegá el token aquí"
+                  placeholder="Pegá el código aquí"
                   placeholderTextColor={colors.textSubtle}
                   autoCapitalize="none"
                   autoCorrect={false}

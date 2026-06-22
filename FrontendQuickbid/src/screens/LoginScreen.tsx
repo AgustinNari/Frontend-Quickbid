@@ -183,7 +183,7 @@ export default function LoginScreen({ navigation }: Props) {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              ¿No tienes una cuenta?{' '}
+              ¿No tenés una cuenta?{' '}
               <Text
                 style={styles.footerLink}
                 onPress={() => navigation.navigate('Register')}

@@ -240,7 +240,7 @@ function motivoBloqueo(value: VerificacionSubastaApi) {
   if (value.cuentaBloqueada)
     return 'tu cuenta está bloqueada y no puede inscribirse.';
   if (value.cuentaRestringida)
-    return 'Tu cuenta tiene una restricción por multa. Puedes ver la subasta, pero no inscribirte.';
+    return 'Tu cuenta tiene una restricción por multa. Podés ver la subasta, pero no inscribirte.';
   if (value.yaInscripto)
     return 'Ya tenés una inscripción activa para esta subasta.';
   if (value.categoriaInsuficienteParaInscripcion)
@@ -248,14 +248,14 @@ function motivoBloqueo(value: VerificacionSubastaApi) {
   if (value.inscripcionCerradaPorTiempo)
     return 'La inscripción cerró porque faltan 60 minutos o menos para el inicio.';
   if (value.subastaYaIniciada)
-    return 'La subasta ya comenzo y no acepta nuevas inscripciones.';
+    return 'La subasta ya comenzó y no acepta nuevas inscripciones.';
   if (value.monedaIncompatibleParaInscripcion)
-    return 'No tienes un medio de pago compatible con la moneda de la subasta.';
+    return 'No tenés un medio de pago compatible con la moneda de la subasta.';
   if (value.requiereMedioPagoParaInscripcion)
-    return 'Necesitas registrar un medio de pago compatible para inscribirte.';
+    return 'Necesitás registrar un medio de pago compatible para inscribirte.';
   return value.puedeInscribirse
     ? null
-    : 'No cumples actualmente las condiciones para inscribirte.';
+    : 'No cumplís actualmente las condiciones para inscribirte.';
 }
 
 function paymentLabel(item: MedioPagoInscripcionApi) {
