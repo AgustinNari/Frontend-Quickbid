@@ -11,6 +11,8 @@ import React, {
 import {
   Alert,
   DeviceEventEmitter,
+  Linking,
+  Platform,
   StyleSheet,
   Text,
   View,
@@ -45,6 +47,7 @@ export function NetworkProvider({ children }: PropsWithChildren) {
   );
   const [reconnecting, setReconnecting] = useState(false);
   const wasOffline = useRef(false);
+  const cellularNoticeShown = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -81,6 +84,32 @@ export function NetworkProvider({ children }: PropsWithChildren) {
       return () => clearTimeout(timer);
     }
   }, [network.isConnected, network.isInternetReachable]);
+
+  useEffect(() => {
+    if (!shouldShowCellularSessionAlert(network.type, cellularNoticeShown.current))
+      return;
+    cellularNoticeShown.current = true;
+    Alert.alert(
+      'Estás usando datos móviles',
+      'QuickBid puede usar datos para cargar fotos, abrir documentos y actualizar subastas.',
+      [
+        { text: 'Continuar' },
+        ...(Platform.OS === 'android'
+          ? [
+              {
+                text: 'Abrir configuración',
+                onPress: () => {
+                  Linking.sendIntent('android.settings.WIRELESS_SETTINGS').catch(
+                    () => Linking.openSettings(),
+                  );
+                },
+              },
+            ]
+          : []),
+      ],
+      { cancelable: false },
+    );
+  }, [network.type]);
 
   const confirmHeavyAction = useCallback(() => {
     if (network.type !== 'cellular') return Promise.resolve(true);
@@ -123,6 +152,13 @@ export function useNetwork() {
 
 export function shouldWarnForHeavyAction(type: ConnectionType) {
   return type === 'cellular';
+}
+
+export function shouldShowCellularSessionAlert(
+  type: ConnectionType,
+  alreadyShown: boolean,
+) {
+  return type === 'cellular' && !alreadyShown;
 }
 
 function bannerFor(

@@ -165,6 +165,7 @@ export type CrearConsignacionRequest = {
   esObraDeArte?: boolean;
   autor?: string;
   historiaExtendida?: string;
+  idempotencyKey?: string;
   fotos: ConsignacionFileInput[];
 };
 

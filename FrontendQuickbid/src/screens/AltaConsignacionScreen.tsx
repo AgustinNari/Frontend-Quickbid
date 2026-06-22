@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Image,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -53,9 +54,11 @@ import {
   ConsignmentDraft,
   ConsignmentDraftForm,
   ConsignmentDraftStatus,
-  consignmentDraftStore,
+  createConsignmentDraftStore,
   createConsignmentDraft,
   createDraftId,
+  moveConsignmentPhoto,
+  removeConsignmentPhoto,
   retryConsignmentDraft,
 } from '../offline/consignmentDrafts';
 
@@ -80,7 +83,13 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   const [puedeContinuar, setPuedeContinuar] = useState(false);
   const [minimoFotos, setMinimoFotos] = useState(6);
   const [requisitos, setRequisitos] = useState<ConsignacionRequisitoUi[]>([]);
-  const { isGuest, estadoCuenta } = useAuth();
+  const { isGuest, estadoCuenta, user } = useAuth();
+  const accountId = user?.id ?? null;
+  const draftStore = useMemo(
+    () =>
+      accountId == null ? null : createConsignmentDraftStore(accountId),
+    [accountId],
+  );
   const network = useNetwork();
   const { confirmHeavyAction } = network;
   const offline = !network.isConnected || !network.isInternetReachable;
@@ -95,6 +104,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   const [esObraDeArte, setEsObraDeArte] = useState(false);
   const [autor, setAutor] = useState('');
   const [fotos, setFotos] = useState<ConsignacionFileInput[]>([]);
+  const [portadaUri, setPortadaUri] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<ConsignmentDraft[]>([]);
   const [draftsLoaded, setDraftsLoaded] = useState(false);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
@@ -104,6 +114,31 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   const autosaveVersion = useRef(0);
   const completedDraft = useRef(false);
   const lastSavedFingerprint = useRef('');
+  const previousAccountId = useRef(accountId);
+
+  useEffect(() => {
+    if (previousAccountId.current === accountId) return;
+    previousAccountId.current = accountId;
+    autosaveVersion.current += 1;
+    completedDraft.current = false;
+    lastSavedFingerprint.current = '';
+    setActiveDraftId(null);
+    setDrafts([]);
+    setDraftsLoaded(false);
+    setSaveState('idle');
+    setPaso(1);
+    setAceptaTyc(false);
+    setAceptaJurada(false);
+    setTitulo('');
+    setSegmento(null);
+    setDescripcion('');
+    setHistoria('');
+    setFechaAproximada('');
+    setEsObraDeArte(false);
+    setAutor('');
+    setFotos([]);
+    setPortadaUri(null);
+  }, [accountId]);
 
   const form = useMemo<ConsignmentDraftForm>(
     () => ({
@@ -117,6 +152,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       esObraDeArte,
       autor,
       fotos,
+      portadaUri,
     }),
     [
       aceptaJurada,
@@ -129,15 +165,21 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       historia,
       segmento,
       titulo,
+      portadaUri,
     ],
   );
 
   const refreshDrafts = useCallback(async () => {
-    const stored = await consignmentDraftStore.list();
+    if (!draftStore) {
+      setDrafts([]);
+      setDraftsLoaded(true);
+      return;
+    }
+    const stored = await draftStore.list();
     const recovered = await Promise.all(
       stored.map(draft =>
         draft.status === 'subiendo'
-          ? consignmentDraftStore.update(draft.id, {
+          ? draftStore.update(draft.id, {
               status: 'fallido',
               ultimoError:
                 'El envio se interrumpio. Podes reintentarlo manualmente.',
@@ -147,7 +189,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
     );
     setDrafts(recovered.filter((draft): draft is ConsignmentDraft => !!draft));
     setDraftsLoaded(true);
-  }, []);
+  }, [draftStore]);
 
   useEffect(() => {
     refreshDrafts().catch(() => {
@@ -191,7 +233,13 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   }, [load]);
 
   useEffect(() => {
-    if (!draftsLoaded || completedDraft.current || !hasDraftContent(form)) return;
+    if (
+      !draftStore ||
+      !draftsLoaded ||
+      completedDraft.current ||
+      !hasDraftContent(form)
+    )
+      return;
     const fingerprint = JSON.stringify(form);
     if (fingerprint === lastSavedFingerprint.current) return;
     const version = ++autosaveVersion.current;
@@ -200,8 +248,8 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       if (version !== autosaveVersion.current) return;
       try {
         const id = activeDraftId ?? createDraftId();
-        const existing = await consignmentDraftStore.get(id);
-        await consignmentDraftStore.save(
+        const existing = await draftStore.get(id);
+        await draftStore.save(
           existing
             ? {
                 ...existing,
@@ -221,12 +269,13 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       }
     }, 700);
     return () => clearTimeout(timer);
-  }, [activeDraftId, draftsLoaded, form, refreshDrafts]);
+  }, [activeDraftId, draftStore, draftsLoaded, form, refreshDrafts]);
 
   const persistCurrent = async (status: ConsignmentDraftStatus) => {
+    if (!draftStore) throw new Error('Inicia sesion para guardar el borrador.');
     autosaveVersion.current += 1;
     const id = activeDraftId ?? createDraftId();
-    const existing = await consignmentDraftStore.get(id);
+    const existing = await draftStore.get(id);
     const draft = existing
       ? {
           ...existing,
@@ -236,7 +285,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
           form,
         }
       : createConsignmentDraft(form, { id, status });
-    await consignmentDraftStore.save(draft);
+    await draftStore.save(draft);
     lastSavedFingerprint.current = JSON.stringify(form);
     if (!activeDraftId) setActiveDraftId(id);
     setSaveState('saved');
@@ -263,6 +312,25 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       fallbackBaseName: 'bien-consignado',
     });
     setFotos(prev => [...prev, ...selected].slice(0, MAX_FOTOS));
+  };
+
+  const quitarFoto = (index: number) => {
+    Alert.alert('Eliminar foto', '¿Querés quitar esta foto de la solicitud?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: () => {
+          const next = removeConsignmentPhoto(form, index);
+          setFotos(next.fotos);
+          setPortadaUri(next.portadaUri);
+        },
+      },
+    ]);
+  };
+
+  const moverFoto = (from: number, to: number) => {
+    setFotos(current => moveConsignmentPhoto(current, from, to));
   };
 
   const handleEnviar = async () => {
@@ -292,7 +360,8 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   };
 
   const retryAndOpenSuccess = async (id: string) => {
-    const result = await retryConsignmentDraft(consignmentDraftStore, id, {
+    if (!draftStore) throw new Error('Inicia sesion para enviar el borrador.');
+    const result = await retryConsignmentDraft(draftStore, id, {
       online: !offline,
       connectionType: network.type,
       confirmHeavyAction,
@@ -341,6 +410,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
     setEsObraDeArte(draft.form.esObraDeArte);
     setAutor(draft.form.autor);
     setFotos(draft.form.fotos);
+    setPortadaUri(draft.form.portadaUri);
     setPaso(2);
     if (draft.form.fotos.length > 0) {
       Alert.alert(
@@ -357,7 +427,8 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
         text: 'Eliminar',
         style: 'destructive',
         onPress: async () => {
-          await consignmentDraftStore.remove(id);
+          if (!draftStore) return;
+          await draftStore.remove(id);
           if (activeDraftId === id) {
             lastSavedFingerprint.current = JSON.stringify(form);
             setActiveDraftId(null);
@@ -494,11 +565,12 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
                   autor={autor}
                   onAutor={setAutor}
                   fotos={fotos}
+                  portadaUri={portadaUri}
                   minimoFotos={minimoFotos}
                   onAgregarFotos={elegirFotos}
-                  onQuitarFoto={index =>
-                    setFotos(prev => prev.filter((_, i) => i !== index))
-                  }
+                  onQuitarFoto={quitarFoto}
+                  onMoverFoto={moverFoto}
+                  onMarcarPortada={index => setPortadaUri(fotos[index].uri)}
                 />
               )}
             </View>
@@ -702,9 +774,12 @@ function Paso2({
   autor,
   onAutor,
   fotos,
+  portadaUri,
   minimoFotos,
   onAgregarFotos,
   onQuitarFoto,
+  onMoverFoto,
+  onMarcarPortada,
 }: {
   titulo: string;
   onTitulo: (t: string) => void;
@@ -721,11 +796,16 @@ function Paso2({
   autor: string;
   onAutor: (t: string) => void;
   fotos: ConsignacionFileInput[];
+  portadaUri: string | null;
   minimoFotos: number;
   onAgregarFotos: () => void;
   onQuitarFoto: (index: number) => void;
+  onMoverFoto: (from: number, to: number) => void;
+  onMarcarPortada: (index: number) => void;
 }) {
   const fotosOk = fotos.length >= minimoFotos;
+  const [failedUris, setFailedUris] = useState<Set<string>>(() => new Set());
+  const effectiveCoverUri = portadaUri ?? fotos[0]?.uri ?? null;
   return (
     <>
       <View style={styles.section}>
@@ -750,18 +830,75 @@ function Paso2({
         </TouchableOpacity>
         {fotos.length > 0 ? (
           <View style={styles.thumbsRow}>
-            {fotos.map((foto, i) => (
-              <TouchableOpacity
-                key={`${foto.uri}-${i}`}
-                style={styles.thumb}
-                onPress={() => onQuitarFoto(i)}
-              >
-                <Icon name="image" size={18} color={colors.textSubtle} />
-                <Typography style={styles.thumbText} numberOfLines={1}>
-                  {foto.name}
-                </Typography>
-              </TouchableOpacity>
-            ))}
+            {fotos.map((foto, i) => {
+              const isCover = foto.uri === effectiveCoverUri;
+              const failed = failedUris.has(foto.uri);
+              return (
+                <View
+                  key={`${foto.uri}-${i}`}
+                  style={[styles.thumb, isCover ? styles.thumbCover : null]}
+                >
+                  {failed ? (
+                    <View style={styles.thumbFallback}>
+                      <Icon name="image" size={22} color={colors.textSubtle} />
+                      <Typography style={styles.thumbFallbackText}>
+                        Sin vista previa
+                      </Typography>
+                    </View>
+                  ) : (
+                    <Image
+                      source={{ uri: foto.uri }}
+                      style={styles.thumbImage}
+                      resizeMode="cover"
+                      onError={() =>
+                        setFailedUris(current =>
+                          new Set(current).add(foto.uri),
+                        )
+                      }
+                    />
+                  )}
+                  <TouchableOpacity
+                    accessibilityLabel={`Eliminar ${foto.name}`}
+                    onPress={() => onQuitarFoto(i)}
+                    style={styles.thumbRemove}
+                  >
+                    <Typography style={styles.thumbRemoveText}>×</Typography>
+                  </TouchableOpacity>
+                  <View style={styles.thumbFooter}>
+                    <TouchableOpacity
+                      disabled={i === 0}
+                      onPress={() => onMoverFoto(i, i - 1)}
+                    >
+                      <Typography
+                        style={[styles.thumbControl, i === 0 && styles.thumbControlDisabled]}
+                      >
+                        ←
+                      </Typography>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => onMarcarPortada(i)}>
+                      <Typography
+                        style={[styles.coverControl, isCover && styles.coverControlActive]}
+                      >
+                        {isCover ? 'Portada' : 'Hacer portada'}
+                      </Typography>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      disabled={i === fotos.length - 1}
+                      onPress={() => onMoverFoto(i, i + 1)}
+                    >
+                      <Typography
+                        style={[
+                          styles.thumbControl,
+                          i === fotos.length - 1 && styles.thumbControlDisabled,
+                        ]}
+                      >
+                        →
+                      </Typography>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
           </View>
         ) : null}
       </View>
@@ -1063,17 +1200,52 @@ const styles = StyleSheet.create({
   uploadCountOk: { color: colors.success, fontWeight: fontWeight.semibold },
   thumbsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   thumb: {
-    width: 76,
-    height: 58,
+    width: 132,
+    minHeight: 132,
     borderRadius: radius.md,
     backgroundColor: colors.surfaceMuted,
     borderWidth: 1,
     borderColor: colors.borderMuted,
+    overflow: 'hidden',
+  },
+  thumbCover: { borderWidth: 2, borderColor: colors.primary },
+  thumbImage: { width: '100%', height: 94, backgroundColor: colors.surfaceMuted },
+  thumbFallback: {
+    height: 94,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.xs,
+    gap: 2,
   },
-  thumbText: { fontSize: 9, color: colors.textMuted, marginTop: 2 },
+  thumbFallbackText: { fontSize: 9, color: colors.textMuted },
+  thumbRemove: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.danger,
+  },
+  thumbRemoveText: {
+    color: colors.textInverse,
+    fontSize: 20,
+    lineHeight: 21,
+    fontWeight: fontWeight.bold,
+  },
+  thumbFooter: {
+    minHeight: 36,
+    paddingHorizontal: spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+  },
+  thumbControl: { color: colors.primary, fontSize: 20, fontWeight: fontWeight.bold },
+  thumbControlDisabled: { color: colors.textSubtle },
+  coverControl: { color: colors.textMuted, fontSize: 9 },
+  coverControlActive: { color: colors.primary, fontWeight: fontWeight.bold },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: {
     paddingVertical: spacing.sm,

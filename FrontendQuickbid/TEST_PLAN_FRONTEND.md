@@ -336,15 +336,15 @@ Precondicion: app instalada en Android y Metro activo.
 ```powershell
 adb reverse tcp:8080 tcp:8080
 adb reverse tcp:8081 tcp:8081
-adb shell am start -W -a android.intent.action.VIEW -d "quickbid://auth/completar-registro?token=abc"
-adb shell am start -W -a android.intent.action.VIEW -d "quickbid://auth/recuperar-clave?token=abc"
+adb shell am start -W -a android.intent.action.VIEW -d "quickbid://auth/completar-registro#token=abc"
+adb shell am start -W -a android.intent.action.VIEW -d "quickbid://auth/recuperar-clave#token=abc"
 ```
 
 Resultado esperado:
 
-- `quickbid://auth/completar-registro?token=abc` abre la pantalla de nueva
+- `quickbid://auth/completar-registro#token=abc` abre la pantalla de nueva
   clave en modo registro con `setupToken=abc`.
-- `quickbid://auth/recuperar-clave?token=abc` abre la pantalla de nueva clave
+- `quickbid://auth/recuperar-clave#token=abc` abre la pantalla de nueva clave
   en modo recuperacion con `token=abc`.
 - Si falta `token`, la app muestra error claro y deriva al flujo manual
   correspondiente.
@@ -505,3 +505,15 @@ reseteada o seed seguro preparado para consumirse.
 - [ ] PDF autorizado abre chooser; muestra nombre, tamaño y tipo.
 - [ ] PDF inválido, red caída o ausencia de app compatible producen un mensaje legible sin revelar token o error nativo.
 - [ ] Repetir en emulador con cámara virtual y en celular físico con Wi-Fi/datos.
+- [ ] Iniciar con usuario A, guardar un draft, cerrar sesión e iniciar con B: B
+  no lo ve; al volver a A reaparece sin pérdida.
+- [ ] Sembrar una clave v1 en entorno controlado: la primera cuenta autenticada
+  la migra una vez a `v2/<cuentaId>` y la clave global desaparece.
+- [ ] Reintentar dos veces el mismo draft y verificar una sola consignación y la
+  misma `idempotencyKey` en ambos multipart.
+- [ ] Ver miniaturas reales, fallback de error, X con confirmación, mover
+  izquierda/derecha y restaurar orden/portada tras reiniciar.
+- [ ] Arrancar directamente con datos móviles y pasar Wi-Fi→datos: la alerta
+  aparece una sola vez por sesión; el banner y confirmaciones pesadas continúan.
+- [ ] Abrir links nuevos con `#token=` y uno histórico con `?token=`; ambos deben
+  llegar a la pantalla correcta sin mostrar el token.

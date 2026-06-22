@@ -6,6 +6,16 @@ import {
 } from '../src/api/client';
 import { mapDocumentoCompra } from '../src/mappers/compras';
 import { shouldWarnForHeavyAction } from '../src/context/NetworkContext';
+import { normalizeAuthLink } from '../src/mobile/authLinks';
+
+test('usa fragmentos para tokens nuevos y mantiene links query compatibles', () => {
+  expect(
+    normalizeAuthLink('quickbid://auth/recuperar-clave#token=abc%2F123'),
+  ).toBe('quickbid://auth/recuperar-clave?token=abc%2F123');
+  expect(
+    normalizeAuthLink('quickbid://auth/recuperar-clave?token=legacy'),
+  ).toBe('quickbid://auth/recuperar-clave?token=legacy');
+});
 
 test('deriva WebSocket seguro desde Render', () => {
   expect(toWebSocketBaseUrl('https://quickbid.example')).toBe(

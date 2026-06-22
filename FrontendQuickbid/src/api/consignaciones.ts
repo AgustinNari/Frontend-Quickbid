@@ -58,6 +58,8 @@ export const consignacionesApi = {
     if (payload.autor) form.append('autor', payload.autor);
     if (payload.historiaExtendida)
       form.append('historiaExtendida', payload.historiaExtendida);
+    if (payload.idempotencyKey)
+      form.append('idempotencyKey', payload.idempotencyKey);
     payload.fotos.forEach(file => appendFile(form, 'fotos', file));
 
     return required(

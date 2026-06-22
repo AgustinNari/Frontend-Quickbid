@@ -1,8 +1,10 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { NetworkProvider } from './src/context/NetworkContext';
+import { normalizeAuthLink } from './src/mobile/authLinks';
 
 import LoginScreen from './src/screens/LoginScreen';
 import SplashScreen from './src/screens/SplashScreen';
@@ -120,6 +122,16 @@ const linking = {
       CompletarRegistroLink: 'completar-registro',
       RecuperarClaveLink: 'recuperar-clave',
     },
+  },
+  async getInitialURL() {
+    const url = await Linking.getInitialURL();
+    return url ? normalizeAuthLink(url) : null;
+  },
+  subscribe(listener: (url: string) => void) {
+    const subscription = Linking.addEventListener('url', ({ url }) =>
+      listener(normalizeAuthLink(url)),
+    );
+    return () => subscription.remove();
   },
 };
 

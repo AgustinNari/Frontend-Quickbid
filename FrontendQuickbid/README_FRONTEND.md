@@ -377,8 +377,8 @@ independientes.
 La app soporta estos deep links:
 
 ```text
-quickbid://auth/completar-registro?token=...
-quickbid://auth/recuperar-clave?token=...
+quickbid://auth/completar-registro#token=...
+quickbid://auth/recuperar-clave#token=...
 ```
 
 Para probarlos en Android local:
@@ -386,8 +386,8 @@ Para probarlos en Android local:
 ```powershell
 adb reverse tcp:8080 tcp:8080
 adb reverse tcp:8081 tcp:8081
-adb shell am start -W -a android.intent.action.VIEW -d "quickbid://auth/completar-registro?token=abc"
-adb shell am start -W -a android.intent.action.VIEW -d "quickbid://auth/recuperar-clave?token=abc"
+adb shell am start -W -a android.intent.action.VIEW -d "quickbid://auth/completar-registro#token=abc"
+adb shell am start -W -a android.intent.action.VIEW -d "quickbid://auth/recuperar-clave#token=abc"
 ```
 
 Con un token falso como `abc`, la app abre la pantalla correspondiente y el
@@ -624,14 +624,18 @@ iniciando, evitando loaders indefinidos durante un cold start de Render.
 - **Por qué el usuario no elige categoría de subasta:** es una clasificación comercial de la empresa; el alta móvil no la muestra ni la envía y el backend ignora el parámetro antiguo si un cliente desactualizado lo manda.
 - **Límite null no es límite ilimitado:** un medio que requiere límite o saldo y no tiene `limite_monto` informado no puede pagar el envío de una devolución.
 
-Android muestra `QuickBid` en el launcher y usa un ícono vectorial liviano inspirado en el martillo del logo del proyecto. `AndroidManifest.xml` conserva la etiqueta `@string/app_name`; no se cambiaron package name, `applicationId` ni el nombre interno del componente React Native. Para verificarlo, desinstalar una build anterior si el launcher mantiene caché, ejecutar `npm run android:public` y comprobar nombre e ícono en el launcher. El recurso se puede ajustar sin generadores externos en `android/app/src/main/res/drawable/ic_launcher_quickbid.xml`.
+Android muestra `QuickBid` en el launcher y usa el símbolo real de
+`src/assets/images/navBarLogo.png` (la S con martillo dentro del círculo). Se
+generaron mipmaps por densidad y un foreground seguro para adaptive icons. No se
+cambiaron package name, `applicationId` ni el componente React Native. Si el
+launcher conserva el icono anterior, desinstalar y reinstalar la app.
 
 ## Borradores offline de consignación
 
 `AltaConsignacionScreen` guarda con debounce, en AsyncStorage bajo
-`@quickbid/consignment-drafts/v1`, título, segmento, descripción, historia,
+`@quickbid/consignment-drafts/v2/<cuentaId>`, título, segmento, descripción, historia,
 fecha aproximada, declaraciones, autor/obra y metadata mínima de fotos (URI,
-nombre y MIME). No guarda access token, refresh token ni secretos. Los estados
+nombre, MIME, orden y portada). No guarda access token, refresh token ni secretos. Los estados
 locales son `borrador`, `pendiente_subida`, `subiendo`, `fallido` y
 `completado`; al completar o eliminar se borra la metadata.
 
@@ -647,3 +651,22 @@ duplicar archivos, el MVP conserva las URIs y Android comprueba que aún sean
 legibles antes del reintento. El sistema operativo puede limpiar esa caché: en
 ese caso el draft queda `fallido` y se pide continuar editando para volver a
 seleccionar las fotos. No se promete persistencia permanente de imágenes.
+
+La primera apertura autenticada migra una sola vez los drafts globales v1 a la
+cuenta activa y elimina la clave vieja. Si no hay una cuenta autenticada no se
+leen ni migran; cambiar de cuenta mantiene cada conjunto separado. Cada draft
+posee además una `idempotencyKey` estable que se envía en todos sus reintentos y
+V15 la hace única por cuenta en backend.
+
+Las miniaturas usan la URI real, muestran fallback sólo si falla la carga y
+ofrecen X con confirmación, controles izquierda/derecha y selección de portada.
+La portada se envía primero; el backend conserva el orden multipart mediante
+`app_consignacion_fotos.orden`.
+
+Además del banner, la primera detección de datos móviles por sesión muestra una
+alerta destacada con Continuar y acceso a configuración Android. Las
+confirmaciones específicas para cargas pesadas se mantienen.
+
+Los links nuevos de registro y recuperación transportan el token en fragmento
+`#token=` para evitar query strings. La app lo normaliza internamente y conserva
+compatibilidad con enlaces históricos `?token=` hasta que expiren.
