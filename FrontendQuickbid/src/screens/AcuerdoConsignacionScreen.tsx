@@ -109,10 +109,19 @@ export default function AcuerdoConsignacionScreen({ navigation, route }: Props) 
                 <Body muted>{detalle.fotos.length > 0 ? 'Foto del bien registrada' : 'Sin foto disponible'}</Body>
               </View>
             </View>
-            <DataRow label="Fecha del acuerdo" value="No informada" />
+            <DataRow
+              label="Acuerdo propuesto"
+              value={detalle.acuerdoEnviadoAtLabel ?? 'Pendiente de registro'}
+            />
+            {detalle.acuerdoAceptadoAtLabel ? (
+              <DataRow label="Acuerdo aceptado" value={detalle.acuerdoAceptadoAtLabel} />
+            ) : null}
             <DataRow label="Valor base" value={detalle.valorBase ? formatMoney(detalle.valorBase, detalle.moneda) : 'No informado'} emphasized />
+            <DataRow label="Comision comprador" value={detalle.comisionCompradorPct != null ? `${detalle.comisionCompradorPct}%` : 'Pendiente de definicion'} />
             <DataRow label="Comision vendedor" value={detalle.comisionVendedorPct != null ? `${detalle.comisionVendedorPct}%` : 'No informada'} />
-            <DataRow label="Fecha de subasta" value="No informada" />
+            {detalle.subastaFechaHoraLabel ? (
+              <DataRow label="Fecha de subasta" value={detalle.subastaFechaHoraLabel} />
+            ) : null}
           </Card>
 
           <Card variant="flat" style={styles.legalCard}>

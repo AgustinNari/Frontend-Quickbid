@@ -113,17 +113,14 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
               value={formatMoney(detalle.poliza.importe, detalle.moneda)}
               emphasized
             />
-            <DataRow label="Cuota o costo" value="No informado" />
-            <DataRow label="Vigencia" value="No informada" />
             <DataRow
               label="Ubicacion actual"
-              value={detalle.poliza.ubicacionFisica ?? detalle.ubicacionFisica ?? 'No informada'}
+              value={detalle.poliza.ubicacionFisica ?? detalle.ubicacionFisica ?? 'Pendiente de registro'}
             />
             <DataRow
               label="Tipo"
               value={detalle.poliza.combinada ? 'Poliza combinada' : 'Poliza individual'}
             />
-            <DataRow label="Coberturas" value="No informadas" />
           </Card>
 
           {document?.downloadAvailable ? (

@@ -129,6 +129,9 @@ export type ConsignacionDetalleDto = {
   comisionVendedorPct: number | null;
   netoEstimado: number | null;
   acuerdoTexto: string | null;
+  acuerdoEnviadoAt?: string | null;
+  acuerdoAceptadoAt?: string | null;
+  subastaFechaHora?: string | null;
   ubicacionFisica: string | null;
   poliza: ConsignacionPolizaDto | null;
   fotos: ConsignacionArchivoDto[];

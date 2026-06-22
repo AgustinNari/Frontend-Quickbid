@@ -84,6 +84,9 @@ export type ConsignacionDetalleUi = ConsignacionResumenUi & {
   comisionVendedorPct: number | null;
   netoEstimado: number | null;
   acuerdoTexto: string | null;
+  acuerdoEnviadoAtLabel: string | null;
+  acuerdoAceptadoAtLabel: string | null;
+  subastaFechaHoraLabel: string | null;
   ubicacionFisica: string | null;
   poliza: ConsignacionDetalleDto['poliza'];
   fotos: ConsignacionArchivoUi[];
@@ -162,6 +165,15 @@ export function mapConsignacionDetalle(
     comisionVendedorPct: dto.comisionVendedorPct,
     netoEstimado: dto.netoEstimado,
     acuerdoTexto: dto.acuerdoTexto,
+    acuerdoEnviadoAtLabel: dto.acuerdoEnviadoAt
+      ? formatDateTime(dto.acuerdoEnviadoAt)
+      : null,
+    acuerdoAceptadoAtLabel: dto.acuerdoAceptadoAt
+      ? formatDateTime(dto.acuerdoAceptadoAt)
+      : null,
+    subastaFechaHoraLabel: dto.subastaFechaHora
+      ? formatDateTime(dto.subastaFechaHora)
+      : null,
     ubicacionFisica: dto.ubicacionFisica,
     poliza: dto.poliza,
     fotos: dto.fotos.map(mapArchivo),
@@ -430,6 +442,14 @@ function formatDate(iso: string | null | undefined) {
     'dic',
   ];
   return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function formatDateTime(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return `${formatDate(iso)}, ${String(date.getHours()).padStart(2, '0')}:${String(
+    date.getMinutes(),
+  ).padStart(2, '0')} h`;
 }
 
 function formatBytes(bytes: number | null | undefined) {
