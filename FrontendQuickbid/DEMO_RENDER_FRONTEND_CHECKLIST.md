@@ -195,14 +195,19 @@ Para backend local seleccionar `API_MODE='localReverse'` y usar
 - [ ] Al volver con datos móviles, **Reintentar** pide confirmación antes de las
   fotos; cancelar conserva el pendiente.
 - [ ] **Eliminar** limpia el draft y **Continuar editando** restaura sus campos.
-- [ ] Si Android limpió una URI temporal, el envío se bloquea con un mensaje para
-  volver a elegir la foto.
+- [ ] Fotos nuevas de drafts sobreviven en `filesDir/consignment_drafts`; si una
+  copia falló y Android limpió la URI original, se pide volver a elegirla.
+- [ ] X, envío exitoso y eliminación del draft limpian sólo sus archivos privados.
 - [ ] Sin aplicación compatible o sin red aparece un error de usuario, no un error nativo.
 - [ ] Drafts de dos cuentas permanecen separados y v1 migra sólo a la primera
   cuenta autenticada que encuentra la clave legacy.
 - [ ] Reintentar el mismo alta no duplica solicitud ni fotos; V15 registra la
   misma `idempotencyKey` sólo dentro de esa cuenta.
 - [ ] Miniaturas, X, orden y portada funcionan y sobreviven al reinicio.
+- [ ] DNI, cheque y documentación de origen muestran preview, fallback, X y
+  `Cambiar`, sin orden/portada/movimiento.
+- [ ] Medios verificados y vigentes muestran usado/total/disponible; pendientes,
+  vencidos y límites null no muestran barra.
 - [ ] La alerta de datos móviles aparece una vez por sesión y permite abrir la
   configuración de red.
 - [ ] El launcher usa el símbolo S/martillo real de `navBarLogo.png`.

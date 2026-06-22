@@ -531,13 +531,13 @@ ESM. No cambiar configuracion de Jest dentro de una tarea no relacionada.
 
 ## Hallazgos de medios de pago y entrega
 
-- `GET /api/usuario/medios-pago` expone `id`, `tipo`, `moneda`, `estado`,
-  `principal`, `aliasVisible`, `ultimos4`, `banco`, `saldoGarantia`,
-  `verificadoHasta` y `createdAt`.
-- Ese contrato no expone limite aprobado, consumo actual, reservas activas ni
-  limite disponible. El frontend no puede mostrar ni validar un remanente antes
-  de pagar sin inventar datos; conserva el rechazo controlado que informa el
-  backend al procesar la operacion.
+- `GET /api/usuario/medios-pago` expone además `limiteMonto`, `limiteUsado` y
+  `limiteDisponible`, derivados de `limite_monto`, `consumo_actual` y reservas
+  activas app-owned.
+  La disponibilidad nunca se informa negativa.
+- El listado muestra usado/total, disponible y una barra sólo si el medio está
+  `verificado`, su vigencia no venció y `limiteMonto` es positivo. Un límite
+  nulo, pendiente, rechazado o vencido no muestra uso.
 - La entrega de una compra reutiliza direcciones guardadas mediante
   `direccionEnvioId` en `PUT /api/compras/{id}/entrega`.
 - La devolucion de una consignacion recibe direccion, codigo postal, localidad,
@@ -581,7 +581,8 @@ incluidas en Android y compatibles con la arquitectura actual de React Native:
 - `QuickBidConnectivity`: usa `ConnectivityManager` para informar offline,
   Wi-Fi, datos móviles, Ethernet, VPN o conexión desconocida.
 - `QuickBidDocument`: usa `HttpURLConnection`, caché privada, `FileProvider` y
-  el chooser del sistema para PDFs/documentos.
+  el chooser del sistema para PDFs/documentos; además copia fotos de drafts a
+  `filesDir/consignment_drafts` y sólo borra hijos directos de esa carpeta.
 - `react-native-image-picker` 8.2.1 ya existente: cámara y Photo Picker/galería.
 
 Permisos declarados:
@@ -591,11 +592,13 @@ Permisos declarados:
 - `CAMERA`: se solicita únicamente después de elegir `Tomar foto`, con
   explicación, rechazo controlado y acceso a Configuración si fue bloqueado.
 
-No se declaran `READ_MEDIA_IMAGES` ni `READ_EXTERNAL_STORAGE`: el Photo Picker
+No se declaran `READ_MEDIA_IMAGES`, `READ_EXTERNAL_STORAGE` ni
+`MANAGE_EXTERNAL_STORAGE`: el Photo Picker
 moderno entrega acceso sólo a los elementos elegidos. Esto también evita pedir
 un permiso amplio en Android 13+; en versiones anteriores el picker compatible
-mantiene el acceso acotado. Las fotos de cámara quedan temporalmente en caché y
-no se guardan en la galería (`saveToPhotos=false`). El selector rechaza archivos
+mantiene el acceso acotado. Las fotos de cámara no se guardan en la galería
+(`saveToPhotos=false`). En consignación se copian al almacenamiento interno
+privado para que el draft sobreviva a la URI temporal. El selector rechaza archivos
 que informan más de 10 MB, en línea con el límite por imagen del backend; si el
 sistema no informa el tamaño, el backend conserva la validación final.
 
@@ -634,8 +637,9 @@ launcher conserva el icono anterior, desinstalar y reinstalar la app.
 
 `AltaConsignacionScreen` guarda con debounce, en AsyncStorage bajo
 `@quickbid/consignment-drafts/v2/<cuentaId>`, título, segmento, descripción, historia,
-fecha aproximada, declaraciones, autor/obra y metadata mínima de fotos (URI,
-nombre, MIME, orden y portada). No guarda access token, refresh token ni secretos. Los estados
+fecha aproximada, declaraciones, autor/obra y metadata de fotos (URI privada,
+URI original opcional, nombre, MIME, tamaño, `persistedLocal`, orden y portada).
+No guarda access token, refresh token ni secretos. Los estados
 locales son `borrador`, `pendiente_subida`, `subiendo`, `fallido` y
 `completado`; al completar o eliminar se borra la metadata.
 
@@ -646,11 +650,12 @@ pesada. Esta cola no aplica a pujas, pagos, compras, inscripción, login,
 recuperación de clave, WebSocket ni acciones admin porque son operaciones
 económicas, autenticadas o dependientes de tiempo real.
 
-Las fotos seleccionadas por el picker pueden apuntar a caché temporal. Para no
-duplicar archivos, el MVP conserva las URIs y Android comprueba que aún sean
-legibles antes del reintento. El sistema operativo puede limpiar esa caché: en
-ese caso el draft queda `fallido` y se pide continuar editando para volver a
-seleccionar las fotos. No se promete persistencia permanente de imágenes.
+Android copia cada foto elegida desde `content://` o `file://` a
+`filesDir/consignment_drafts`, con nombre sanitizado y límite efectivo de 10 MB.
+La copia privada se elimina al quitar la foto, completar el envío o eliminar el
+draft. El borrado es best effort y rechaza cualquier URI fuera de esa carpeta.
+Si la copia falla, se conserva la URI original con advertencia y se comprueba su
+legibilidad al reintentar.
 
 La primera apertura autenticada migra una sola vez los drafts globales v1 a la
 cuenta activa y elimina la clave vieja. Si no hay una cuenta autenticada no se
@@ -658,10 +663,17 @@ leen ni migran; cambiar de cuenta mantiene cada conjunto separado. Cada draft
 posee además una `idempotencyKey` estable que se envía en todos sus reintentos y
 V15 la hace única por cuenta en backend.
 
+Los drafts v2 sin `persistedLocal` siguen siendo compatibles y se interpretan
+como no persistidos; nunca se eliminan automáticamente por esa ausencia.
+
 Las miniaturas usan la URI real, muestran fallback sólo si falla la carga y
 ofrecen X con confirmación, controles izquierda/derecha y selección de portada.
 La portada se envía primero; el backend conserva el orden multipart mediante
 `app_consignacion_fotos.orden`.
+
+DNI frente/dorso, cheque frente/dorso y documentación de origen muestran la
+imagen real, fallback, metadata útil, botón X y acción `Cambiar`. No incorporan
+portada, orden ni movimiento porque esos contratos no los soportan.
 
 Además del banner, la primera detección de datos móviles por sesión muestra una
 alerta destacada con Continuar y acceso a configuración Android. Las

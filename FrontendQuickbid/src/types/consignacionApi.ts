@@ -152,6 +152,9 @@ export type ConsignacionFileInput = {
   uri: string;
   name: string;
   type: string;
+  sizeBytes?: number;
+  persistedLocal?: boolean;
+  originalUri?: string;
 };
 
 export type CrearConsignacionRequest = {

@@ -24,7 +24,11 @@ import {
 } from '../theme';
 import { mediosPagoApi } from '../api/mediosPago';
 import { userFacingError } from '../api/client';
-import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
+import {
+  getMedioPagoLimitUsage,
+  isMedioPagoVigente,
+  MedioPagoDto,
+} from '../types/mediosPago';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MetodosPago'>;
 
@@ -161,6 +165,7 @@ function PaymentCard({
 }) {
   const verified = isMedioPagoVigente(item);
   const visual = paymentStateVisual(item);
+  const limitUsage = getMedioPagoLimitUsage(item);
   return (
     <View style={styles.card}>
       <View style={styles.row}>
@@ -204,6 +209,27 @@ function PaymentCard({
         </Badge>
       </View>
       <Text style={styles.warning}>{visual.description}</Text>
+      {limitUsage ? (
+        <View style={styles.limitBox}>
+          <View style={styles.limitLabels}>
+            <Text style={styles.limitUsed}>
+              Usado: {formatAmount(limitUsage.used, item.moneda)} de{' '}
+              {formatAmount(limitUsage.total, item.moneda)}
+            </Text>
+            <Text style={styles.limitAvailable}>
+              Disponible: {formatAmount(limitUsage.available, item.moneda)}
+            </Text>
+          </View>
+          <View style={styles.progressTrack}>
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${Math.round(limitUsage.progress * 100)}%` },
+              ]}
+            />
+          </View>
+        </View>
+      ) : null}
       <View style={styles.actions}>
         {!item.principal ? (
           <TouchableOpacity onPress={onPrincipal} disabled={!verified}>
@@ -226,6 +252,13 @@ function typeLabel(type: MedioPagoDto['tipo']) {
     : type === 'cuenta_bancaria'
     ? 'Cuenta bancaria'
     : 'Cheque certificado';
+}
+function formatAmount(value: number, moneda: MedioPagoDto['moneda']) {
+  return value.toLocaleString('es-AR', {
+    style: 'currency',
+    currency: moneda,
+    maximumFractionDigits: 2,
+  });
 }
 function paymentStateVisual(medio: MedioPagoDto): {
   tone: 'success' | 'warning' | 'danger' | 'neutral';
@@ -337,6 +370,31 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: fontSize.sm,
     marginTop: spacing.sm,
+  },
+  limitBox: {
+    marginTop: spacing.md,
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.infoSoft,
+    gap: spacing.sm,
+  },
+  limitLabels: { gap: 2 },
+  limitUsed: {
+    color: colors.text,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+  },
+  limitAvailable: { color: colors.textMuted, fontSize: fontSize.sm },
+  progressTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.borderMuted,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
+    backgroundColor: colors.primary,
   },
   actions: {
     flexDirection: 'row',

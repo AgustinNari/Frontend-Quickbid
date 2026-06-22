@@ -19,6 +19,13 @@ export type NativeDownloadedFile = {
   shared: boolean;
 };
 
+export type NativePrivateDraftFile = {
+  uri: string;
+  name: string;
+  type: string;
+  sizeBytes: number;
+};
+
 type DocumentModule = {
   downloadAndShare(
     url: string,
@@ -26,6 +33,11 @@ type DocumentModule = {
     fallbackFilename: string | null,
   ): Promise<NativeDownloadedFile>;
   canReadUri(uri: string): Promise<boolean>;
+  copyUriToPrivateDraftStorage(
+    uri: string,
+    suggestedName: string,
+  ): Promise<NativePrivateDraftFile>;
+  deletePrivateDraftFile(uri: string): Promise<boolean>;
 };
 
 export const connectivityModule =
@@ -42,6 +54,25 @@ export async function canReadLocalUri(uri: string) {
   if (!documentModule) return true;
   try {
     return await documentModule.canReadUri(uri);
+  } catch {
+    return false;
+  }
+}
+
+export async function copyUriToPrivateDraftStorage(
+  uri: string,
+  suggestedName: string,
+) {
+  if (!documentModule) {
+    throw new Error('El almacenamiento privado de borradores no esta disponible.');
+  }
+  return documentModule.copyUriToPrivateDraftStorage(uri, suggestedName);
+}
+
+export async function deletePrivateDraftFile(uri: string) {
+  if (!documentModule) return false;
+  try {
+    return await documentModule.deletePrivateDraftFile(uri);
   } catch {
     return false;
   }

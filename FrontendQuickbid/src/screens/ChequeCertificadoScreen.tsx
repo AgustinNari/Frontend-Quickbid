@@ -11,7 +11,6 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
-  Image,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -26,6 +25,7 @@ import { mediosPagoApi } from '../api/mediosPago';
 import { ApiError } from '../api/client';
 import { useNetwork } from '../context/NetworkContext';
 import { MobileImage, pickImages } from '../mobile/mediaPicker';
+import { ImageUploadPreview } from '../components/ImageUploadPreview';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChequeCertificado'>;
 
@@ -242,46 +242,50 @@ export default function ChequeCertificadoScreen({ navigation }: Props) {
           />
 
           <Text style={styles.label}>FOTO FRENTE</Text>
-          <TouchableOpacity
-            style={[styles.uploadBox, anverso && styles.uploadBoxDone]}
-            activeOpacity={0.7}
-            onPress={() => pickFoto('anverso')}
-          >
-            {anverso ? (
-              <Image
-                source={{ uri: anverso.uri }}
-                style={styles.preview}
-                resizeMode="cover"
+          {anverso ? (
+            <View style={styles.imagePreviewSpacing}>
+              <ImageUploadPreview
+                image={anverso}
+                onRemove={() => setAnverso(null)}
+                onReplace={() => pickFoto('anverso')}
               />
-            ) : (
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.uploadBox}
+              activeOpacity={0.7}
+              onPress={() => pickFoto('anverso')}
+            >
               <>
                 <UploadIcon done={false} />
                 <Text style={styles.uploadText}>Toca para subir el frente</Text>
                 <Text style={styles.uploadFormats}>JPG o PNG</Text>
               </>
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
+          )}
 
           <Text style={styles.label}>FOTO DORSO</Text>
-          <TouchableOpacity
-            style={[styles.uploadBox, reverso && styles.uploadBoxDone]}
-            activeOpacity={0.7}
-            onPress={() => pickFoto('reverso')}
-          >
-            {reverso ? (
-              <Image
-                source={{ uri: reverso.uri }}
-                style={styles.preview}
-                resizeMode="cover"
+          {reverso ? (
+            <View style={styles.imagePreviewSpacing}>
+              <ImageUploadPreview
+                image={reverso}
+                onRemove={() => setReverso(null)}
+                onReplace={() => pickFoto('reverso')}
               />
-            ) : (
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.uploadBox}
+              activeOpacity={0.7}
+              onPress={() => pickFoto('reverso')}
+            >
               <>
                 <UploadIcon done={false} />
                 <Text style={styles.uploadText}>Toca para subir el dorso</Text>
                 <Text style={styles.uploadFormats}>JPG o PNG</Text>
               </>
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
+          )}
 
           <View style={styles.spacer} />
 
@@ -417,18 +421,13 @@ const styles = StyleSheet.create({
     minHeight: 100,
     overflow: 'hidden',
   },
-  uploadBoxDone: {
-    borderStyle: 'solid',
-    borderColor: colors.primary,
-    paddingVertical: 0,
-  },
-  preview: { width: '100%', height: 120 },
   uploadText: {
     fontSize: fontSize.md,
     fontWeight: '600',
     color: colors.primary,
   },
   uploadFormats: { fontSize: fontSize.sm, color: colors.textSubtle },
+  imagePreviewSpacing: { marginBottom: 18 },
 
   btn: {
     backgroundColor: colors.primary,

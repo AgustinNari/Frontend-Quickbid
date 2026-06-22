@@ -20,14 +20,59 @@ export type MedioPagoDto = {
   ultimos4: string | null;
   banco: string | null;
   saldoGarantia: number | null;
+  limiteMonto: number | null;
+  limiteUsado: number | null;
+  limiteDisponible: number | null;
   verificadoHasta: string | null;
   createdAt: string;
 };
 
-export function isMedioPagoVigente(medio: MedioPagoDto): boolean {
+export function isMedioPagoVigente(
+  medio: MedioPagoDto,
+  now = Date.now(),
+): boolean {
   if (medio.estado !== 'verificado' || !medio.verificadoHasta) return false;
   const verificadoHasta = Date.parse(medio.verificadoHasta);
-  return !Number.isNaN(verificadoHasta) && verificadoHasta > Date.now();
+  return !Number.isNaN(verificadoHasta) && verificadoHasta > now;
+}
+
+export type MedioPagoLimitUsage = {
+  total: number;
+  used: number;
+  available: number;
+  progress: number;
+};
+
+export function getMedioPagoLimitUsage(
+  medio: MedioPagoDto,
+  now = Date.now(),
+): MedioPagoLimitUsage | null {
+  if (!isMedioPagoVigente(medio, now)) return null;
+  const total = finiteNumber(medio.limiteMonto);
+  if (total == null || total <= 0) return null;
+
+  const backendUsed = finiteNumber(medio.limiteUsado);
+  const backendAvailable = finiteNumber(medio.limiteDisponible);
+  const used = Math.max(
+    0,
+    backendUsed ??
+      (backendAvailable == null ? Number.NaN : total - backendAvailable),
+  );
+  if (!Number.isFinite(used)) return null;
+  const available = Math.max(
+    0,
+    backendAvailable ?? Math.max(0, total - used),
+  );
+  return {
+    total,
+    used,
+    available,
+    progress: Math.min(1, used / total),
+  };
+}
+
+function finiteNumber(value: number | null | undefined) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
 export type CrearTarjetaRequest = {

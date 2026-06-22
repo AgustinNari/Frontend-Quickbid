@@ -496,9 +496,14 @@ reseteada o seed seguro preparado para consumirse.
   último error legible.
 - [ ] Cerrar la app con estado `subiendo`: al abrir se recupera como `fallido`
   para reintento manual.
-- [ ] Limpiar la caché o invalidar una URI de foto: el reintento se detiene y
-  pide volver a seleccionarla desde **Continuar editando**.
-- [ ] Pulsar **Eliminar** y confirmar: se limpia la metadata de AsyncStorage.
+- [ ] En un draft v2 viejo o después de forzar una falla de copia, invalidar la
+  URI original: el reintento pide reselección desde **Continuar editando**.
+- [ ] Verificar que las fotos nuevas quedan bajo `filesDir/consignment_drafts`,
+  sobreviven al cierre/reinicio y muestran el mensaje de guardado privado.
+- [ ] Pulsar X, completar el envío y eliminar un draft: se limpian metadata y
+  archivos privados; una URI compartida/no marcada no se intenta borrar.
+- [ ] Cargar un draft v2 sin `persistedLocal`: abre normalmente, se interpreta
+  como no persistido y sólo pide reselección si la URI dejó de ser legible.
 - [ ] Confirmar que pujas, pagos, compras, inscripciones, auth, WebSocket y admin
   no muestran ni usan esta cola; realtime disabled no convierte esas acciones
   en operaciones offline.
@@ -517,3 +522,15 @@ reseteada o seed seguro preparado para consumirse.
   aparece una sola vez por sesión; el banner y confirmaciones pesadas continúan.
 - [ ] Abrir links nuevos con `#token=` y uno histórico con `?token=`; ambos deben
   llegar a la pantalla correcta sin mostrar el token.
+
+### Preview de imágenes y límites de pago
+
+- [ ] DNI frente/dorso, cheque frente/dorso y documentación de origen muestran
+  imagen real, fallback, X y `Cambiar`; quitar no requiere tocar la miniatura.
+- [ ] Confirmar que esos tres flujos no muestran orden, portada ni movimiento.
+- [ ] Medio verificado/vigente con límite muestra usado/total, disponible y barra.
+- [ ] Medio pendiente/rechazado, límite null o validación vencida no muestra barra;
+  el vencido mantiene un estado claro de revalidación.
+- [ ] Forzar consumo mayor al límite en entorno controlado: disponible no baja de
+  cero y la barra no supera el 100%.
+- [ ] Repetir cámara/galería, X, reinicio, Wi-Fi y datos móviles en celular físico.

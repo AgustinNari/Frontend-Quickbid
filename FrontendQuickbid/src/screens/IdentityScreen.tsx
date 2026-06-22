@@ -6,7 +6,6 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Image,
   ActivityIndicator,
   Alert,
 } from 'react-native';
@@ -19,6 +18,7 @@ import { authApi } from '../api/auth';
 import { ApiError } from '../api/client';
 import { useNetwork } from '../context/NetworkContext';
 import { MobileImage, pickImages } from '../mobile/mediaPicker';
+import { ImageUploadPreview } from '../components/ImageUploadPreview';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Identity'>;
 
@@ -159,6 +159,7 @@ type UploadBoxProps = {
   icon: React.ReactNode;
   image: MobileImage | null;
   onPress: () => void;
+  onRemove: () => void;
 };
 
 function UploadBox({
@@ -167,23 +168,24 @@ function UploadBox({
   icon,
   image,
   onPress,
+  onRemove,
 }: UploadBoxProps) {
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{label}</Text>
       <Text style={styles.sectionDesc}>{description}</Text>
-      <TouchableOpacity
-        style={styles.uploadBox}
-        onPress={onPress}
-        activeOpacity={0.7}
-      >
-        {image ? (
-          <Image
-            source={{ uri: image.uri }}
-            style={styles.preview}
-            resizeMode="cover"
-          />
-        ) : (
+      {image ? (
+        <ImageUploadPreview
+          image={image}
+          onRemove={onRemove}
+          onReplace={onPress}
+        />
+      ) : (
+        <TouchableOpacity
+          style={styles.uploadBox}
+          onPress={onPress}
+          activeOpacity={0.7}
+        >
           <>
             {icon}
             <Text style={styles.uploadText}>Presiona para subir</Text>
@@ -191,8 +193,8 @@ function UploadBox({
               Formatos: JPG, JPEG, PNG, WebP
             </Text>
           </>
-        )}
-      </TouchableOpacity>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -263,6 +265,7 @@ export default function IdentityScreen({ route, navigation }: Props) {
           icon={<IdCardIcon />}
           image={frontImage}
           onPress={handleSelectFront}
+          onRemove={() => setFrontImage(null)}
         />
 
         <UploadBox
@@ -271,6 +274,7 @@ export default function IdentityScreen({ route, navigation }: Props) {
           icon={<BarcodeIcon />}
           image={backImage}
           onPress={handleSelectBack}
+          onRemove={() => setBackImage(null)}
         />
 
         <View style={styles.spacer} />
@@ -340,7 +344,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   uploadFormats: { fontSize: fontSize.sm, color: colors.textSubtle },
-  preview: { width: '100%', height: 160, borderRadius: radius.md },
   spacer: { minHeight: 16 },
   btn: {
     backgroundColor: colors.primary,

@@ -8,6 +8,7 @@ import {
   moveConsignmentPhoto,
   photosForUpload,
   removeConsignmentPhoto,
+  removeConsignmentDraftAndFiles,
   retryConsignmentDraft,
   serializeConsignmentDrafts,
 } from '../src/offline/consignmentDrafts';
@@ -103,6 +104,7 @@ describe('consignment drafts', () => {
       connectionType: 'wifi',
       confirmHeavyAction: async () => true,
       canReadUri: async () => true,
+      deletePrivateFile: async () => true,
       submit,
       readableError: () => 'Error legible',
     });
@@ -132,6 +134,7 @@ describe('consignment drafts', () => {
         connectionType: 'wifi',
         confirmHeavyAction: async () => true,
         canReadUri: async () => true,
+        deletePrivateFile: async () => true,
         submit: async () => {
           throw new Error('network');
         },
@@ -173,6 +176,7 @@ describe('consignment drafts', () => {
       connectionType: 'cellular',
       confirmHeavyAction,
       canReadUri,
+      deletePrivateFile: async () => true,
       submit,
       readableError: () => 'Error',
     });
@@ -199,6 +203,7 @@ describe('consignment drafts', () => {
         connectionType: 'wifi',
         confirmHeavyAction: async () => true,
         canReadUri: async () => false,
+        deletePrivateFile: async () => true,
         submit: async () => ({ id: 42 }),
         readableError: () => 'Error',
       }),
@@ -273,6 +278,7 @@ describe('consignment drafts', () => {
       connectionType: 'wifi',
       confirmHeavyAction: async () => true,
       canReadUri: async () => true,
+      deletePrivateFile: async () => true,
       submit,
       readableError: () => 'Error',
     });
@@ -304,5 +310,59 @@ describe('consignment drafts', () => {
     expect(restored.form.portadaUri).toBe(base.fotos[0].uri);
     expect(photosForUpload(restored.form)[0].uri).toBe(base.fotos[0].uri);
     expect(removeConsignmentPhoto(restored.form, 1).portadaUri).toBeNull();
+  });
+
+  test('persists private photo metadata and keeps old v2 photos compatible', () => {
+    const privateForm = form();
+    privateForm.fotos[0] = {
+      ...privateForm.fotos[0],
+      uri: 'file:///data/user/0/quickbid/files/consignment_drafts/photo.jpg',
+      originalUri: 'content://picker/photo',
+      persistedLocal: true,
+      sizeBytes: 2048,
+    };
+    const restored = deserializeConsignmentDrafts(
+      serializeConsignmentDrafts([
+        createConsignmentDraft(privateForm, { id: 'private-photo' }),
+      ]),
+    )[0];
+    const old = deserializeConsignmentDrafts(
+      JSON.stringify([createConsignmentDraft(form(), { id: 'old-v2' })]),
+    )[0];
+
+    expect(restored.form.fotos[0]).toMatchObject({
+      persistedLocal: true,
+      originalUri: 'content://picker/photo',
+      sizeBytes: 2048,
+    });
+    expect(old.form.fotos[0].persistedLocal).toBe(false);
+  });
+
+  test('deletes only marked private files when a draft is removed', async () => {
+    const store = createConsignmentDraftStore(3004, memoryStorage());
+    const privateForm = form();
+    privateForm.fotos = [
+      { ...privateForm.fotos[0], persistedLocal: false },
+      {
+        uri: 'file:///private/photo.jpg',
+        name: 'photo.jpg',
+        type: 'image/jpeg',
+        persistedLocal: true,
+      },
+    ];
+    await store.save(
+      createConsignmentDraft(privateForm, { id: 'draft-private-files' }),
+    );
+    const deletePrivateFile = jest.fn(async () => true);
+
+    await removeConsignmentDraftAndFiles(
+      store,
+      'draft-private-files',
+      deletePrivateFile,
+    );
+
+    expect(deletePrivateFile).toHaveBeenCalledWith('file:///private/photo.jpg');
+    expect(deletePrivateFile).toHaveBeenCalledTimes(1);
+    expect(await store.list()).toEqual([]);
   });
 });

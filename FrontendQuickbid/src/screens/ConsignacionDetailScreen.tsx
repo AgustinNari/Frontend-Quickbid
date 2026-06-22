@@ -53,7 +53,8 @@ import { ConsignacionDevolucionPreviewDto } from '../types/consignacionApi';
 import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
 import { DireccionEnvioDto } from '../types/direcciones';
 import { useNetwork } from '../context/NetworkContext';
-import { pickImages } from '../mobile/mediaPicker';
+import { MobileImage, pickImages } from '../mobile/mediaPicker';
+import { ImageUploadPreview } from '../components/ImageUploadPreview';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConsignacionDetail'>;
 
@@ -63,6 +64,8 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
   const [activeTab, setActiveTab] = useState<NavTab>('consignar');
   const [loading, setLoading] = useState(true);
   const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [documentacionOrigen, setDocumentacionOrigen] =
+    useState<MobileImage | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detalle, setDetalle] = useState<ConsignacionDetalleUi | null>(null);
@@ -141,25 +144,29 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
     };
   }, [returnModal, detalle, modalidadDevolucion, direccionEnvioId]);
 
-  const subirDocumentacion = async () => {
-    if (!detalle) return;
+  const seleccionarDocumentacion = async () => {
     const [file] = await pickImages({
       selectionLimit: 1,
       quality: 0.9,
       fallbackBaseName: 'documentacion-origen',
     });
-    if (!file) return;
+    if (file) setDocumentacionOrigen(file);
+  };
+
+  const subirDocumentacion = async () => {
+    if (!detalle || !documentacionOrigen) return;
     if (!(await confirmHeavyAction())) return;
     setUploadingDoc(true);
     try {
       const updated = await consignacionesApi.subirDocumentacionOrigen(
         detalle.numericId,
         {
-          facturaCompra: file,
+          facturaCompra: documentacionOrigen,
           observaciones: 'Documento cargado desde mobile.',
         },
       );
       setDetalle(mapConsignacionDetalle(updated));
+      setDocumentacionOrigen(null);
       Alert.alert(
         'Documentacion enviada',
         'La solicitud vuelve a revision manual.',
@@ -517,14 +524,27 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                   Adjunta factura o comprobante como imagen para continuar
                   con la revision.
                 </Body>
+                {documentacionOrigen ? (
+                  <ImageUploadPreview
+                    image={documentacionOrigen}
+                    onRemove={() => setDocumentacionOrigen(null)}
+                    onReplace={seleccionarDocumentacion}
+                  />
+                ) : null}
                 <Button
-                  onPress={subirDocumentacion}
+                  onPress={
+                    documentacionOrigen
+                      ? subirDocumentacion
+                      : seleccionarDocumentacion
+                  }
                   loading={uploadingDoc}
                   leftIcon={
                     <Icon name="upload" size={18} color={colors.textInverse} />
                   }
                 >
-                  Subir foto de documento
+                  {documentacionOrigen
+                    ? 'Enviar documentacion'
+                    : 'Seleccionar foto de documento'}
                 </Button>
               </View>
             ) : null}

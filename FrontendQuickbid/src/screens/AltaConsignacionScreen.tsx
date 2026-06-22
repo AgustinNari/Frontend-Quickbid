@@ -49,7 +49,11 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useNetwork } from '../context/NetworkContext';
 import { pickImages } from '../mobile/mediaPicker';
-import { canReadLocalUri } from '../mobile/nativeMobile';
+import {
+  canReadLocalUri,
+  copyUriToPrivateDraftStorage,
+  deletePrivateDraftFile,
+} from '../mobile/nativeMobile';
 import {
   ConsignmentDraft,
   ConsignmentDraftForm,
@@ -59,6 +63,7 @@ import {
   createDraftId,
   moveConsignmentPhoto,
   removeConsignmentPhoto,
+  removeConsignmentDraftAndFiles,
   retryConsignmentDraft,
 } from '../offline/consignmentDrafts';
 
@@ -176,16 +181,27 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       return;
     }
     const stored = await draftStore.list();
+    for (const completed of stored.filter(
+      draft => draft.status === 'completado',
+    )) {
+      await removeConsignmentDraftAndFiles(
+        draftStore,
+        completed.id,
+        deletePrivateDraftFile,
+      );
+    }
     const recovered = await Promise.all(
-      stored.map(draft =>
-        draft.status === 'subiendo'
-          ? draftStore.update(draft.id, {
-              status: 'fallido',
-              ultimoError:
-                'El envio se interrumpio. Podes reintentarlo manualmente.',
-            })
-          : Promise.resolve(draft),
-      ),
+      stored
+        .filter(draft => draft.status !== 'completado')
+        .map(draft =>
+          draft.status === 'subiendo'
+            ? draftStore.update(draft.id, {
+                status: 'fallido',
+                ultimoError:
+                  'El envio se interrumpio. Podes reintentarlo manualmente.',
+              })
+            : Promise.resolve(draft),
+        ),
     );
     setDrafts(recovered.filter((draft): draft is ConsignmentDraft => !!draft));
     setDraftsLoaded(true);
@@ -311,7 +327,37 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       quality: 1,
       fallbackBaseName: 'bien-consignado',
     });
-    setFotos(prev => [...prev, ...selected].slice(0, MAX_FOTOS));
+    if (selected.length === 0) return;
+    let copyFailures = 0;
+    const stored = await Promise.all(
+      selected.map(async photo => {
+        try {
+          const privateFile = await copyUriToPrivateDraftStorage(
+            photo.uri,
+            photo.name,
+          );
+          return {
+            ...privateFile,
+            persistedLocal: true,
+            originalUri: photo.uri,
+          };
+        } catch {
+          copyFailures += 1;
+          return {
+            ...photo,
+            persistedLocal: false,
+            originalUri: photo.uri,
+          };
+        }
+      }),
+    );
+    setFotos(prev => [...prev, ...stored].slice(0, MAX_FOTOS));
+    if (copyFailures > 0) {
+      Alert.alert(
+        'Fotos guardadas parcialmente',
+        'Algunas fotos pueden requerir volver a seleccionarse si Android las limpia.',
+      );
+    }
   };
 
   const quitarFoto = (index: number) => {
@@ -320,10 +366,14 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       {
         text: 'Eliminar',
         style: 'destructive',
-        onPress: () => {
+        onPress: async () => {
+          const removed = form.fotos[index];
           const next = removeConsignmentPhoto(form, index);
           setFotos(next.fotos);
           setPortadaUri(next.portadaUri);
+          if (removed?.persistedLocal === true) {
+            await deletePrivateDraftFile(removed.uri);
+          }
         },
       },
     ]);
@@ -366,6 +416,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       connectionType: network.type,
       confirmHeavyAction,
       canReadUri: canReadLocalUri,
+      deletePrivateFile: deletePrivateDraftFile,
       submit: consignacionesApi.crear,
       readableError,
     });
@@ -412,10 +463,10 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
     setFotos(draft.form.fotos);
     setPortadaUri(draft.form.portadaUri);
     setPaso(2);
-    if (draft.form.fotos.length > 0) {
+    if (draft.form.fotos.some(photo => photo.persistedLocal !== true)) {
       Alert.alert(
         'Revisa las fotos antes de enviar',
-        'Android puede limpiar archivos temporales. Si una foto ya no esta disponible, vas a tener que seleccionarla nuevamente.',
+        'Una o mas fotos no estan en el almacenamiento privado. Si ya no estan disponibles, vas a tener que seleccionarlas nuevamente.',
       );
     }
   };
@@ -428,11 +479,28 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
         style: 'destructive',
         onPress: async () => {
           if (!draftStore) return;
-          await draftStore.remove(id);
+          await removeConsignmentDraftAndFiles(
+            draftStore,
+            id,
+            deletePrivateDraftFile,
+          );
           if (activeDraftId === id) {
-            lastSavedFingerprint.current = JSON.stringify(form);
+            autosaveVersion.current += 1;
+            lastSavedFingerprint.current = '';
             setActiveDraftId(null);
             setSaveState('idle');
+            setPaso(1);
+            setAceptaTyc(false);
+            setAceptaJurada(false);
+            setTitulo('');
+            setSegmento(null);
+            setDescripcion('');
+            setHistoria('');
+            setFechaAproximada('');
+            setEsObraDeArte(false);
+            setAutor('');
+            setFotos([]);
+            setPortadaUri(null);
           }
           await refreshDrafts();
         },
@@ -901,6 +969,19 @@ function Paso2({
             })}
           </View>
         ) : null}
+        {fotos.some(photo => photo.persistedLocal === true) ? (
+          <Typography style={styles.privatePhotoNote}>
+            Fotos guardadas en este dispositivo para esta solicitud.
+          </Typography>
+        ) : null}
+        {fotos.some(
+          photo => photo.persistedLocal !== true && !!photo.originalUri,
+        ) ? (
+          <Typography style={styles.privatePhotoWarning}>
+            Algunas fotos pueden requerir volver a seleccionarse si Android las
+            limpia.
+          </Typography>
+        ) : null}
       </View>
 
       <TextField
@@ -1079,6 +1160,8 @@ const styles = StyleSheet.create({
   },
   saveStatus: { fontSize: fontSize.sm, color: colors.textMuted },
   saveError: { fontSize: fontSize.sm, color: colors.danger },
+  privatePhotoNote: { fontSize: fontSize.sm, color: colors.success },
+  privatePhotoWarning: { fontSize: fontSize.sm, color: colors.warning },
   draftsPanel: {
     gap: spacing.sm,
     padding: spacing.base,

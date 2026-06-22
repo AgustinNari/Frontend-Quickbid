@@ -227,6 +227,7 @@ export type RetryDraftDependencies<T> = {
   connectionType: string;
   confirmHeavyAction: () => Promise<boolean>;
   canReadUri: (uri: string) => Promise<boolean>;
+  deletePrivateFile: (uri: string) => Promise<boolean>;
   submit: (request: CrearConsignacionRequest) => Promise<T>;
   readableError: (error: unknown) => string;
 };
@@ -265,7 +266,11 @@ export async function retryConsignmentDraft<T>(
       toRequest(draft.form, draft.idempotencyKey),
     );
     await store.update(id, { status: 'completado', ultimoError: null });
-    await store.remove(id);
+    await removeConsignmentDraftAndFiles(
+      store,
+      id,
+      dependencies.deletePrivateFile,
+    );
     return { outcome: 'sent', value };
   } catch (error) {
     const message = dependencies.readableError(error);
@@ -323,6 +328,14 @@ function sanitizeForm(
           uri: asString(photo.uri),
           name: asString(photo.name),
           type: asString(photo.type),
+          persistedLocal: photo.persistedLocal === true,
+          originalUri: asString(photo.originalUri) || undefined,
+          sizeBytes:
+            typeof photo.sizeBytes === 'number' &&
+            Number.isFinite(photo.sizeBytes) &&
+            photo.sizeBytes >= 0
+              ? photo.sizeBytes
+              : undefined,
         }))
         .filter(photo => photo.uri && photo.name && photo.type)
     : [];
@@ -383,6 +396,27 @@ export function photosForUpload(form: ConsignmentDraftForm) {
   return coverIndex > 0
     ? moveConsignmentPhoto(form.fotos, coverIndex, 0)
     : form.fotos;
+}
+
+export async function removeConsignmentDraftAndFiles(
+  store: ConsignmentDraftStore,
+  id: string,
+  deletePrivateFile: (uri: string) => Promise<boolean>,
+) {
+  const draft = await store.get(id);
+  if (!draft) return;
+  await Promise.all(
+    draft.form.fotos
+      .filter(photo => photo.persistedLocal === true)
+      .map(async photo => {
+        try {
+          return await deletePrivateFile(photo.uri);
+        } catch {
+          return false;
+        }
+      }),
+  );
+  await store.remove(id);
 }
 
 function isSegmento(value: unknown): value is SubastaSegmento {
