@@ -1,7 +1,9 @@
 import {
+  canMedioPagoCoverAmount,
   getMedioPagoLimitUsage,
   MedioPagoDto,
 } from '../src/types/mediosPago';
+import { formatPaymentMethodLabel } from '../src/utils/displayLabels';
 
 const NOW = Date.parse('2026-06-21T12:00:00.000Z');
 
@@ -26,6 +28,13 @@ function medio(overrides: Partial<MedioPagoDto> = {}): MedioPagoDto {
 }
 
 describe('payment method limit usage', () => {
+  test('does not duplicate the last four digits already present in the alias', () => {
+    expect(formatPaymentMethodLabel(medio())).toBe('Visa 4242');
+    expect(
+      formatPaymentMethodLabel(medio({ aliasVisible: 'Visa', ultimos4: '4242' })),
+    ).toBe('Visa - termina en 4242');
+  });
+
   test('returns used, total, available and progress for a validated limit', () => {
     expect(getMedioPagoLimitUsage(medio(), NOW)).toEqual({
       total: 500000,
@@ -62,5 +71,27 @@ describe('payment method limit usage', () => {
         NOW,
       )?.used,
     ).toBe(100000);
+  });
+
+  test('requires a finite sufficient limit instead of treating null as unlimited', () => {
+    expect(canMedioPagoCoverAmount(medio(), 474900, NOW)).toBe(true);
+    expect(canMedioPagoCoverAmount(medio(), 474901, NOW)).toBe(false);
+    expect(
+      canMedioPagoCoverAmount(
+        medio({ limiteMonto: null, limiteUsado: null, limiteDisponible: null }),
+        1,
+        NOW,
+      ),
+    ).toBe(false);
+  });
+
+  test('also requires enough guarantee for certified cheques', () => {
+    expect(
+      canMedioPagoCoverAmount(
+        medio({ tipo: 'cheque_certificado', saldoGarantia: 2000 }),
+        2001,
+        NOW,
+      ),
+    ).toBe(false);
   });
 });

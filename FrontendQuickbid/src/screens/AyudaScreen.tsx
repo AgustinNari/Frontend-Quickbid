@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -24,14 +24,40 @@ import {
 type Props = NativeStackScreenProps<RootStackParamList, 'Ayuda'>;
 
 const TOPICS = [
-  ['Consignaciones', 'Como cargar y vender un bien'],
-  ['Pujas y subastas', 'Reglas, incrementos y resultados'],
-  ['Pagos y cobros', 'Depositos, comisiones y facturacion'],
-  ['Cuenta y seguridad', 'Acceso, contrasena y datos'],
-  ['Sistema de categorias', 'Como acumular puntos'],
+  {
+    title: 'Consignaciones',
+    subtitle: 'Como cargar y vender un bien',
+    content:
+      'Carga fotos y datos claros del bien. Vas a poder seguir la revision, aceptar el acuerdo y, si corresponde, elegir retiro o una direccion guardada para la devolucion.',
+  },
+  {
+    title: 'Pujas y subastas',
+    subtitle: 'Reglas, incrementos y resultados',
+    content:
+      'La inscripcion reserva tu acceso, pero no realiza una puja. En vivo debes elegir un medio verificado, compatible con la moneda y con limite suficiente para el monto ofertado.',
+  },
+  {
+    title: 'Pagos y cobros',
+    subtitle: 'Medios, comisiones y comprobantes',
+    content:
+      'Cada pago muestra solo medios compatibles y vigentes. Los cobros por una venta se informan en el detalle de la consignacion; los pagos y envios de esta version son simulados.',
+  },
+  {
+    title: 'Cuenta y seguridad',
+    subtitle: 'Acceso, contrasena y datos',
+    content:
+      'Desde Perfil podes actualizar tus datos, direcciones y medios de pago. Nunca compartas tu contrasena ni codigos recibidos por correo.',
+  },
+  {
+    title: 'Sistema de categorias',
+    subtitle: 'Como acumular puntos',
+    content:
+      'Tu categoria depende de la actividad y los puntos registrados por QuickBid. Algunas subastas exigen una categoria minima; la pantalla de acceso explica cuando no se cumple.',
+  },
 ];
 
 export default function AyudaScreen({ navigation }: Props) {
+  const [expanded, setExpanded] = useState<string | null>(null);
   return (
     <SafeAreaView style={styles.safe}>
       <ScreenHeader onBack={() => navigation.goBack()} />
@@ -42,22 +68,38 @@ export default function AyudaScreen({ navigation }: Props) {
         <Text style={styles.title}>Ayuda y soporte</Text>
         <Text style={styles.subtitle}>En que podemos ayudarte?</Text>
         <Text style={styles.section}>CATEGORIAS FRECUENTES</Text>
-        {TOPICS.map(([title, subtitle]) => (
-          <TouchableOpacity
-            key={title}
-            style={styles.card}
-            activeOpacity={0.75}
-          >
-            <View style={styles.icon}>
-              <Icon name="check-doc" size={20} color={colors.primary} />
+        {TOPICS.map(topic => {
+          const isExpanded = expanded === topic.title;
+          return (
+            <View key={topic.title} style={styles.topic}>
+              <TouchableOpacity
+                style={[styles.card, isExpanded ? styles.cardExpanded : null]}
+                activeOpacity={0.75}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: isExpanded }}
+                onPress={() => setExpanded(isExpanded ? null : topic.title)}
+              >
+                <View style={styles.icon}>
+                  <Icon name="check-doc" size={20} color={colors.primary} />
+                </View>
+                <View style={styles.body}>
+                  <Text style={styles.cardTitle}>{topic.title}</Text>
+                  <Text style={styles.cardSubtitle}>{topic.subtitle}</Text>
+                </View>
+                <Icon
+                  name={isExpanded ? 'minus' : 'plus'}
+                  size={18}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+              {isExpanded ? (
+                <View style={styles.answer}>
+                  <Text style={styles.answerText}>{topic.content}</Text>
+                </View>
+              ) : null}
             </View>
-            <View style={styles.body}>
-              <Text style={styles.cardTitle}>{title}</Text>
-              <Text style={styles.cardSubtitle}>{subtitle}</Text>
-            </View>
-            <Icon name="arrow-right" size={18} color={colors.textSubtle} />
-          </TouchableOpacity>
-        ))}
+          );
+        })}
         <View style={styles.contact}>
           <Text style={styles.contactTitle}>Tenes otra consulta?</Text>
           <Text style={styles.contactText}>
@@ -106,7 +148,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderMuted,
     padding: spacing.base,
-    marginBottom: spacing.sm,
+  },
+  topic: { marginBottom: spacing.sm },
+  cardExpanded: {
+    borderColor: colors.primary,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  answer: {
+    backgroundColor: colors.infoSoft,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: colors.primary,
+    borderBottomLeftRadius: radius.lg,
+    borderBottomRightRadius: radius.lg,
+    padding: spacing.base,
+  },
+  answerText: {
+    color: colors.text,
+    fontSize: fontSize.sm,
+    lineHeight: fontSize.sm * 1.5,
   },
   icon: {
     width: 40,

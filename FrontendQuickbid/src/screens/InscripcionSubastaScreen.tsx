@@ -19,6 +19,7 @@ import {
   VerificacionSubastaApi,
 } from '../types/subastaApi';
 import { SubastaDetalle } from '../types/subasta';
+import { formatPaymentMethodLabel } from '../utils/displayLabels';
 import {
   Badge,
   Body,
@@ -305,7 +306,7 @@ function motivoBloqueo(value: VerificacionSubastaApi) {
 }
 
 function paymentLabel(item: MedioPagoInscripcionApi) {
-  return `${item.aliasVisible}${item.ultimos4 ? ` ****${item.ultimos4}` : ''}`;
+  return formatPaymentMethodLabel(item);
 }
 function estadoMedio(item: MedioPagoInscripcionApi) {
   return item.requiereRevalidacion

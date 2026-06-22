@@ -1,13 +1,13 @@
 import { ItemDetalle, SubastaCategoria } from '../types/subasta';
 import { PujaActual, PujaActualApi, PujaEventoApi } from '../types/puja';
-import { MedioPagoInscripcionApi } from '../types/subastaApi';
+import { MedioPagoDto } from '../types/mediosPago';
 import { SubastaDetalle } from '../types/subasta';
 
 export function mapPujaActual(
   snapshot: PujaActualApi,
   subasta: SubastaDetalle,
   item: ItemDetalle,
-  mediosParaPujar: MedioPagoInscripcionApi[],
+  mediosParaPujar: MedioPagoDto[],
 ): PujaActual {
   const serverNowMs = snapshot.serverNow
     ? Date.parse(snapshot.serverNow)

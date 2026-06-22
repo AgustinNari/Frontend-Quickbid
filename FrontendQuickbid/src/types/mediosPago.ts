@@ -71,6 +71,20 @@ export function getMedioPagoLimitUsage(
   };
 }
 
+export function canMedioPagoCoverAmount(
+  medio: MedioPagoDto,
+  amount: number,
+  now = Date.now(),
+) {
+  if (!Number.isFinite(amount) || amount < 0) return false;
+  const usage = getMedioPagoLimitUsage(medio, now);
+  if (!usage || usage.available < amount) return false;
+  return (
+    medio.tipo !== 'cheque_certificado' ||
+    (typeof medio.saldoGarantia === 'number' && medio.saldoGarantia >= amount)
+  );
+}
+
 function finiteNumber(value: number | null | undefined) {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }

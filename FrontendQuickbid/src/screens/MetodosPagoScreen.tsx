@@ -29,6 +29,7 @@ import {
   isMedioPagoVigente,
   MedioPagoDto,
 } from '../types/mediosPago';
+import { formatPaymentMethodLabel } from '../utils/displayLabels';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MetodosPago'>;
 
@@ -183,10 +184,9 @@ function PaymentCard({
           />
         </View>
         <View style={styles.info}>
-          <Text style={styles.name}>{item.aliasVisible}</Text>
+          <Text style={styles.name}>{formatPaymentMethodLabel(item)}</Text>
           <Text style={styles.detail}>
             {item.banco ?? typeLabel(item.tipo)}
-            {item.ultimos4 ? ` - termina en ${item.ultimos4}` : ''}
           </Text>
           <Text style={styles.detail}>
             {item.moneda}

@@ -25,8 +25,18 @@ import { comprasApi, createIdempotencyKey } from '../api/compras';
 import { mediosPagoApi } from '../api/mediosPago';
 import { direccionesApi } from '../api/direcciones';
 import { userFacingError } from '../api/client';
-import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
+import {
+  canMedioPagoCoverAmount,
+  getMedioPagoLimitUsage,
+  isMedioPagoVigente,
+  MedioPagoDto,
+} from '../types/mediosPago';
 import { DireccionEnvioDto } from '../types/direcciones';
+import {
+  formatAddressLabel,
+  formatPaymentMethodDetail,
+  formatPaymentMethodLabel,
+} from '../utils/displayLabels';
 import {
   CompraEntregaPreviewDto,
   ConfigurarEntregaRequest,
@@ -49,6 +59,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
   const [compra, setCompra] = useState<CompraDetalleUi | null>(null);
   const [medios, setMedios] = useState<MedioPagoDto[]>([]);
   const [direcciones, setDirecciones] = useState<DireccionEnvioDto[]>([]);
+  const [direccionId, setDireccionId] = useState<number | null>(null);
   const [medioId, setMedioId] = useState<number | null>(null);
   const [cambiandoMedio, setCambiandoMedio] = useState(false);
   const [configurandoEntrega, setConfigurandoEntrega] = useState(false);
@@ -72,42 +83,58 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
         direccionesApi.listar().catch(() => [] as DireccionEnvioDto[]),
       ]);
       const mapped = mapCompraDetalle(detalle);
+      const requiredAmount = mapped.entrega ? totalParaPago(mapped, tipo) : 0;
       const compatibles = mediosUsuario.filter(
-        medio => isMedioPagoVigente(medio) && medio.moneda === mapped.moneda,
+        medio =>
+          isMedioPagoVigente(medio) &&
+          medio.moneda === mapped.moneda &&
+          canMedioPagoCoverAmount(medio, requiredAmount),
       );
       const principal =
         compatibles.find(medio => medio.principal) ?? compatibles[0] ?? null;
       setCompra(mapped);
       setMedios(compatibles);
       setDirecciones(direccionesUsuario);
+      const direccionDefault =
+        direccionesUsuario.find(direccion => direccion.principal) ??
+        direccionesUsuario[0] ??
+        null;
+      setDireccionId(current =>
+        direccionesUsuario.some(direccion => direccion.id === current)
+          ? current
+          : direccionDefault?.id ?? null,
+      );
       setEntregaSeleccionada(mapped.entrega?.tipo ?? null);
       setPreviewEntrega(null);
-      setMedioId(current => current ?? principal?.id ?? null);
+      setMedioId(current =>
+        compatibles.some(medio => medio.id === current)
+          ? current
+          : principal?.id ?? null,
+      );
     } catch (err) {
       setError(readableError(err));
       setCompra(null);
       setMedios([]);
       setDirecciones([]);
+      setDireccionId(null);
       setMedioId(null);
     } finally {
       setLoading(false);
     }
-  }, [compraId]);
+  }, [compraId, tipo]);
 
   useEffect(() => {
     load();
-  }, [load]);
+    return navigation.addListener('focus', load);
+  }, [load, navigation]);
 
   const medioSeleccionado = useMemo(
     () => medios.find(medio => medio.id === medioId) ?? null,
     [medios, medioId],
   );
-  const direccionPrincipal = useMemo(
-    () =>
-      direcciones.find(direccion => direccion.principal) ??
-      direcciones[0] ??
-      null,
-    [direcciones],
+  const direccionSeleccionada = useMemo(
+    () => direcciones.find(direccion => direccion.id === direccionId) ?? null,
+    [direcciones, direccionId],
   );
   const total = compra
     ? tipo === 'comisiones' && !compra.entrega && previewEntrega
@@ -120,18 +147,21 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
       : Number(compra?.entrega?.costoEnvio ?? 0);
 
   const entregaPayload = useCallback(
-    (modo: EntregaTipo): ConfigurarEntregaRequest | null => {
+    (
+      modo: EntregaTipo,
+      selectedAddressId = direccionId,
+    ): ConfigurarEntregaRequest | null => {
       if (modo === 'retiro') return { tipo: 'retiro' };
-      if (!direccionPrincipal) return null;
-      return { tipo: 'envio', direccionEnvioId: direccionPrincipal.id };
+      if (!selectedAddressId) return null;
+      return { tipo: 'envio', direccionEnvioId: selectedAddressId };
     },
-    [direccionPrincipal],
+    [direccionId],
   );
 
   const cotizarEntrega = useCallback(
-    async (modo: EntregaTipo) => {
+    async (modo: EntregaTipo, selectedAddressId = direccionId) => {
       if (!compra || compra.entrega) return;
-      const payload = entregaPayload(modo);
+      const payload = entregaPayload(modo, selectedAddressId);
       if (!payload) {
         setPreviewEntrega(null);
         return;
@@ -148,7 +178,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
         setPreviewLoading(false);
       }
     },
-    [compra, entregaPayload],
+    [compra, direccionId, entregaPayload],
   );
 
   const persistirEntrega = async (modo: EntregaTipo) => {
@@ -168,7 +198,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
 
   const seleccionarEntrega = (modo: EntregaTipo) => {
     if (!compra) return;
-    if (modo === 'envio' && !direccionPrincipal) {
+    if (modo === 'envio' && !direccionSeleccionada) {
       Alert.alert(
         'Direccion requerida',
         'Agrega una direccion de envio antes de elegir envio a domicilio.',
@@ -187,8 +217,8 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
 
   const confirmarEntrega = () => {
     if (!compra || !entregaSeleccionada) return;
-    const direccion = direccionPrincipal
-      ? `${direccionPrincipal.calle} ${direccionPrincipal.numero}, ${direccionPrincipal.localidad}`
+    const direccion = direccionSeleccionada
+      ? formatAddressLabel(direccionSeleccionada)
       : null;
     const detalleConfirmacion =
       entregaSeleccionada === 'envio'
@@ -335,11 +365,19 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
           {tipo === 'comisiones' ? (
             <EntregaPicker
               compra={compra}
-              direccionPrincipal={direccionPrincipal}
+              direcciones={direcciones}
+              direccionId={direccionId}
               selected={entregaSeleccionada}
               preview={previewEntrega}
               loading={configurandoEntrega || previewLoading}
               onPick={seleccionarEntrega}
+              onAddressPick={selectedId => {
+                setDireccionId(selectedId);
+                setPreviewEntrega(null);
+                if (entregaSeleccionada === 'envio') {
+                  cotizarEntrega('envio', selectedId);
+                }
+              }}
               onManage={() => navigation.navigate('DireccionesEnvio')}
             />
           ) : null}
@@ -359,7 +397,7 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
                 />
                 <Typography style={styles.medioValue} numberOfLines={1}>
                   {medioSeleccionado
-                    ? medioLabel(medioSeleccionado)
+                    ? formatPaymentMethodLabel(medioSeleccionado)
                     : 'Sin medio verificado compatible'}
                 </Typography>
                 {medios.length > 1 ? (
@@ -391,15 +429,12 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
                       >
                         <View style={styles.medioOptInfo}>
                           <Typography style={styles.medioOptEtiqueta}>
-                            {medio.aliasVisible}
+                            {formatPaymentMethodLabel(medio)}
                           </Typography>
                           <Typography style={styles.medioOptTipo}>
-                            {medioTipoLabel(medio.tipo)}
-                            {medio.ultimos4
-                              ? ` Â·Â·Â· ${medio.ultimos4}`
-                              : ''}{' '}
-                            Â· {medio.moneda}
+                            {formatPaymentMethodDetail(medio)}
                           </Typography>
+                          <PaymentLimit medio={medio} moneda={compra.moneda} />
                         </View>
                         <View
                           style={[
@@ -509,19 +544,23 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
 
 function EntregaPicker({
   compra,
-  direccionPrincipal,
+  direcciones,
+  direccionId,
   selected,
   preview,
   loading,
   onPick,
+  onAddressPick,
   onManage,
 }: {
   compra: CompraDetalleUi;
-  direccionPrincipal: DireccionEnvioDto | null;
+  direcciones: DireccionEnvioDto[];
+  direccionId: number | null;
   selected: EntregaTipo | null;
   preview: CompraEntregaPreviewDto | null;
   loading: boolean;
   onPick: (modo: EntregaTipo) => void;
+  onAddressPick: (id: number) => void;
   onManage: () => void;
 }) {
   return (
@@ -537,7 +576,7 @@ function EntregaPicker({
         {compra.entrega ? (
           <Typography style={styles.helpText}>
             {compra.entrega.tipo === 'envio'
-              ? `Direccion ID #${compra.entrega.direccionEnvioId}`
+              ? compra.direccionSnapshotLabel ?? 'Direccion de envio confirmada'
               : 'Retiro sin direccion de envio'}
           </Typography>
         ) : (
@@ -570,17 +609,53 @@ function EntregaPicker({
               : 'Calculando...'}
           </Typography>
         ) : null}
-        {direccionPrincipal ? (
-          <Typography style={styles.direccionText} numberOfLines={2}>
-            Direccion principal: {direccionPrincipal.alias} Â·{' '}
-            {direccionPrincipal.calle} {direccionPrincipal.numero},{' '}
-            {direccionPrincipal.localidad}
-          </Typography>
-        ) : (
+        {!compra.entrega && selected === 'envio' && direcciones.length > 0 ? (
+          <View style={styles.addressList}>
+            <Typography style={styles.addressPrompt}>
+              Elegi la direccion de entrega
+            </Typography>
+            {direcciones.map(direccion => {
+              const isSelected = direccion.id === direccionId;
+              return (
+                <TouchableOpacity
+                  key={direccion.id}
+                  activeOpacity={0.75}
+                  onPress={() => onAddressPick(direccion.id)}
+                  style={[
+                    styles.addressOption,
+                    isSelected ? styles.addressOptionSelected : null,
+                  ]}
+                >
+                  <View style={styles.addressInfo}>
+                    <View style={styles.addressTitleRow}>
+                      <Typography style={styles.addressTitle}>
+                        {direccion.alias}
+                      </Typography>
+                      {direccion.principal ? (
+                        <Typography style={styles.principalBadge}>
+                          PRINCIPAL
+                        </Typography>
+                      ) : null}
+                    </View>
+                    <Typography style={styles.direccionText}>
+                      {formatAddressLabel(direccion)}
+                    </Typography>
+                  </View>
+                  <View style={[styles.radio, isSelected && styles.radioSel]}>
+                    {isSelected ? <View style={styles.radioInner} /> : null}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+            <Button variant="secondary" size="sm" onPress={onManage}>
+              Gestionar direcciones
+            </Button>
+          </View>
+        ) : !compra.entrega && selected === 'envio' ? (
           <Button variant="secondary" size="sm" onPress={onManage}>
             Agregar direccion
           </Button>
-        )}
+        ) : null}
       </View>
     </View>
   );
@@ -607,15 +682,21 @@ function Row({
   );
 }
 
-function medioLabel(medio: MedioPagoDto) {
-  const last4 = medio.ultimos4 ? ` Â·Â·Â· ${medio.ultimos4}` : '';
-  return `${medio.aliasVisible}${last4}`;
-}
-
-function medioTipoLabel(tipo: MedioPagoDto['tipo']) {
-  if (tipo === 'cuenta_bancaria') return 'Cuenta bancaria';
-  if (tipo === 'cheque_certificado') return 'Cheque certificado';
-  return 'Tarjeta';
+function PaymentLimit({
+  medio,
+  moneda,
+}: {
+  medio: MedioPagoDto;
+  moneda: 'ARS' | 'USD';
+}) {
+  const usage = getMedioPagoLimitUsage(medio);
+  return (
+    <Typography style={styles.paymentLimit}>
+      {usage
+        ? `Disponible: ${formatPrecio(usage.available, moneda)}`
+        : 'Limite no disponible'}
+    </Typography>
+  );
 }
 
 function readableError(err: unknown) {
@@ -700,6 +781,29 @@ const styles = StyleSheet.create({
   },
   entregaActions: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
   direccionText: { fontSize: fontSize.sm, color: colors.textMuted },
+  addressList: { gap: spacing.sm },
+  addressPrompt: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
+  addressOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    borderRadius: radius.md,
+  },
+  addressOptionSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.infoSoft,
+  },
+  addressInfo: { flex: 1 },
+  addressTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  addressTitle: { fontWeight: fontWeight.semibold, color: colors.text },
+  principalBadge: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.bold,
+    color: colors.primary,
+  },
   helpText: {
     fontSize: fontSize.sm,
     color: colors.textMuted,
@@ -747,6 +851,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   medioOptTipo: { fontSize: fontSize.sm, color: colors.textMuted },
+  paymentLimit: { fontSize: fontSize.xs, color: colors.textMuted },
   radio: {
     width: 22,
     height: 22,

@@ -682,3 +682,17 @@ confirmaciones específicas para cargas pesadas se mantienen.
 Los links nuevos de registro y recuperación transportan el token en fragmento
 `#token=` para evitar query strings. La app lo normaliza internamente y conserva
 compatibilidad con enlaces históricos `?token=` hasta que expiren.
+
+## Seleccion de direcciones, pagos y ayuda
+
+- En pago de compra, **Envio** despliega todas las direcciones guardadas, marca
+  la principal como opcion inicial y envia el `direccionEnvioId` elegido. Sin
+  direcciones, el flujo se bloquea y ofrece agregarlas o gestionarlas.
+- La devolucion de consignacion usa el mismo criterio: retiro no exige direccion
+  y envio exige una seleccion explicita antes de cotizar y confirmar.
+- Inscripcion acepta los medios compatibles que informa la verificacion de la
+  subasta. Puja y pagos requieren medio verificado vigente, moneda compatible y
+  limite suficiente; un limite `null` nunca se interpreta como ilimitado.
+- Los labels de medios no repiten los ultimos cuatro cuando ya estan en el alias.
+- Ayuda es informativa y expandible. No hay chat ni tickets reales; las consultas
+  se gestionan por correo.

@@ -534,3 +534,15 @@ reseteada o seed seguro preparado para consumirse.
 - [ ] Forzar consumo mayor al límite en entorno controlado: disponible no baja de
   cero y la barra no supera el 100%.
 - [ ] Repetir cámara/galería, X, reinicio, Wi-Fi y datos móviles en celular físico.
+
+### Selectores de direccion, medio de pago y ayuda
+
+- [ ] Con dos direcciones, elegir **Envio** en pago: aparecen ambas, la principal
+  inicia seleccionada y cambiarla vuelve a cotizar con su `direccionEnvioId`.
+- [ ] Sin direcciones, **Envio** no avanza y ofrece **Agregar direccion**.
+- [ ] En devolucion por envio, elegir una no principal y verificar resumen/request.
+- [ ] En inscripcion ARS/USD solo aparecen medios admitidos por la verificacion.
+- [ ] En puja, compra/multa y devolucion solo aparecen medios vigentes, de igual
+  moneda y con limite suficiente; limite `null` queda excluido.
+- [ ] Un alias que ya termina en `4242` no vuelve a agregar esos digitos.
+- [ ] Cada tarjeta de Ayuda abre/cierra contenido e informa soporte por correo.

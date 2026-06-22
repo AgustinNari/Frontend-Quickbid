@@ -49,6 +49,7 @@ import { userFacingError } from '../api/client';
 import { createLiveRealtimeClient } from '../api/realtime';
 import { createBidIdempotencyKey, pujasApi } from '../api/pujas';
 import { subastasApi } from '../api/subastas';
+import { mediosPagoApi } from '../api/mediosPago';
 import { mapItemDetalle, mapSubastaDetalle } from '../mappers/subastas';
 import {
   applyPujaEvent,
@@ -56,7 +57,15 @@ import {
   mapPujaActual,
 } from '../mappers/pujas';
 import { formatPrecio } from '../utils/format';
-import { MedioPagoInscripcionApi } from '../types/subastaApi';
+import {
+  canMedioPagoCoverAmount,
+  getMedioPagoLimitUsage,
+  MedioPagoDto,
+} from '../types/mediosPago';
+import {
+  formatPaymentMethodLabel,
+  paymentMethodTypeLabel,
+} from '../utils/displayLabels';
 import { PujaActual, PujaEventoApi } from '../types/puja';
 import { useNetwork } from '../context/NetworkContext';
 
@@ -109,10 +118,12 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const [snapshot, subastaDto, verification] = await Promise.all([
+      const [snapshot, subastaDto, verification, mediosUsuario] =
+        await Promise.all([
         pujasApi.pujaActual(liveId),
         subastasApi.detalle(liveId),
         subastasApi.verificarAcceso(liveId),
+        mediosPagoApi.listar(),
       ]);
 
       if (!snapshot.itemActivoId) {
@@ -124,12 +135,17 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       const itemDto = await subastasApi.item(snapshot.itemActivoId);
       const subasta = mapSubastaDetalle(subastaDto);
       const item = mapItemDetalle(itemDto, subasta);
+      const idsHabilitados = new Set(
+        (
+          verification.mediosPagoVerificadosVigentesCompatiblesParaPuja ?? []
+        ).map(medio => medio.id),
+      );
       setPuja(
         mapPujaActual(
           snapshot,
           subasta,
           item,
-          verification.mediosPagoVerificadosVigentesCompatiblesParaPuja ?? [],
+          mediosUsuario.filter(medio => idsHabilitados.has(medio.id)),
         ),
       );
     } catch (loadError) {
@@ -556,6 +572,10 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
             submitting={submitting}
             onClose={() => setBidModalVisible(false)}
             onConfirm={handleConfirmBid}
+            onManage={() => {
+              setBidModalVisible(false);
+              navigation.navigate('MetodosPago');
+            }}
           />
           <SubmittingOverlay visible={submitting} puja={puja} />
         </>
@@ -836,12 +856,14 @@ function BidModal({
   submitting,
   onClose,
   onConfirm,
+  onManage,
 }: {
   visible: boolean;
   puja: PujaActual;
   submitting: boolean;
   onClose: () => void;
   onConfirm: (monto: number, medioPagoId: number) => void;
+  onManage: () => void;
 }) {
   const limites = useMemo(
     () => calcularLimites(puja.mejorOferta, puja.precioBase, puja.categoria),
@@ -850,6 +872,16 @@ function BidModal({
   const [amountText, setAmountText] = useState(String(limites.minimo));
   const [paymentId, setPaymentId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const parsedAmount = parseAmount(amountText);
+  const eligibleMedios = useMemo(
+    () =>
+      parsedAmount == null
+        ? []
+        : puja.mediosParaPujar.filter(medio =>
+            canMedioPagoCoverAmount(medio, parsedAmount),
+          ),
+    [parsedAmount, puja.mediosParaPujar],
+  );
 
   useEffect(() => {
     if (visible) {
@@ -863,11 +895,21 @@ function BidModal({
     }
   }, [limites.minimo, puja.mediosParaPujar, visible]);
 
+  useEffect(() => {
+    setPaymentId(current =>
+      eligibleMedios.some(medio => medio.id === current)
+        ? current
+        : eligibleMedios.find(medio => medio.principal)?.id ??
+          eligibleMedios[0]?.id ??
+          null,
+    );
+  }, [eligibleMedios]);
+
   const selectedPayment =
-    puja.mediosParaPujar.find(medio => medio.id === paymentId) ?? null;
+    eligibleMedios.find(medio => medio.id === paymentId) ?? null;
 
   const confirm = () => {
-    const amount = parseAmount(amountText);
+    const amount = parsedAmount;
     if (amount == null) {
       setError('Ingresa un monto valido.');
       return;
@@ -953,9 +995,10 @@ function BidModal({
           </View>
 
           <PaymentSelector
-            medios={puja.mediosParaPujar}
+            medios={eligibleMedios}
             selectedId={paymentId}
             onSelect={setPaymentId}
+            onManage={onManage}
           />
 
           {error ? (
@@ -991,18 +1034,25 @@ function PaymentSelector({
   medios,
   selectedId,
   onSelect,
+  onManage,
 }: {
-  medios: MedioPagoInscripcionApi[];
+  medios: MedioPagoDto[];
   selectedId: number | null;
   onSelect: (id: number) => void;
+  onManage: () => void;
 }) {
   return (
     <View style={styles.paymentWrap}>
       <Typography style={styles.paymentTitle}>Metodo de pago</Typography>
       {medios.length === 0 ? (
-        <Body muted>
-          No hay medios verificados vigentes compatibles para pujar.
-        </Body>
+        <View style={styles.emptyPayment}>
+          <Body muted>
+            No hay medios verificados con limite suficiente para este monto.
+          </Body>
+          <Button variant="secondary" size="sm" onPress={onManage}>
+            Gestionar medios de pago
+          </Button>
+        </View>
       ) : (
         medios.map(medio => {
           const selected = medio.id === selectedId;
@@ -1023,11 +1073,16 @@ function PaymentSelector({
               />
               <View style={styles.paymentInfo}>
                 <Typography style={styles.paymentName}>
-                  {medio.aliasVisible}
+                  {formatPaymentMethodLabel(medio)}
                 </Typography>
                 <Typography style={styles.paymentMeta}>
-                  {medio.tipo} {medio.ultimos4 ? `...${medio.ultimos4}` : ''} -{' '}
-                  {medio.moneda}
+                  {paymentMethodTypeLabel(medio.tipo)} - {medio.moneda} - Verificado
+                </Typography>
+                <Typography style={styles.paymentMeta}>
+                  Disponible: {formatPrecio(
+                    getMedioPagoLimitUsage(medio)?.available ?? 0,
+                    medio.moneda,
+                  )}
                 </Typography>
               </View>
               <View
@@ -1472,6 +1527,7 @@ const styles = StyleSheet.create({
     padding: spacing.base,
     gap: spacing.sm,
   },
+  emptyPayment: { gap: spacing.sm },
   paymentTitle: {
     fontSize: fontSize.xs,
     color: colors.textMuted,

@@ -1,5 +1,5 @@
 import { ItemDetalle, SubastaCategoria, SubastaMoneda } from './subasta';
-import { MedioPagoInscripcionApi } from './subastaApi';
+import { MedioPagoDto } from './mediosPago';
 
 export type PujaActualApi = {
   subastaId: number;
@@ -121,7 +121,7 @@ export type PujaActual = {
   subastaFinalizada?: boolean;
   proximoLoteAt?: string | null;
   historialReciente: PujaHistorial[];
-  mediosParaPujar: MedioPagoInscripcionApi[];
+  mediosParaPujar: MedioPagoDto[];
   segundosRestantes?: number;
   retencionHasta?: string;
   serverTimeOffsetMs: number;

@@ -50,8 +50,17 @@ import {
   formatMoney,
 } from '../mappers/consignaciones';
 import { ConsignacionDevolucionPreviewDto } from '../types/consignacionApi';
-import { isMedioPagoVigente, MedioPagoDto } from '../types/mediosPago';
+import {
+  canMedioPagoCoverAmount,
+  isMedioPagoVigente,
+  MedioPagoDto,
+} from '../types/mediosPago';
 import { DireccionEnvioDto } from '../types/direcciones';
+import {
+  formatAddressLabel,
+  formatPaymentMethodLabel,
+  paymentMethodTypeLabel,
+} from '../utils/displayLabels';
 import { useNetwork } from '../context/NetworkContext';
 import { MobileImage, pickImages } from '../mobile/mediaPicker';
 import { ImageUploadPreview } from '../components/ImageUploadPreview';
@@ -89,7 +98,10 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
   const mediosCompatibles = useMemo(() => {
     if (!detalle) return [];
     return mediosPago.filter(
-      medio => isMedioPagoVigente(medio) && medio.moneda === detalle.moneda,
+      medio =>
+        isMedioPagoVigente(medio) &&
+        medio.moneda === detalle.moneda &&
+        canMedioPagoCoverAmount(medio, detalle.devolucion?.costo ?? 0),
     );
   }, [detalle, mediosPago]);
 
@@ -1131,8 +1143,11 @@ function ReturnModal({
                         <Typography style={styles.paymentTitle}>
                           {direccion.alias}
                         </Typography>
+                        {direccion.principal ? (
+                          <Badge variant="soft">PRINCIPAL</Badge>
+                        ) : null}
                         <Typography style={styles.paymentMeta}>
-                          {direccionLabel(direccion)}
+                          {formatAddressLabel(direccion)}
                         </Typography>
                       </View>
                       <View
@@ -1281,12 +1296,10 @@ function PaymentModal({
                 />
                 <View style={styles.paymentInfo}>
                   <Typography style={styles.paymentTitle}>
-                    {medio.aliasVisible}
+                    {formatPaymentMethodLabel(medio)}
                   </Typography>
                   <Typography style={styles.paymentMeta}>
-                    {medioTipoLabel(medio.tipo)}
-                    {medio.ultimos4 ? ` ...${medio.ultimos4}` : ''} -{' '}
-                    {medio.moneda}
+                    {paymentMethodTypeLabel(medio.tipo)} - {medio.moneda} - Verificado
                   </Typography>
                 </View>
                 <View
@@ -1384,12 +1397,6 @@ function readableError(err: unknown) {
   );
 }
 
-function medioTipoLabel(tipo: MedioPagoDto['tipo']) {
-  if (tipo === 'cuenta_bancaria') return 'Cuenta bancaria';
-  if (tipo === 'cheque_certificado') return 'Cheque certificado';
-  return 'Tarjeta';
-}
-
 function humanize(value: string) {
   return value
     .replace(/_/g, ' ')
@@ -1398,7 +1405,7 @@ function humanize(value: string) {
 }
 
 function direccionLabel(direccion: DireccionEnvioDto) {
-  return `${direccion.calle} ${direccion.numero}, ${direccion.localidad}, ${direccion.provincia}`;
+  return formatAddressLabel(direccion);
 }
 
 const ETAPA_VISUAL: Record<
