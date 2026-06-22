@@ -97,8 +97,6 @@ export function createConsignmentDraft(
 }
 
 export function serializeConsignmentDrafts(drafts: ConsignmentDraft[]) {
-  // Sanitizing before JSON.stringify is intentional: callers cannot accidentally
-  // persist auth tokens or other fields added to an object at runtime.
   return JSON.stringify(drafts.map(sanitizeDraft).filter(Boolean));
 }
 

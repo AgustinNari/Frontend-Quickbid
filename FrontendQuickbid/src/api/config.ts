@@ -1,6 +1,5 @@
 export type ApiMode = 'localReverse' | 'emulator' | 'public';
 
-// Cambiar solo estas dos constantes para alternar entre backend local y publico.
 export const API_MODE: ApiMode = 'public';
 export const PUBLIC_API_BASE_URL = 'https://quickbid-backend-demo.onrender.com';
 

@@ -145,11 +145,21 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
   );
 }
 
-function DataRow({ label, value, emphasized = false }: { label: string; value: string; emphasized?: boolean }) {
+function DataRow({
+  label,
+  value,
+  emphasized = false,
+}: {
+  label: string;
+  value: string;
+  emphasized?: boolean;
+}) {
   return (
     <View style={styles.dataRow}>
       <Typography style={styles.dataLabel}>{label}</Typography>
-      <Typography style={[styles.dataValue, emphasized ? styles.dataValueEmphasis : null]}>{value}</Typography>
+      <Typography style={[styles.dataValue, emphasized ? styles.dataValueEmphasis : null]}>
+        {value}
+      </Typography>
     </View>
   );
 }
@@ -157,19 +167,49 @@ function DataRow({ label, value, emphasized = false }: { label: string; value: s
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   emptyWrap: { flex: 1, paddingHorizontal: layout.screenPaddingHorizontal },
-  scroll: { padding: layout.screenPaddingHorizontal, paddingBottom: BOTTOM_NAV_HEIGHT + spacing.xl, gap: spacing.base },
+  scroll: {
+    padding: layout.screenPaddingHorizontal,
+    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.xl,
+    gap: spacing.base,
+  },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.base },
-  heroIcon: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.infoSoft },
+  heroIcon: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.infoSoft,
+  },
   titleCopy: { flex: 1, gap: spacing.xs },
   eyebrow: { color: colors.primary, fontSize: fontSize.xs, fontWeight: fontWeight.bold },
   assetCard: { gap: spacing.xs },
   assetRef: { color: colors.primary, fontSize: fontSize.xs, fontWeight: fontWeight.bold },
   assetTitle: { fontSize: fontSize.xl },
   dataCard: { gap: 0 },
-  dataRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.base, paddingVertical: spacing.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderMuted },
+  dataRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: spacing.base,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.borderMuted,
+  },
   dataLabel: { flex: 1, color: colors.textMuted, fontSize: fontSize.sm },
-  dataValue: { flex: 1.35, color: colors.text, textAlign: 'right', fontSize: fontSize.sm, fontWeight: fontWeight.semibold },
+  dataValue: {
+    flex: 1.35,
+    color: colors.text,
+    textAlign: 'right',
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+  },
   dataValueEmphasis: { color: colors.primary, fontSize: fontSize.md },
-  notice: { flexDirection: 'row', gap: spacing.sm, padding: spacing.base, borderRadius: radius.md, backgroundColor: colors.infoSoft },
+  notice: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    padding: spacing.base,
+    borderRadius: radius.md,
+    backgroundColor: colors.infoSoft,
+  },
   noticeText: { flex: 1, fontSize: fontSize.sm },
 });
