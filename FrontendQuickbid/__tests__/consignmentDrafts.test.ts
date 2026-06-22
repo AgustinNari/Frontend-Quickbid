@@ -200,4 +200,30 @@ describe('consignment drafts', () => {
     ).rejects.toThrow('volve a seleccionarlas');
     expect((await store.get('draft-1'))?.status).toBe('fallido');
   });
+
+  test('concurrent interrupted-upload recovery preserves every status update', async () => {
+    const store = createConsignmentDraftStore(memoryStorage());
+    await store.save(
+      createConsignmentDraft(form(), {
+        id: 'draft-1',
+        status: 'subiendo',
+      }),
+    );
+    await store.save(
+      createConsignmentDraft(form(), {
+        id: 'draft-2',
+        status: 'subiendo',
+      }),
+    );
+
+    await Promise.all([
+      store.update('draft-1', { status: 'fallido' }),
+      store.update('draft-2', { status: 'fallido' }),
+    ]);
+
+    expect((await store.list()).map(draft => draft.status)).toEqual([
+      'fallido',
+      'fallido',
+    ]);
+  });
 });

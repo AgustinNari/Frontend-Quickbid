@@ -185,6 +185,8 @@ Para backend local seleccionar `API_MODE='localReverse'` y usar
 - [ ] DNI, cheque, fotos del bien y documentación ofrecen cámara/galería/cancelar.
 - [ ] Denegar cámara no crashea; bloquearla ofrece abrir Configuración.
 - [ ] Galería funciona sin permisos amplios de almacenamiento.
+- [ ] Una imagen de más de 10 MB se rechaza antes de subir cuando el picker
+  informa su tamaño; el backend sigue siendo la validación final.
 - [ ] Un PDF real V14 abre el chooser Android desde compra y consignación.
 - [ ] El PDF informa nombre, tamaño y MIME; el JWT sólo viaja en `Authorization`.
 - [ ] En modo avión, un alta de consignación válida queda pendiente en este

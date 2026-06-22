@@ -514,7 +514,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                   </Typography>
                 </View>
                 <Body style={styles.rechazoMotivo}>
-                  Adjunta factura o comprobante como imagen o PDF para continuar
+                  Adjunta factura o comprobante como imagen para continuar
                   con la revision.
                 </Body>
                 <Button

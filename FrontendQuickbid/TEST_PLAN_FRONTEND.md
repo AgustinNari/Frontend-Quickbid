@@ -479,7 +479,8 @@ reseteada o seed seguro preparado para consumirse.
 - [ ] Cada carga ofrece cámara, galería y cancelar.
 - [ ] Cámara pide `CAMERA`, explica el motivo y permite abrir Configuración después de `No volver a preguntar`.
 - [ ] Galería funciona sin `READ_MEDIA_IMAGES`/`READ_EXTERNAL_STORAGE` y sólo entrega imágenes seleccionadas.
-- [ ] Se mantienen URI, nombre fallback, MIME y límites 6–15 de consignación.
+- [ ] Se mantienen URI, nombre fallback, MIME, límite de 10 MB por imagen y
+  límites 6–15 de consignación; si el picker no informa tamaño, valida backend.
 
 ### Borradores offline de consignación
 

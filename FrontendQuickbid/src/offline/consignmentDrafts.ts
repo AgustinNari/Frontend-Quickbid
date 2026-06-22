@@ -97,6 +97,17 @@ export function deserializeConsignmentDrafts(raw: string | null) {
 }
 
 export function createConsignmentDraftStore(storage: DraftStorage = AsyncStorage) {
+  let mutationQueue: Promise<void> = Promise.resolve();
+
+  function enqueueMutation<T>(operation: () => Promise<T>) {
+    const result = mutationQueue.then(operation, operation);
+    mutationQueue = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
+  }
+
   async function list() {
     return deserializeConsignmentDrafts(
       await storage.getItem(CONSIGNMENT_DRAFTS_STORAGE_KEY),
@@ -114,7 +125,7 @@ export function createConsignmentDraftStore(storage: DraftStorage = AsyncStorage
     );
   }
 
-  async function save(draft: ConsignmentDraft) {
+  async function saveNow(draft: ConsignmentDraft) {
     const drafts = await list();
     const next = drafts.filter(item => item.id !== draft.id);
     next.unshift(sanitizeDraft(draft) as ConsignmentDraft);
@@ -122,29 +133,37 @@ export function createConsignmentDraftStore(storage: DraftStorage = AsyncStorage
     return next[0];
   }
 
+  function save(draft: ConsignmentDraft) {
+    return enqueueMutation(() => saveNow(draft));
+  }
+
   async function get(id: string) {
     return (await list()).find(draft => draft.id === id) ?? null;
   }
 
-  async function update(
+  function update(
     id: string,
     patch: Partial<
       Pick<ConsignmentDraft, 'status' | 'ultimoError' | 'form'>
     >,
     now = new Date().toISOString(),
   ) {
-    const draft = await get(id);
-    if (!draft) return null;
-    return save({
-      ...draft,
-      ...patch,
-      form: patch.form ? sanitizeForm(patch.form) : draft.form,
-      updatedAt: now,
+    return enqueueMutation(async () => {
+      const draft = await get(id);
+      if (!draft) return null;
+      return saveNow({
+        ...draft,
+        ...patch,
+        form: patch.form ? sanitizeForm(patch.form) : draft.form,
+        updatedAt: now,
+      });
     });
   }
 
-  async function remove(id: string) {
-    await write((await list()).filter(draft => draft.id !== id));
+  function remove(id: string) {
+    return enqueueMutation(async () => {
+      await write((await list()).filter(draft => draft.id !== id));
+    });
   }
 
   return { list, save, get, update, remove };

@@ -595,7 +595,9 @@ No se declaran `READ_MEDIA_IMAGES` ni `READ_EXTERNAL_STORAGE`: el Photo Picker
 moderno entrega acceso sólo a los elementos elegidos. Esto también evita pedir
 un permiso amplio en Android 13+; en versiones anteriores el picker compatible
 mantiene el acceso acotado. Las fotos de cámara quedan temporalmente en caché y
-no se guardan en la galería (`saveToPhotos=false`).
+no se guardan en la galería (`saveToPhotos=false`). El selector rechaza archivos
+que informan más de 10 MB, en línea con el límite por imagen del backend; si el
+sistema no informa el tamaño, el backend conserva la validación final.
 
 Prueba manual recomendada:
 

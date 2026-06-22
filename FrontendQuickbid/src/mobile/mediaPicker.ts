@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import {
   Asset,
+  ImagePickerResponse,
   ImageLibraryOptions,
   launchCamera,
   launchImageLibrary,
@@ -33,19 +34,28 @@ export async function pickImages({
   if (!source) return [];
   if (source === 'camera' && !(await requestCameraPermission())) return [];
 
-  const response =
-    source === 'camera'
-      ? await launchCamera({
-          mediaType: 'photo',
-          quality,
-          cameraType: 'back',
-          saveToPhotos: false,
-        })
-      : await launchImageLibrary({
-          mediaType: 'photo',
-          quality,
-          selectionLimit,
-        });
+  let response: ImagePickerResponse;
+  try {
+    response =
+      source === 'camera'
+        ? await launchCamera({
+            mediaType: 'photo',
+            quality,
+            cameraType: 'back',
+            saveToPhotos: false,
+          })
+        : await launchImageLibrary({
+            mediaType: 'photo',
+            quality,
+            selectionLimit,
+          });
+  } catch {
+    Alert.alert(
+      'No se pudo obtener la imagen',
+      'Intentá nuevamente o elegí otra imagen.',
+    );
+    return [];
+  }
 
   if (response.didCancel) return [];
   if (response.errorCode) {
@@ -112,6 +122,13 @@ async function requestCameraPermission() {
 
 function normalizeAsset(asset: Asset, fallbackBaseName: string): MobileImage | null {
   if (!asset.uri) return null;
+  if (asset.fileSize != null && asset.fileSize > MAX_IMAGE_SIZE_BYTES) {
+    Alert.alert(
+      'Imagen demasiado grande',
+      'Elegí una imagen de hasta 10 MB.',
+    );
+    return null;
+  }
   const type = asset.type ?? 'image/jpeg';
   if (!SUPPORTED_IMAGE_TYPES.has(type)) {
     Alert.alert(
@@ -142,3 +159,5 @@ const SUPPORTED_IMAGE_TYPES = new Set([
   'image/png',
   'image/webp',
 ]);
+
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
