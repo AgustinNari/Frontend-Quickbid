@@ -49,6 +49,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useNetwork } from '../context/NetworkContext';
 import { pickImages } from '../mobile/mediaPicker';
+import { ImageUploadPreview } from '../components/ImageUploadPreview';
 import {
   canReadLocalUri,
   copyUriToPrivateDraftStorage,
@@ -79,9 +80,35 @@ const SEGMENTOS: SubastaSegmento[] = [
   'coleccion',
 ];
 const MAX_FOTOS = 15;
+const STEP_COPY = {
+  1: {
+    title: 'Requisitos para consignar',
+    subtitle: 'Revisa que tu cuenta tenga todo lo necesario para comenzar.',
+  },
+  2: {
+    title: 'Terminos y declaracion',
+    subtitle: 'Conoce las condiciones y confirma tu responsabilidad.',
+  },
+  3: {
+    title: 'Datos y fotos',
+    subtitle: 'Identifica el bien con informacion y fotos claras.',
+  },
+  4: {
+    title: 'Historia y detalles',
+    subtitle: 'Agrega procedencia y atributos que ayuden a evaluarlo.',
+  },
+  5: {
+    title: 'Documentacion de origen',
+    subtitle: 'Adjunta un comprobante si lo tenes, o continua sin el.',
+  },
+  6: {
+    title: 'Revisar y enviar',
+    subtitle: 'Confirma el resumen antes de enviar la solicitud.',
+  },
+} as const;
 
 export default function AltaConsignacionScreen({ navigation }: Props) {
-  const [paso, setPaso] = useState<1 | 2>(1);
+  const [paso, setPaso] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,11 +132,14 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   const [segmento, setSegmento] = useState<SubastaSegmento | null>(null);
   const [descripcion, setDescripcion] = useState('');
   const [historia, setHistoria] = useState('');
+  const [historiaExtendida, setHistoriaExtendida] = useState('');
   const [fechaAproximada, setFechaAproximada] = useState('');
   const [esObraDeArte, setEsObraDeArte] = useState(false);
   const [autor, setAutor] = useState('');
   const [fotos, setFotos] = useState<ConsignacionFileInput[]>([]);
   const [portadaUri, setPortadaUri] = useState<string | null>(null);
+  const [documentacionOrigen, setDocumentacionOrigen] =
+    useState<ConsignacionFileInput | null>(null);
   const [drafts, setDrafts] = useState<ConsignmentDraft[]>([]);
   const [draftsLoaded, setDraftsLoaded] = useState(false);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
@@ -138,11 +168,13 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
     setSegmento(null);
     setDescripcion('');
     setHistoria('');
+    setHistoriaExtendida('');
     setFechaAproximada('');
     setEsObraDeArte(false);
     setAutor('');
     setFotos([]);
     setPortadaUri(null);
+    setDocumentacionOrigen(null);
   }, [accountId]);
 
   const form = useMemo<ConsignmentDraftForm>(
@@ -151,6 +183,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       segmento,
       descripcion,
       historia,
+      historiaExtendida,
       fechaAproximada,
       aceptaTyc,
       aceptaJurada,
@@ -158,6 +191,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       autor,
       fotos,
       portadaUri,
+      documentacionOrigen,
     }),
     [
       aceptaJurada,
@@ -168,9 +202,11 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       fechaAproximada,
       fotos,
       historia,
+      historiaExtendida,
       segmento,
       titulo,
       portadaUri,
+      documentacionOrigen,
     ],
   );
 
@@ -309,12 +345,53 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
     return draft;
   };
 
-  const paso1Ok = (puedeContinuar || offline) && aceptaTyc && aceptaJurada;
-  const paso2Ok =
+  const requisitosOk = puedeContinuar || offline;
+  const terminosOk = aceptaTyc && aceptaJurada;
+  const datosOk =
     titulo.trim().length > 0 &&
     descripcion.trim().length > 0 &&
     segmento != null &&
     fotos.length >= minimoFotos;
+
+  const elegirDocumentacion = async () => {
+    const [selected] = await pickImages({
+      selectionLimit: 1,
+      quality: 0.9,
+      fallbackBaseName: 'documentacion-origen',
+    });
+    if (!selected) return;
+    try {
+      const privateFile = await copyUriToPrivateDraftStorage(
+        selected.uri,
+        selected.name,
+      );
+      if (documentacionOrigen?.persistedLocal) {
+        await deletePrivateDraftFile(documentacionOrigen.uri);
+      }
+      setDocumentacionOrigen({
+        ...privateFile,
+        persistedLocal: true,
+        originalUri: selected.uri,
+      });
+    } catch {
+      setDocumentacionOrigen({
+        ...selected,
+        persistedLocal: false,
+        originalUri: selected.uri,
+      });
+      Alert.alert(
+        'Documento guardado temporalmente',
+        'Puede ser necesario volver a seleccionarlo si Android deja de compartirlo.',
+      );
+    }
+  };
+
+  const quitarDocumentacion = async () => {
+    if (documentacionOrigen?.persistedLocal) {
+      await deletePrivateDraftFile(documentacionOrigen.uri);
+    }
+    setDocumentacionOrigen(null);
+  };
 
   const elegirFotos = async () => {
     const remaining = MAX_FOTOS - fotos.length;
@@ -418,12 +495,21 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       canReadUri: canReadLocalUri,
       deletePrivateFile: deletePrivateDraftFile,
       submit: consignacionesApi.crear,
+      submitDocumentation: async (created, file) => {
+        await consignacionesApi.subirDocumentacionOrigen(created.id, {
+          facturaCompra: file,
+          observaciones: 'Documentacion opcional adjunta durante el alta mobile.',
+        });
+      },
       readableError,
     });
     await refreshDrafts();
     if (result.outcome === 'cancelled') return;
     completedDraft.current = true;
     const ui = mapConsignacionDetalle(result.value);
+    if (result.documentationWarning) {
+      Alert.alert('Solicitud enviada', result.documentationWarning);
+    }
     navigation.replace('ConsignacionExito', {
       id: ui.id,
       codigo: `#CONS-${ui.id}`,
@@ -457,12 +543,14 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
     setSegmento(draft.form.segmento);
     setDescripcion(draft.form.descripcion);
     setHistoria(draft.form.historia);
+    setHistoriaExtendida(draft.form.historiaExtendida ?? '');
     setFechaAproximada(draft.form.fechaAproximada);
     setEsObraDeArte(draft.form.esObraDeArte);
     setAutor(draft.form.autor);
     setFotos(draft.form.fotos);
     setPortadaUri(draft.form.portadaUri);
-    setPaso(2);
+    setDocumentacionOrigen(draft.form.documentacionOrigen ?? null);
+    setPaso(3);
     if (draft.form.fotos.some(photo => photo.persistedLocal !== true)) {
       Alert.alert(
         'Revisa las fotos antes de enviar',
@@ -496,11 +584,13 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
             setSegmento(null);
             setDescripcion('');
             setHistoria('');
+            setHistoriaExtendida('');
             setFechaAproximada('');
             setEsObraDeArte(false);
             setAutor('');
             setFotos([]);
             setPortadaUri(null);
+            setDocumentacionOrigen(null);
           }
           await refreshDrafts();
         },
@@ -545,7 +635,11 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <ScreenHeader
-        onBack={() => (paso === 2 ? setPaso(1) : navigation.goBack())}
+        onBack={() =>
+          paso > 1
+            ? setPaso((paso - 1) as 1 | 2 | 3 | 4 | 5 | 6)
+            : navigation.goBack()
+        }
       />
 
       {loading ? (
@@ -567,23 +661,23 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.body}>
-              <DraftsPanel
-                drafts={drafts}
-                activeDraftId={activeDraftId}
-                offline={offline}
-                submitting={submitting}
-                onRetry={handleRetry}
-                onDelete={deleteDraft}
-                onContinue={continueEditing}
-              />
-              <Typography style={styles.pasoLabel}>PASO {paso} DE 2</Typography>
+              {paso === 1 ? (
+                <DraftsPanel
+                  drafts={drafts}
+                  activeDraftId={activeDraftId}
+                  offline={offline}
+                  submitting={submitting}
+                  onRetry={handleRetry}
+                  onDelete={deleteDraft}
+                  onContinue={continueEditing}
+                />
+              ) : null}
+              <Typography style={styles.pasoLabel}>PASO {paso} DE 6</Typography>
               <Heading style={styles.titulo}>
-                {paso === 1 ? 'Consigna tu bien' : 'Datos del bien'}
+                {STEP_COPY[paso].title}
               </Heading>
               <Body muted style={styles.subtitulo}>
-                {paso === 1
-                  ? 'Revisa requisitos reales y acepta las condiciones para empezar.'
-                  : 'Carga datos y fotos reales para enviar la solicitud.'}
+                {STEP_COPY[paso].subtitle}
               </Body>
               {offline ? (
                 <Typography style={styles.offlineNote}>
@@ -608,30 +702,27 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
               ) : null}
 
               {paso === 1 ? (
-                <Paso1
+                <RequisitosStep
                   requisitos={requisitos}
                   puedeContinuar={puedeContinuar || offline}
+                  offline={offline}
+                  onResolve={() => navigation.navigate('MetodosPago')}
+                />
+              ) : paso === 2 ? (
+                <TerminosStep
                   aceptaTyc={aceptaTyc}
                   aceptaJurada={aceptaJurada}
                   onToggleTyc={() => setAceptaTyc(v => !v)}
                   onToggleJurada={() => setAceptaJurada(v => !v)}
                 />
-              ) : (
-                <Paso2
+              ) : paso === 3 ? (
+                <DatosFotosStep
                   titulo={titulo}
                   onTitulo={setTitulo}
                   segmento={segmento}
                   onSegmento={setSegmento}
                   descripcion={descripcion}
                   onDescripcion={setDescripcion}
-                  historia={historia}
-                  onHistoria={setHistoria}
-                  fechaAproximada={fechaAproximada}
-                  onFechaAproximada={setFechaAproximada}
-                  esObraDeArte={esObraDeArte}
-                  onToggleObra={() => setEsObraDeArte(v => !v)}
-                  autor={autor}
-                  onAutor={setAutor}
                   fotos={fotos}
                   portadaUri={portadaUri}
                   minimoFotos={minimoFotos}
@@ -640,20 +731,57 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
                   onMoverFoto={moverFoto}
                   onMarcarPortada={index => setPortadaUri(fotos[index].uri)}
                 />
+              ) : paso === 4 ? (
+                <HistoriaStep
+                  historia={historia}
+                  onHistoria={setHistoria}
+                  historiaExtendida={historiaExtendida}
+                  onHistoriaExtendida={setHistoriaExtendida}
+                  fechaAproximada={fechaAproximada}
+                  onFechaAproximada={setFechaAproximada}
+                  esObraDeArte={esObraDeArte}
+                  onToggleObra={() => setEsObraDeArte(v => !v)}
+                  autor={autor}
+                  onAutor={setAutor}
+                />
+              ) : paso === 5 ? (
+                <DocumentationStep
+                  documentacion={documentacionOrigen}
+                  onPick={elegirDocumentacion}
+                  onRemove={quitarDocumentacion}
+                />
+              ) : (
+                <ReviewStep
+                  form={form}
+                  minimoFotos={minimoFotos}
+                  saveState={saveState}
+                  offline={offline}
+                />
               )}
             </View>
           </ScrollView>
 
           <View style={styles.footer}>
-            {paso === 1 ? (
-              <Button onPress={() => setPaso(2)} disabled={!paso1Ok}>
-                Continuar
+            {paso < 6 ? (
+              <Button
+                onPress={() =>
+                  setPaso((paso + 1) as 1 | 2 | 3 | 4 | 5 | 6)
+                }
+                disabled={
+                  (paso === 1 && !requisitosOk) ||
+                  (paso === 2 && !terminosOk) ||
+                  (paso === 3 && !datosOk)
+                }
+              >
+                {paso === 5 && !documentacionOrigen
+                  ? 'Omitir por ahora'
+                  : 'Continuar'}
               </Button>
             ) : (
               <Button
                 onPress={handleEnviar}
                 loading={submitting}
-                disabled={!paso2Ok}
+                disabled={!requisitosOk || !terminosOk || !datosOk}
                 leftIcon={
                   <Icon name="upload" color={colors.textInverse} size={18} />
                 }
@@ -668,20 +796,16 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
   );
 }
 
-function Paso1({
+function RequisitosStep({
   requisitos,
   puedeContinuar,
-  aceptaTyc,
-  aceptaJurada,
-  onToggleTyc,
-  onToggleJurada,
+  offline,
+  onResolve,
 }: {
   requisitos: ConsignacionRequisitoUi[];
   puedeContinuar: boolean;
-  aceptaTyc: boolean;
-  aceptaJurada: boolean;
-  onToggleTyc: () => void;
-  onToggleJurada: () => void;
+  offline: boolean;
+  onResolve: () => void;
 }) {
   return (
     <>
@@ -730,18 +854,17 @@ function Paso1({
         ) : null}
       </View>
 
-      <View style={styles.section}>
-        <Typography style={styles.sectionLabel}>CONDICIONES</Typography>
-        <Checkbox
-          checked={aceptaTyc}
-          onPress={onToggleTyc}
-          label="Lei y acepto los Terminos y Condiciones de consignacion."
-        />
-        <Checkbox
-          checked={aceptaJurada}
-          onPress={onToggleJurada}
-          label="Declaro bajo juramento que el bien es de mi propiedad y de origen licito."
-        />
+      {!puedeContinuar && !offline ? (
+        <Button variant="secondary" onPress={onResolve}>
+          Resolver requisitos
+        </Button>
+      ) : null}
+      <View style={styles.infoBox}>
+        <Icon name="info" size={18} color={colors.info} />
+        <Body style={styles.infoText}>
+          QuickBid revisara identidad, datos del bien y condiciones necesarias
+          antes de proponer un acuerdo.
+        </Body>
       </View>
     </>
   );
@@ -826,21 +949,13 @@ function DraftsPanel({
   );
 }
 
-function Paso2({
+function DatosFotosStep({
   titulo,
   onTitulo,
   segmento,
   onSegmento,
   descripcion,
   onDescripcion,
-  historia,
-  onHistoria,
-  fechaAproximada,
-  onFechaAproximada,
-  esObraDeArte,
-  onToggleObra,
-  autor,
-  onAutor,
   fotos,
   portadaUri,
   minimoFotos,
@@ -855,14 +970,6 @@ function Paso2({
   onSegmento: (c: SubastaSegmento) => void;
   descripcion: string;
   onDescripcion: (t: string) => void;
-  historia: string;
-  onHistoria: (t: string) => void;
-  fechaAproximada: string;
-  onFechaAproximada: (t: string) => void;
-  esObraDeArte: boolean;
-  onToggleObra: () => void;
-  autor: string;
-  onAutor: (t: string) => void;
   fotos: ConsignacionFileInput[];
   portadaUri: string | null;
   minimoFotos: number;
@@ -1018,6 +1125,78 @@ function Paso2({
         />
       </View>
 
+    </>
+  );
+}
+
+function TerminosStep({
+  aceptaTyc,
+  aceptaJurada,
+  onToggleTyc,
+  onToggleJurada,
+}: {
+  aceptaTyc: boolean;
+  aceptaJurada: boolean;
+  onToggleTyc: () => void;
+  onToggleJurada: () => void;
+}) {
+  return (
+    <>
+      <View style={styles.termsCard}>
+        <Typography style={styles.termsTitle}>Condiciones principales</Typography>
+        <Body style={styles.termsText}>
+          El bien sera revisado para validar identidad, autenticidad, estado y
+          procedencia. La solicitud no garantiza aceptacion ni venta.
+        </Body>
+        <Body style={styles.termsText}>
+          QuickBid definira categoria comercial, precio base, comision, plazos y
+          demas condiciones luego de la revision. Podras aceptar o rechazar el
+          acuerdo cuando este disponible.
+        </Body>
+        <Body style={styles.termsText}>
+          Sos responsable por la veracidad de la informacion y por declarar que
+          el bien te pertenece y tiene origen licito.
+        </Body>
+      </View>
+      <Checkbox
+        checked={aceptaTyc}
+        onPress={onToggleTyc}
+        label="Lei y acepto los Terminos y Condiciones de consignacion."
+      />
+      <Checkbox
+        checked={aceptaJurada}
+        onPress={onToggleJurada}
+        label="Declaro bajo juramento que el bien es de mi propiedad y de origen licito."
+      />
+    </>
+  );
+}
+
+function HistoriaStep({
+  historia,
+  onHistoria,
+  historiaExtendida,
+  onHistoriaExtendida,
+  fechaAproximada,
+  onFechaAproximada,
+  esObraDeArte,
+  onToggleObra,
+  autor,
+  onAutor,
+}: {
+  historia: string;
+  onHistoria: (value: string) => void;
+  historiaExtendida: string;
+  onHistoriaExtendida: (value: string) => void;
+  fechaAproximada: string;
+  onFechaAproximada: (value: string) => void;
+  esObraDeArte: boolean;
+  onToggleObra: () => void;
+  autor: string;
+  onAutor: (value: string) => void;
+}) {
+  return (
+    <>
       <TextField
         label="HISTORIA / PROCEDENCIA"
         placeholder="Origen, procedencia o anecdota del objeto"
@@ -1025,26 +1204,130 @@ function Paso2({
         onChangeText={onHistoria}
       />
       <TextField
-        label="FECHA APROXIMADA"
+        label="FECHA / ANO APROXIMADO"
         placeholder="Ej: 1978"
         value={fechaAproximada}
         onChangeText={onFechaAproximada}
       />
-
       <Checkbox
         checked={esObraDeArte}
         onPress={onToggleObra}
         label="Es obra de arte o de disenador."
       />
       {esObraDeArte ? (
-        <TextField
-          label="AUTOR / ARTISTA / DISENADOR"
-          placeholder="Nombre del autor"
-          value={autor}
-          onChangeText={onAutor}
-        />
+        <>
+          <TextField
+            label="AUTOR / ARTISTA / DISENADOR"
+            placeholder="Nombre del autor"
+            value={autor}
+            onChangeText={onAutor}
+          />
+          <View style={styles.section}>
+            <Typography style={styles.sectionLabel}>HISTORIA EXTENDIDA</Typography>
+            <TextInput
+              value={historiaExtendida}
+              onChangeText={onHistoriaExtendida}
+              placeholder="Trayectoria, edicion, contexto o datos adicionales"
+              placeholderTextColor={colors.textSubtle}
+              multiline
+              textAlignVertical="top"
+              style={styles.textarea}
+            />
+          </View>
+        </>
       ) : null}
     </>
+  );
+}
+
+function DocumentationStep({
+  documentacion,
+  onPick,
+  onRemove,
+}: {
+  documentacion: ConsignacionFileInput | null;
+  onPick: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <>
+      <View style={styles.infoBox}>
+        <Icon name="info" size={18} color={colors.info} />
+        <Body style={styles.infoText}>
+          Una factura, ticket o comprobante puede ayudar a validar la procedencia.
+          Es opcional durante el alta y puede solicitarse mas adelante.
+        </Body>
+      </View>
+      {documentacion ? (
+        <ImageUploadPreview
+          image={documentacion}
+          onRemove={onRemove}
+          onReplace={onPick}
+        />
+      ) : (
+        <Button variant="secondary" onPress={onPick}>
+          Agregar documentacion
+        </Button>
+      )}
+    </>
+  );
+}
+
+function ReviewStep({
+  form,
+  minimoFotos,
+  saveState,
+  offline,
+}: {
+  form: ConsignmentDraftForm;
+  minimoFotos: number;
+  saveState: 'idle' | 'pending' | 'saved' | 'error';
+  offline: boolean;
+}) {
+  const cover = form.portadaUri ?? form.fotos[0]?.uri;
+  return (
+    <View style={styles.reviewCard}>
+      <ReviewRow label="Titulo" value={form.titulo || 'Sin completar'} />
+      <ReviewRow
+        label="Segmento"
+        value={form.segmento ? SEGMENTO_LABEL[form.segmento] : 'Sin completar'}
+      />
+      <ReviewRow
+        label="Fotos"
+        value={`${form.fotos.length} cargadas (minimo ${minimoFotos})`}
+      />
+      <ReviewRow
+        label="Portada"
+        value={cover ? 'Seleccionada' : 'Sin seleccionar'}
+      />
+      <ReviewRow
+        label="Documentacion"
+        value={form.documentacionOrigen?.name ?? 'Omitida por ahora'}
+      />
+      <ReviewRow
+        label="Borrador"
+        value={
+          offline
+            ? 'Se guardara pendiente de envio manual'
+            : saveState === 'saved'
+              ? 'Guardado en este dispositivo'
+              : 'Guardado automatico activo'
+        }
+      />
+      <Body muted style={styles.reviewNote}>
+        Enviar inicia la revision. QuickBid definira categoria, precio base,
+        comision y condiciones; no estas publicando directamente en una subasta.
+      </Body>
+    </View>
+  );
+}
+
+function ReviewRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.reviewRow}>
+      <Typography style={styles.reviewLabel}>{label}</Typography>
+      <Typography style={styles.reviewValue}>{value}</Typography>
+    </View>
   );
 }
 
@@ -1114,12 +1397,14 @@ function hasDraftContent(form: ConsignmentDraftForm) {
       form.segmento ||
       form.descripcion ||
       form.historia ||
+      form.historiaExtendida ||
       form.fechaAproximada ||
       form.aceptaTyc ||
       form.aceptaJurada ||
       form.esObraDeArte ||
       form.autor ||
-      form.fotos.length,
+      form.fotos.length ||
+      form.documentacionOrigen,
   );
 }
 
@@ -1238,6 +1523,32 @@ const styles = StyleSheet.create({
     color: colors.danger,
     lineHeight: fontSize.sm * 1.45,
   },
+  infoBox: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    padding: spacing.base,
+    borderRadius: radius.md,
+    backgroundColor: colors.infoSoft,
+  },
+  infoText: { flex: 1, fontSize: fontSize.sm },
+  termsCard: {
+    gap: spacing.sm,
+    padding: spacing.base,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    backgroundColor: colors.surface,
+  },
+  termsTitle: {
+    color: colors.text,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
+  },
+  termsText: {
+    color: colors.textLabel,
+    fontSize: fontSize.sm,
+    lineHeight: fontSize.sm * 1.5,
+  },
   checkRow: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -1355,6 +1666,31 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     color: colors.text,
   },
+  reviewCard: {
+    gap: spacing.sm,
+    padding: spacing.base,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+    backgroundColor: colors.surface,
+  },
+  reviewRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: spacing.base,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderMuted,
+  },
+  reviewLabel: { flex: 1, color: colors.textMuted, fontSize: fontSize.sm },
+  reviewValue: {
+    flex: 1.5,
+    color: colors.text,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    textAlign: 'right',
+  },
+  reviewNote: { fontSize: fontSize.sm, lineHeight: fontSize.sm * 1.5 },
   footer: {
     backgroundColor: colors.surface,
     paddingHorizontal: layout.screenPaddingHorizontal,

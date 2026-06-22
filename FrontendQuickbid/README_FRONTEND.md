@@ -696,3 +696,21 @@ compatibilidad con enlaces históricos `?token=` hasta que expiren.
 - Los labels de medios no repiten los ultimos cuatro cuando ya estan en el alias.
 - Ayuda es informativa y expandible. No hay chat ni tickets reales; las consultas
   se gestionan por correo.
+
+## Flujo de consignacion y documentos contextuales
+
+El alta se organiza en seis pasos: requisitos, terminos, datos y fotos, historia,
+documentacion de origen opcional y revision. El usuario declara la informacion
+del bien; QuickBid conserva la decision sobre categoria comercial, precio base,
+comision, seguro y condiciones finales.
+
+La solicitud y la documentacion opcional son dos operaciones consecutivas. La
+consignacion se crea primero y luego se usa el endpoint existente de
+documentacion de origen. Si esa segunda carga falla, la solicitud sigue creada y
+la app indica que el archivo puede agregarse desde el detalle.
+
+El detalle muestra acuerdo, poliza, liquidacion y comprobante de envio de
+devolucion solo cuando el estado y un PDF real los hacen pertinentes. Retiro en
+persona nunca promete un comprobante de envio. En compras, el recibo de multa
+documenta articulo y multa; la factura posterior identifica solamente los extras
+pendientes, mientras que una compra normal conserva su comprobante integral.

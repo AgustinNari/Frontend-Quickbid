@@ -207,6 +207,7 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
               <MultaSection compra={compra} />
               <EntregaSection compra={compra} />
               <DocumentosSection
+                compra={compra}
                 documentos={documentos}
                 error={docsError}
                 onShow={handleDocumento}
@@ -415,10 +416,12 @@ function EntregaSection({ compra }: { compra: CompraDetalleUi }) {
 }
 
 function DocumentosSection({
+  compra,
   documentos,
   error,
   onShow,
 }: {
+  compra: CompraDetalleUi;
   documentos: DocumentoCompraUi[];
   error: string | null;
   onShow: (doc: DocumentoCompraUi) => void;
@@ -439,6 +442,9 @@ function DocumentosSection({
         <Card key={doc.id} variant="flat" padding="none" style={styles.docCard}>
           <View style={styles.docInfo}>
             <Typography style={styles.docTitle}>{doc.tipoLabel}</Typography>
+            <Typography style={styles.docMeta}>
+              {documentDescription(doc, compra)}
+            </Typography>
             <Typography style={styles.docMeta}>{doc.filename}</Typography>
             <Typography style={styles.docMeta}>
               {doc.estadoLabel} · {doc.fechaLabel} · {doc.sizeLabel}
@@ -460,6 +466,22 @@ function DocumentosSection({
       ))}
     </View>
   );
+}
+
+function documentDescription(
+  doc: DocumentoCompraUi,
+  compra: CompraDetalleUi,
+) {
+  if (doc.tipo === 'recibo_multa') {
+    return 'Documenta el articulo adjudicado y la multa pagada. No incluye comision ni entrega pendientes.';
+  }
+  if (doc.tipo === 'factura_compra' && compra.multa?.estado === 'pagada') {
+    return 'Comprobante de extras: comision y entrega o retiro. El articulo ya fue documentado con la multa.';
+  }
+  if (doc.tipo === 'factura_compra') {
+    return 'Incluye articulo, comision y entrega o retiro segun corresponda.';
+  }
+  return 'Documento emitido por QuickBid para esta compra.';
 }
 
 function CompraCta({

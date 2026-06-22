@@ -218,3 +218,13 @@ Para backend local seleccionar `API_MODE='localReverse'` y usar
 - [ ] Inscripcion, puja y pagos permiten elegir medios compatibles sin duplicar
   ultimos cuatro; puja/pago excluyen limite `null` o insuficiente.
 - [ ] Las cinco tarjetas de Ayuda expanden contenido y explican soporte por correo.
+- [ ] Alta de consignacion muestra seis pasos y una revision final sin selector de
+  categoria comercial, precio base, comision, seguro ni condiciones empresariales.
+- [ ] Documento de origen opcional se carga despues del alta; si falla, la
+  solicitud permanece creada y puede completarse desde el detalle.
+- [ ] El detalle no muestra botones ficticios: acuerdo, poliza, liquidacion y
+  comprobante de envio dependen del estado y del PDF real disponible.
+- [ ] Recibo de multa dice articulo + multa y una factura posterior dice extras,
+  sin duplicar el articulo ya documentado.
+- [ ] Catalogo invitado oculta importes; detalle, inscripcion y live muestran
+  bloqueos y disponibilidad informados por backend, sin timelines inventados.

@@ -253,6 +253,21 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
                 </View>
               ) : null}
 
+              <Card variant="flat" style={styles.participationCard}>
+                <View style={styles.participationTitleRow}>
+                  <Icon name="info" size={18} color={colors.primary} />
+                  <Typography style={styles.participationTitle}>
+                    Como participar
+                  </Typography>
+                </View>
+                <Body muted style={styles.participationText}>
+                  Revisa el catalogo antes de inscribirte. Para ofertar, tu
+                  cuenta y un medio de pago compatible deben estar habilitados;
+                  la sala confirmara el acceso segun el estado real de la
+                  subasta.
+                </Body>
+              </Card>
+
               {isAuthenticated &&
               verificacion &&
               !verificacion.puedeInscribirse ? (
@@ -575,6 +590,22 @@ const styles = StyleSheet.create({
   descripcion: {
     color: colors.textLabel,
     lineHeight: fontSize.lg * 1.5,
+  },
+  participationCard: {
+    gap: spacing.sm,
+  },
+  participationTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  participationTitle: {
+    color: colors.text,
+    fontWeight: fontWeight.semibold,
+  },
+  participationText: {
+    fontSize: fontSize.sm,
+    lineHeight: fontSize.sm * 1.5,
   },
   footer: {
     backgroundColor: colors.surface,

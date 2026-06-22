@@ -546,3 +546,19 @@ reseteada o seed seguro preparado para consumirse.
   moneda y con limite suficiente; limite `null` queda excluido.
 - [ ] Un alias que ya termina en `4242` no vuelve a agregar esos digitos.
 - [ ] Cada tarjeta de Ayuda abre/cierra contenido e informa soporte por correo.
+
+### Consignacion, documentos y subastas
+
+- [ ] Recorrer los seis pasos del alta; requisitos y terminos bloquean el avance
+  hasta cumplir las condiciones reales, y revision no permite menos de 3 fotos.
+- [ ] Crear sin documentacion de origen y confirmar que el alta finaliza.
+- [ ] Crear con documentacion; verificar primero el alta y despues el upload.
+- [ ] Forzar falla solo en el upload opcional: la consignacion queda creada, el
+  draft se limpia y aparece el aviso para completar desde el detalle.
+- [ ] Acuerdo, poliza, liquidacion y comprobante de devolucion aparecen solo en
+  estados pertinentes y abren exclusivamente PDFs devueltos por el backend.
+- [ ] Retiro no ofrece comprobante de envio; envio pagado sin PDF dice pendiente.
+- [ ] Compra normal describe articulo/comision/envio. Compra con multa separa el
+  recibo de articulo+multa de la factura de extras.
+- [ ] Invitado ve catalogo sin importes y recibe una explicacion para iniciar
+  sesion. Inscripcion y live respetan verificacion y estado real de subasta.

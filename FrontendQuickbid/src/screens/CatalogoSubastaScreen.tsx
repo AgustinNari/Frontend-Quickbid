@@ -124,6 +124,14 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
                     items.length === 1 ? 'lote' : 'lotes'
                   } en catálogo`}
             </Body>
+            {!isAuthenticated && items.length > 0 ? (
+              <View style={styles.guestNotice}>
+                <Icon name="info" size={16} color={colors.primary} />
+                <Body muted style={styles.guestNoticeText}>
+                  Inicia sesion para consultar importes y participar.
+                </Body>
+              </View>
+            ) : null}
           </View>
 
           {items.length === 0 ? (
@@ -255,6 +263,21 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: fontSize.base,
+  },
+  guestNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderMuted,
+  },
+  guestNoticeText: {
+    flex: 1,
+    fontSize: fontSize.sm,
   },
   list: {
     paddingHorizontal: layout.screenPaddingHorizontal,

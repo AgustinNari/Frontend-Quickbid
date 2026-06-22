@@ -119,6 +119,77 @@ describe('consignment drafts', () => {
     expect(await store.list()).toEqual([]);
   });
 
+  test('uploads optional origin documentation only after creating the consignment', async () => {
+    const store = createConsignmentDraftStore(3004, memoryStorage());
+    const withDocument = {
+      ...form(),
+      documentacionOrigen: {
+        uri: 'file:///private/origin.jpg',
+        name: 'origin.jpg',
+        type: 'image/jpeg',
+        persistedLocal: true,
+      },
+    };
+    await store.save(createConsignmentDraft(withDocument, { id: 'draft-doc' }));
+    const calls: string[] = [];
+
+    const result = await retryConsignmentDraft(store, 'draft-doc', {
+      online: true,
+      connectionType: 'wifi',
+      confirmHeavyAction: async () => true,
+      canReadUri: async () => true,
+      deletePrivateFile: async () => true,
+      submit: async () => {
+        calls.push('create');
+        return { id: 42 };
+      },
+      submitDocumentation: async () => {
+        calls.push('document');
+      },
+      readableError: () => 'Error',
+    });
+
+    expect(calls).toEqual(['create', 'document']);
+    expect(result).toEqual({ outcome: 'sent', value: { id: 42 } });
+  });
+
+  test('document upload failure does not report the created consignment as failed', async () => {
+    const store = createConsignmentDraftStore(3004, memoryStorage());
+    await store.save(
+      createConsignmentDraft(
+        {
+          ...form(),
+          documentacionOrigen: {
+            uri: 'file:///private/origin.jpg',
+            name: 'origin.jpg',
+            type: 'image/jpeg',
+          },
+        },
+        { id: 'draft-doc-failure' },
+      ),
+    );
+
+    const result = await retryConsignmentDraft(store, 'draft-doc-failure', {
+      online: true,
+      connectionType: 'wifi',
+      confirmHeavyAction: async () => true,
+      canReadUri: async () => true,
+      deletePrivateFile: async () => true,
+      submit: async () => ({ id: 42 }),
+      submitDocumentation: async () => {
+        throw new Error('upload failed');
+      },
+      readableError: () => 'Error',
+    });
+
+    expect(result).toMatchObject({
+      outcome: 'sent',
+      value: { id: 42 },
+      documentationWarning: expect.stringContaining('puede cargarse luego'),
+    });
+    expect(await store.list()).toEqual([]);
+  });
+
   test('failed retry retains the draft and readable error', async () => {
     const store = createConsignmentDraftStore(3004, memoryStorage());
     await store.save(

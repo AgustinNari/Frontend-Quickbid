@@ -36,7 +36,7 @@ test('mapea un documento descargable con datos legibles', () => {
     downloadAvailable: true,
     downloadUrl: '/api/compras/1/documentos/1/descargar',
   });
-  expect(document.tipoLabel).toBe('Factura de compra');
+  expect(document.tipoLabel).toBe('Factura / comprobante de compra');
   expect(document.sizeLabel).toBe('2 KB');
   expect(document.downloadAvailable).toBe(true);
 });

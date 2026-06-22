@@ -95,6 +95,20 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
   const [mediosPago, setMediosPago] = useState<MedioPagoDto[]>([]);
   const [medioPagoId, setMedioPagoId] = useState<number | null>(null);
 
+  const generatedDocument = useCallback(
+    (prefix: string) =>
+      detalle?.documentosGenerados.find(file =>
+        file.filename.toLowerCase().startsWith(prefix),
+      ) ?? null,
+    [detalle],
+  );
+  const acuerdoDocumento = generatedDocument('acuerdo_consignacion');
+  const polizaDocumento = generatedDocument('poliza');
+  const liquidacionDocumento = generatedDocument('liquidacion_venta');
+  const devolucionDocumento = generatedDocument(
+    'comprobante_envio_devolucion',
+  );
+
   const mediosCompatibles = useMemo(() => {
     if (!detalle) return [];
     return mediosPago.filter(
@@ -665,11 +679,33 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
               onOpen={descargarArchivo}
             />
 
-            {detalle.documentosGenerados.length > 0 ? (
-              <ArchivosSection
-                title="DOCUMENTOS EMITIDOS"
-                archivos={detalle.documentosGenerados}
-                onOpen={descargarArchivo}
+            {detalle.acuerdoTexto ||
+            detalle.poliza ||
+            detalle.liquidacion ||
+            ['acuerdo_aceptado', 'en_subasta', 'vendida', 'liquidada'].includes(
+              detalle.estado,
+            ) ? (
+              <DocumentActions
+                acuerdoDisponible={
+                  Boolean(acuerdoDocumento?.downloadAvailable) ||
+                  detalle.estado === 'acuerdo_pendiente'
+                }
+                polizaDisponible={Boolean(polizaDocumento?.downloadAvailable)}
+                liquidacionDisponible={Boolean(
+                  liquidacionDocumento?.downloadAvailable,
+                )}
+                onAcuerdo={() =>
+                  acuerdoDocumento
+                    ? descargarArchivo(acuerdoDocumento)
+                    : setAgreementModal(true)
+                }
+                onPoliza={() =>
+                  polizaDocumento && descargarArchivo(polizaDocumento)
+                }
+                onLiquidacion={() =>
+                  liquidacionDocumento &&
+                  descargarArchivo(liquidacionDocumento)
+                }
               />
             ) : null}
 
@@ -693,11 +729,21 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                     value={detalle.devolucion.direccionResumen}
                   />
                 ) : null}
-                {detalle.devolucion.comprobanteLabel ? (
-                  <InfoRow
-                    label="Comprobante"
-                    value={detalle.devolucion.comprobanteLabel}
-                  />
+                {detalle.devolucion.modalidad === 'envio' &&
+                detalle.devolucion.pagoId &&
+                devolucionDocumento?.downloadAvailable ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onPress={() => descargarArchivo(devolucionDocumento)}
+                  >
+                    Abrir comprobante de envio
+                  </Button>
+                ) : detalle.devolucion.modalidad === 'envio' &&
+                  detalle.devolucion.pagoId ? (
+                  <Typography style={styles.emptyDocs}>
+                    Pago registrado. El comprobante todavia no esta disponible.
+                  </Typography>
                 ) : null}
                 {detalle.estado === 'devolucion_pendiente' &&
                 !detalle.devolucion.modalidad ? (
@@ -914,6 +960,86 @@ function TimelineRow({
         ) : null}
       </View>
     </View>
+  );
+}
+
+function DocumentActions({
+  acuerdoDisponible,
+  polizaDisponible,
+  liquidacionDisponible,
+  onAcuerdo,
+  onPoliza,
+  onLiquidacion,
+}: {
+  acuerdoDisponible: boolean;
+  polizaDisponible: boolean;
+  liquidacionDisponible: boolean;
+  onAcuerdo: () => void;
+  onPoliza: () => void;
+  onLiquidacion: () => void;
+}) {
+  return (
+    <View style={styles.documentActionsSection}>
+      <Typography style={styles.sectionLabel}>DOCUMENTOS</Typography>
+      <View style={styles.documentActionsRow}>
+        <DocumentButton
+          label="Acuerdo"
+          enabled={acuerdoDisponible}
+          onPress={onAcuerdo}
+        />
+        <DocumentButton
+          label="Poliza"
+          enabled={polizaDisponible}
+          onPress={onPoliza}
+        />
+        <DocumentButton
+          label="Liquidacion"
+          enabled={liquidacionDisponible}
+          onPress={onLiquidacion}
+        />
+      </View>
+      {!polizaDisponible ? (
+        <Typography style={styles.emptyDocs}>
+          La informacion de poliza puede estar visible aunque su PDF aun no haya
+          sido emitido.
+        </Typography>
+      ) : null}
+    </View>
+  );
+}
+
+function DocumentButton({
+  label,
+  enabled,
+  onPress,
+}: {
+  label: string;
+  enabled: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      disabled={!enabled}
+      onPress={onPress}
+      style={[
+        styles.documentAction,
+        enabled ? styles.documentActionEnabled : styles.documentActionDisabled,
+      ]}
+    >
+      <Icon
+        name="check-doc"
+        size={20}
+        color={enabled ? colors.textInverse : colors.textSubtle}
+      />
+      <Typography
+        style={[
+          styles.documentActionText,
+          enabled ? styles.documentActionTextEnabled : null,
+        ]}
+      >
+        {label}
+      </Typography>
+    </TouchableOpacity>
   );
 }
 
@@ -1619,6 +1745,32 @@ const styles = StyleSheet.create({
   },
   fileMeta: { fontSize: fontSize.xs, color: colors.textMuted },
   emptyDocs: { fontSize: fontSize.sm, color: colors.textMuted },
+  documentActionsSection: { gap: spacing.sm },
+  documentActionsRow: { flexDirection: 'row', gap: spacing.sm },
+  documentAction: {
+    flex: 1,
+    minHeight: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    borderRadius: radius.md,
+    borderWidth: 1,
+  },
+  documentActionEnabled: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  documentActionDisabled: {
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.borderMuted,
+  },
+  documentActionText: {
+    fontSize: fontSize.xs,
+    color: colors.textSubtle,
+    fontWeight: fontWeight.semibold,
+    textAlign: 'center',
+  },
+  documentActionTextEnabled: { color: colors.textInverse },
   inlineActions: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
   modalBackdrop: {
     flex: 1,

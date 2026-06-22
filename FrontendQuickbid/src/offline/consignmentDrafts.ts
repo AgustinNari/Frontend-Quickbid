@@ -22,6 +22,7 @@ export type ConsignmentDraftForm = {
   segmento: SubastaSegmento | null;
   descripcion: string;
   historia: string;
+  historiaExtendida?: string;
   fechaAproximada: string;
   aceptaTyc: boolean;
   aceptaJurada: boolean;
@@ -29,6 +30,7 @@ export type ConsignmentDraftForm = {
   autor: string;
   fotos: ConsignacionFileInput[];
   portadaUri: string | null;
+  documentacionOrigen?: ConsignacionFileInput | null;
 };
 
 export type ConsignmentDraft = {
@@ -229,6 +231,10 @@ export type RetryDraftDependencies<T> = {
   canReadUri: (uri: string) => Promise<boolean>;
   deletePrivateFile: (uri: string) => Promise<boolean>;
   submit: (request: CrearConsignacionRequest) => Promise<T>;
+  submitDocumentation?: (
+    created: T,
+    file: ConsignacionFileInput,
+  ) => Promise<void>;
   readableError: (error: unknown) => string;
 };
 
@@ -236,7 +242,10 @@ export async function retryConsignmentDraft<T>(
   store: ConsignmentDraftStore,
   id: string,
   dependencies: RetryDraftDependencies<T>,
-): Promise<{ outcome: 'sent'; value: T } | { outcome: 'cancelled' }> {
+): Promise<
+  | { outcome: 'sent'; value: T; documentationWarning?: string }
+  | { outcome: 'cancelled' }
+> {
   const draft = await store.get(id);
   if (!draft) throw new Error('El borrador ya no existe en este dispositivo.');
   if (!dependencies.online) {
@@ -260,18 +269,46 @@ export async function retryConsignmentDraft<T>(
     throw new Error(message);
   }
 
+  let documentationReadable = true;
+  if (draft.form.documentacionOrigen) {
+    try {
+      documentationReadable = await dependencies.canReadUri(
+        draft.form.documentacionOrigen.uri,
+      );
+    } catch {
+      documentationReadable = false;
+    }
+  }
+
   await store.update(id, { status: 'subiendo', ultimoError: null });
   try {
     const value = await dependencies.submit(
       toRequest(draft.form, draft.idempotencyKey),
     );
+    let documentationWarning: string | undefined;
+    if (draft.form.documentacionOrigen && dependencies.submitDocumentation) {
+      if (!documentationReadable) {
+        documentationWarning =
+          'La solicitud fue enviada. La documentacion de origen puede cargarse luego desde el detalle.';
+      } else {
+        try {
+          await dependencies.submitDocumentation(
+            value,
+            draft.form.documentacionOrigen,
+          );
+        } catch {
+          documentationWarning =
+            'La solicitud fue enviada. La documentacion de origen puede cargarse luego desde el detalle.';
+        }
+      }
+    }
     await store.update(id, { status: 'completado', ultimoError: null });
     await removeConsignmentDraftAndFiles(
       store,
       id,
       dependencies.deletePrivateFile,
     );
-    return { outcome: 'sent', value };
+    return { outcome: 'sent', value, documentationWarning };
   } catch (error) {
     const message = dependencies.readableError(error);
     await store.update(id, { status: 'fallido', ultimoError: message });
@@ -291,6 +328,7 @@ export function toRequest(
     titulo: form.titulo.trim(),
     descripcion: form.descripcion.trim(),
     historia: form.historia.trim() || undefined,
+    historiaExtendida: form.historiaExtendida?.trim() || undefined,
     fechaAproximada: form.fechaAproximada.trim() || undefined,
     esObraDeArte: form.esObraDeArte,
     autor: form.esObraDeArte ? form.autor.trim() || undefined : undefined,
@@ -339,18 +377,23 @@ function sanitizeForm(
         }))
         .filter(photo => photo.uri && photo.name && photo.type)
     : [];
+  const documentacionOrigen = isRecord(value.documentacionOrigen)
+    ? sanitizeFile(value.documentacionOrigen)
+    : null;
   const portadaUri = asString(value.portadaUri);
   return {
     titulo: asString(value.titulo),
     segmento: isSegmento(value.segmento) ? value.segmento : null,
     descripcion: asString(value.descripcion),
     historia: asString(value.historia),
+    historiaExtendida: asString(value.historiaExtendida),
     fechaAproximada: asString(value.fechaAproximada),
     aceptaTyc: value.aceptaTyc === true,
     aceptaJurada: value.aceptaJurada === true,
     esObraDeArte: value.esObraDeArte === true,
     autor: asString(value.autor),
     fotos,
+    documentacionOrigen,
     portadaUri:
       portadaUri && fotos.some(photo => photo.uri === portadaUri)
         ? portadaUri
@@ -406,7 +449,8 @@ export async function removeConsignmentDraftAndFiles(
   const draft = await store.get(id);
   if (!draft) return;
   await Promise.all(
-    draft.form.fotos
+    [...draft.form.fotos, draft.form.documentacionOrigen]
+      .filter((photo): photo is ConsignacionFileInput => Boolean(photo))
       .filter(photo => photo.persistedLocal === true)
       .map(async photo => {
         try {
@@ -417,6 +461,23 @@ export async function removeConsignmentDraftAndFiles(
       }),
   );
   await store.remove(id);
+}
+
+function sanitizeFile(value: Record<string, unknown>) {
+  const file = {
+    uri: asString(value.uri),
+    name: asString(value.name),
+    type: asString(value.type),
+    persistedLocal: value.persistedLocal === true,
+    originalUri: asString(value.originalUri) || undefined,
+    sizeBytes:
+      typeof value.sizeBytes === 'number' &&
+      Number.isFinite(value.sizeBytes) &&
+      value.sizeBytes >= 0
+        ? value.sizeBytes
+        : undefined,
+  };
+  return file.uri && file.name && file.type ? file : null;
 }
 
 function isSegmento(value: unknown): value is SubastaSegmento {
