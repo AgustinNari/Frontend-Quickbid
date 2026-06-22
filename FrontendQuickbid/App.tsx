@@ -47,6 +47,8 @@ import CompraExitoScreen from './src/screens/CompraExitoScreen';
 import AltaConsignacionScreen from './src/screens/AltaConsignacionScreen';
 import ConsignacionExitoScreen from './src/screens/ConsignacionExitoScreen';
 import ConsignacionDetailScreen from './src/screens/ConsignacionDetailScreen';
+import PolizaConsignacionScreen from './src/screens/PolizaConsignacionScreen';
+import AcuerdoConsignacionScreen from './src/screens/AcuerdoConsignacionScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -58,7 +60,7 @@ export type RootStackParamList = {
     | { mode: 'recuperacion'; token: string };
   CambiarClave: undefined;
   Verifying: undefined;
-  LimitedAccess: undefined;
+  LimitedAccess: { entry?: 'guest_onboarding' } | undefined;
   EnlaceRegistro: undefined;
   RecuperacionCuenta: undefined;
   CompletarRegistroLink: { token?: string };
@@ -111,6 +113,8 @@ export type RootStackParamList = {
   AltaConsignacion: undefined;
   ConsignacionExito: { id: string; codigo: string; titulo: string };
   ConsignacionDetail: { id: string };
+  PolizaConsignacion: { id: string };
+  AcuerdoConsignacion: { id: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -249,6 +253,14 @@ function AppNavigator() {
             <Stack.Screen
               name="ConsignacionDetail"
               component={ConsignacionDetailScreen}
+            />
+            <Stack.Screen
+              name="PolizaConsignacion"
+              component={PolizaConsignacionScreen}
+            />
+            <Stack.Screen
+              name="AcuerdoConsignacion"
+              component={AcuerdoConsignacionScreen}
             />
             <Stack.Screen
               name="MenuLateral"

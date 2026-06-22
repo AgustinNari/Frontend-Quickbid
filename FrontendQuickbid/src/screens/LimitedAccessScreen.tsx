@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { Alert, View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -101,8 +101,9 @@ function FeatureItem({
   );
 }
 
-export default function LimitedAccessScreen({ navigation }: Props) {
-  const { isGuest, estadoCuenta, logout, clearSession } = useAuth();
+export default function LimitedAccessScreen({ navigation, route }: Props) {
+  const { isGuest, estadoCuenta, logout, clearSession, continueAsGuest } = useAuth();
+  const isGuestOnboarding = route.params?.entry === 'guest_onboarding';
   const isBlocked = estadoCuenta === 'bloqueada_permanente';
   const isRestricted = estadoCuenta === 'restriccion_multa';
   const statusColor = isBlocked
@@ -115,16 +116,16 @@ export default function LimitedAccessScreen({ navigation }: Props) {
     ? 'Cuenta bloqueada'
     : isRestricted
     ? 'Cuenta restringida'
-    : isGuest
-    ? 'Acceso como invitado'
+    : isGuest || isGuestOnboarding
+    ? 'Acceso limitado para invitados'
     : 'Acceso limitado';
 
   const description = isBlocked
     ? 'Tu cuenta tiene un bloqueo permanente. Podes cerrar sesion, pero no navegar ni operar funciones normales.'
     : isRestricted
     ? 'Podes navegar normalmente, pero las acciones economicas estan deshabilitadas mientras exista una multa activa.'
-    : isGuest
-    ? 'Podes explorar subastas y catalogos publicos. Inicia sesion para acceder a precios, perfil y operaciones protegidas.'
+    : isGuest || isGuestOnboarding
+    ? 'Podes explorar subastas y catalogos publicos. Para pujar, consignar, comprar o gestionar pagos necesitas una cuenta habilitada.'
     : 'Para participar en subastas y realizar acciones economicas necesitas una cuenta habilitada.';
 
   return (
@@ -177,10 +178,10 @@ export default function LimitedAccessScreen({ navigation }: Props) {
           />
           <FeatureItem
             icon={<ClockIcon />}
-            title={isGuest ? 'Sesion requerida' : 'Estado de cuenta'}
+            title={isGuest || isGuestOnboarding ? 'Explorar como observador' : 'Estado de cuenta'}
             description={
-              isGuest
-                ? 'Al iniciar sesion vas a poder ver precios, compras, consignaciones y notificaciones.'
+              isGuest || isGuestOnboarding
+                ? 'Podes recorrer contenido publico. Una cuenta y un medio de pago habilitan precios y acciones protegidas.'
                 : 'QuickBid usa el estado de tu cuenta para habilitar cada accion.'
             }
           />
@@ -197,6 +198,41 @@ export default function LimitedAccessScreen({ navigation }: Props) {
           >
             Cerrar sesion
           </Button>
+        ) : isGuestOnboarding ? (
+          <>
+            <Button
+              style={styles.actionButton}
+              onPress={() =>
+                Alert.alert(
+                  'Necesitas una cuenta',
+                  'Para agregar un medio de pago primero inicia sesion o crea una cuenta.',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                      text: 'Crear cuenta',
+                      onPress: () => navigation.navigate('Register'),
+                    },
+                    {
+                      text: 'Iniciar sesion',
+                      onPress: () => navigation.navigate('Login'),
+                    },
+                  ],
+                )
+              }
+            >
+              Agregar medio de pago
+            </Button>
+            <Button
+              variant="secondary"
+              style={styles.actionButton}
+              onPress={async () => {
+                await continueAsGuest();
+                navigation.reset({ index: 0, routes: [{ name: 'Subastas' }] });
+              }}
+            >
+              Continuar como observador
+            </Button>
+          </>
         ) : isGuest ? (
           <>
             <Button

@@ -714,3 +714,25 @@ devolucion solo cuando el estado y un PDF real los hacen pertinentes. Retiro en
 persona nunca promete un comprobante de envio. En compras, el recibo de multa
 documenta articulo y multa; la factura posterior identifica solamente los extras
 pendientes, mientras que una compra normal conserva su comprobante integral.
+
+## Navegacion documental, dropdowns e invitados
+
+`AcuerdoConsignacionScreen` y `PolizaConsignacionScreen` obtienen nuevamente el
+detalle autenticado de la consignacion. Acuerdo muestra estado, bien, valores,
+comisiones, texto y, cuando esta pendiente, las acciones reales de aceptar o
+rechazar. Poliza muestra numero, aseguradora, importe, tipo y ubicacion. Vigencia,
+cuota, coberturas, fecha exacta del acuerdo y fecha de subasta se presentan como
+no informadas porque el DTO actual no las expone.
+
+Los botones **Acuerdo** y **Poliza** abren esas fichas informativas. El PDF se
+abre o comparte desde el boton interno y solo cuando `downloadAvailable` y
+`downloadUrl` estan presentes. **Liquidacion** conserva apertura directa del PDF.
+
+`DropdownSelector` mantiene compacta la opcion elegida y despliega alternativas
+al tocarla. Se usa para direcciones de entrega/devolucion y medios de pago de
+inscripcion, puja, compra, multa, extras y envio de devolucion. Cada pantalla
+filtra primero con sus reglas existentes; el componente no habilita opciones.
+
+Desde Login, **Continuar como invitado** abre primero Acceso limitado. Agregar un
+medio deriva a iniciar sesion o registrarse; **Continuar como observador** recien
+entonces persiste el modo invitado y abre la experiencia publica.

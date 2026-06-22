@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -20,6 +19,7 @@ import {
   letterSpacing,
 } from '../theme';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { DropdownSelector } from '../components/DropdownSelector';
 import { formatPrecio } from '../utils/format';
 import { comprasApi, createIdempotencyKey } from '../api/compras';
 import { mediosPagoApi } from '../api/mediosPago';
@@ -61,7 +61,6 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
   const [direcciones, setDirecciones] = useState<DireccionEnvioDto[]>([]);
   const [direccionId, setDireccionId] = useState<number | null>(null);
   const [medioId, setMedioId] = useState<number | null>(null);
-  const [cambiandoMedio, setCambiandoMedio] = useState(false);
   const [configurandoEntrega, setConfigurandoEntrega] = useState(false);
   const [entregaSeleccionada, setEntregaSeleccionada] =
     useState<EntregaTipo | null>(null);
@@ -385,69 +384,21 @@ export default function ResumenPagoScreen({ navigation, route }: Props) {
           <View style={styles.section}>
             <Typography style={styles.sectionLabel}>METODO DE PAGO</Typography>
             <View style={styles.medioWrap}>
-              <View style={styles.medioRow}>
-                <Icon
-                  name={
-                    medioSeleccionado?.tipo === 'cuenta_bancaria'
-                      ? 'bank'
-                      : 'card'
-                  }
-                  size={20}
-                  color={colors.textMuted}
+              {medios.length > 0 ? (
+                <DropdownSelector
+                  testID="purchase-payment-dropdown"
+                  options={medios.map(medio => ({
+                    id: medio.id,
+                    label: formatPaymentMethodLabel(medio),
+                    description: `${formatPaymentMethodDetail(medio)} - Disponible ${formatPrecio(
+                      getMedioPagoLimitUsage(medio)?.available ?? 0,
+                      compra.moneda,
+                    )}`,
+                  }))}
+                  selectedId={medioId}
+                  onSelect={value => setMedioId(Number(value))}
                 />
-                <Typography style={styles.medioValue} numberOfLines={1}>
-                  {medioSeleccionado
-                    ? formatPaymentMethodLabel(medioSeleccionado)
-                    : 'Sin medio verificado compatible'}
-                </Typography>
-                {medios.length > 1 ? (
-                  <TouchableOpacity
-                    onPress={() => setCambiandoMedio(v => !v)}
-                    hitSlop={hitSlop}
-                  >
-                    <Typography style={styles.medioCambiar}>
-                      {cambiandoMedio ? 'Cerrar' : 'Cambiar'}
-                    </Typography>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-              {cambiandoMedio
-                ? medios.map(medio => {
-                    const selected = medio.id === medioId;
-                    return (
-                      <TouchableOpacity
-                        key={medio.id}
-                        activeOpacity={0.7}
-                        onPress={() => {
-                          setMedioId(medio.id);
-                          setCambiandoMedio(false);
-                        }}
-                        style={[
-                          styles.medioOption,
-                          selected ? styles.medioOptionSel : null,
-                        ]}
-                      >
-                        <View style={styles.medioOptInfo}>
-                          <Typography style={styles.medioOptEtiqueta}>
-                            {formatPaymentMethodLabel(medio)}
-                          </Typography>
-                          <Typography style={styles.medioOptTipo}>
-                            {formatPaymentMethodDetail(medio)}
-                          </Typography>
-                          <PaymentLimit medio={medio} moneda={compra.moneda} />
-                        </View>
-                        <View
-                          style={[
-                            styles.radio,
-                            selected ? styles.radioSel : null,
-                          ]}
-                        >
-                          {selected ? <View style={styles.radioInner} /> : null}
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })
-                : null}
+              ) : null}
               {medios.length === 0 ? (
                 <Button
                   variant="secondary"
@@ -614,39 +565,18 @@ function EntregaPicker({
             <Typography style={styles.addressPrompt}>
               Elegi la direccion de entrega
             </Typography>
-            {direcciones.map(direccion => {
-              const isSelected = direccion.id === direccionId;
-              return (
-                <TouchableOpacity
-                  key={direccion.id}
-                  activeOpacity={0.75}
-                  onPress={() => onAddressPick(direccion.id)}
-                  style={[
-                    styles.addressOption,
-                    isSelected ? styles.addressOptionSelected : null,
-                  ]}
-                >
-                  <View style={styles.addressInfo}>
-                    <View style={styles.addressTitleRow}>
-                      <Typography style={styles.addressTitle}>
-                        {direccion.alias}
-                      </Typography>
-                      {direccion.principal ? (
-                        <Typography style={styles.principalBadge}>
-                          PRINCIPAL
-                        </Typography>
-                      ) : null}
-                    </View>
-                    <Typography style={styles.direccionText}>
-                      {formatAddressLabel(direccion)}
-                    </Typography>
-                  </View>
-                  <View style={[styles.radio, isSelected && styles.radioSel]}>
-                    {isSelected ? <View style={styles.radioInner} /> : null}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+            <DropdownSelector
+              testID="delivery-address-dropdown"
+              options={direcciones.map(direccion => ({
+                id: direccion.id,
+                label: `${direccion.alias}${
+                  direccion.principal ? ' - Principal' : ''
+                }`,
+                description: formatAddressLabel(direccion),
+              }))}
+              selectedId={direccionId}
+              onSelect={value => onAddressPick(Number(value))}
+            />
             <Button variant="secondary" size="sm" onPress={onManage}>
               Gestionar direcciones
             </Button>
@@ -682,31 +612,12 @@ function Row({
   );
 }
 
-function PaymentLimit({
-  medio,
-  moneda,
-}: {
-  medio: MedioPagoDto;
-  moneda: 'ARS' | 'USD';
-}) {
-  const usage = getMedioPagoLimitUsage(medio);
-  return (
-    <Typography style={styles.paymentLimit}>
-      {usage
-        ? `Disponible: ${formatPrecio(usage.available, moneda)}`
-        : 'Limite no disponible'}
-    </Typography>
-  );
-}
-
 function readableError(err: unknown) {
   return userFacingError(
     err,
     'QuickBid no esta disponible. Probalo de nuevo en unos minutos.',
   );
 }
-
-const hitSlop = { top: 10, bottom: 10, left: 10, right: 10 };
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },

@@ -64,6 +64,7 @@ import {
 import { useNetwork } from '../context/NetworkContext';
 import { MobileImage, pickImages } from '../mobile/mediaPicker';
 import { ImageUploadPreview } from '../components/ImageUploadPreview';
+import { DropdownSelector } from '../components/DropdownSelector';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConsignacionDetail'>;
 
@@ -78,11 +79,8 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detalle, setDetalle] = useState<ConsignacionDetalleUi | null>(null);
-  const [agreementModal, setAgreementModal] = useState(false);
   const [returnModal, setReturnModal] = useState(false);
   const [paymentModal, setPaymentModal] = useState(false);
-  const [leyoContrato, setLeyoContrato] = useState(false);
-  const [aceptaClausulas, setAceptaClausulas] = useState(false);
   const [modalidadDevolucion, setModalidadDevolucion] = useState<
     'retiro' | 'envio'
   >('retiro');
@@ -102,8 +100,6 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
       ) ?? null,
     [detalle],
   );
-  const acuerdoDocumento = generatedDocument('acuerdo_consignacion');
-  const polizaDocumento = generatedDocument('poliza');
   const liquidacionDocumento = generatedDocument('liquidacion_venta');
   const devolucionDocumento = generatedDocument(
     'comprobante_envio_devolucion',
@@ -240,63 +236,6 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
         ),
       );
     }
-  };
-
-  const aceptarAcuerdo = async () => {
-    if (!detalle || !leyoContrato || !aceptaClausulas) return;
-    setActionLoading(true);
-    try {
-      const updated = await consignacionesApi.aceptarAcuerdo(
-        detalle.numericId,
-        {
-          leyoContrato,
-          aceptaClausulasPlazos: aceptaClausulas,
-        },
-      );
-      setDetalle(mapConsignacionDetalle(updated));
-      setAgreementModal(false);
-      Alert.alert(
-        'Acuerdo aceptado',
-        'QuickBid registro tu aceptacion y actualizo el estado.',
-      );
-    } catch (err) {
-      Alert.alert('No se pudo aceptar el acuerdo', readableError(err));
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const rechazarAcuerdo = () => {
-    if (!detalle) return;
-    Alert.alert(
-      'Rechazar acuerdo',
-      'Si rechazas la propuesta, se registrara el rechazo y podria quedar una devolucion pendiente.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Rechazar',
-          style: 'destructive',
-          onPress: async () => {
-            setActionLoading(true);
-            try {
-              const updated = await consignacionesApi.rechazarAcuerdo(
-                detalle.numericId,
-              );
-              setDetalle(mapConsignacionDetalle(updated));
-              setAgreementModal(false);
-              Alert.alert(
-                'Rechazo registrado',
-                'Se actualizo el estado de la consignacion.',
-              );
-            } catch (err) {
-              Alert.alert('No se pudo rechazar el acuerdo', readableError(err));
-            } finally {
-              setActionLoading(false);
-            }
-          },
-        },
-      ],
-    );
   };
 
   const abrirDevolucion = async () => {
@@ -589,81 +528,6 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
               </View>
             ) : null}
 
-            {detalle.acuerdoTexto ? (
-              <InfoCard title="ACUERDO">
-                <Body style={styles.description}>{detalle.acuerdoTexto}</Body>
-                <InfoRow
-                  label="Valor base"
-                  value={
-                    detalle.valorBase
-                      ? formatMoney(detalle.valorBase, detalle.moneda)
-                      : 'Sin dato'
-                  }
-                />
-                <InfoRow
-                  label="Comision comprador"
-                  value={
-                    detalle.comisionCompradorPct
-                      ? `${detalle.comisionCompradorPct}%`
-                      : 'Sin dato'
-                  }
-                />
-                <InfoRow
-                  label="Comision vendedor"
-                  value={
-                    detalle.comisionVendedorPct
-                      ? `${detalle.comisionVendedorPct}%`
-                      : 'Sin dato'
-                  }
-                />
-                <InfoRow
-                  label="Neto estimado"
-                  value={
-                    detalle.netoEstimado
-                      ? formatMoney(detalle.netoEstimado, detalle.moneda)
-                      : 'Sin dato'
-                  }
-                />
-                {detalle.estado === 'acuerdo_pendiente' ? (
-                  <View style={styles.inlineActions}>
-                    <Button
-                      size="sm"
-                      fullWidth={false}
-                      onPress={() => setAgreementModal(true)}
-                    >
-                      Revisar acuerdo
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      fullWidth={false}
-                      onPress={rechazarAcuerdo}
-                      loading={actionLoading}
-                    >
-                      Rechazar
-                    </Button>
-                  </View>
-                ) : (
-                  <InfoRow label="Estado" value={detalle.estadoLabel} />
-                )}
-              </InfoCard>
-            ) : null}
-
-            {detalle.poliza ? (
-              <InfoCard title="POLIZA">
-                <InfoRow label="Numero" value={detalle.poliza.numero} />
-                <InfoRow label="Compania" value={detalle.poliza.compania} />
-                <InfoRow
-                  label="Importe"
-                  value={formatMoney(detalle.poliza.importe, detalle.moneda)}
-                />
-                <InfoRow
-                  label="Ubicacion"
-                  value={detalle.poliza.ubicacionFisica ?? 'Sin ubicacion'}
-                />
-              </InfoCard>
-            ) : null}
-
             {detalle.fotos.length > 0 ? (
               <ArchivosSection
                 title="FOTOS"
@@ -682,25 +546,32 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
             {detalle.acuerdoTexto ||
             detalle.poliza ||
             detalle.liquidacion ||
-            ['acuerdo_aceptado', 'en_subasta', 'vendida', 'liquidada'].includes(
-              detalle.estado,
-            ) ? (
+            [
+              'acuerdo_pendiente',
+              'acuerdo_aceptado',
+              'acuerdo_rechazado',
+              'publicada',
+              'en_subasta',
+              'vendida',
+              'comprada_por_empresa',
+              'liquidada',
+            ].includes(detalle.estado) ? (
               <DocumentActions
                 acuerdoDisponible={
-                  Boolean(acuerdoDocumento?.downloadAvailable) ||
-                  detalle.estado === 'acuerdo_pendiente'
+                  Boolean(detalle.acuerdoTexto) ||
+                  ['acuerdo_pendiente', 'acuerdo_aceptado', 'acuerdo_rechazado'].includes(
+                    detalle.estado,
+                  )
                 }
-                polizaDisponible={Boolean(polizaDocumento?.downloadAvailable)}
+                polizaDisponible={Boolean(detalle.poliza)}
                 liquidacionDisponible={Boolean(
                   liquidacionDocumento?.downloadAvailable,
                 )}
                 onAcuerdo={() =>
-                  acuerdoDocumento
-                    ? descargarArchivo(acuerdoDocumento)
-                    : setAgreementModal(true)
+                  navigation.navigate('AcuerdoConsignacion', { id: detalle.id })
                 }
                 onPoliza={() =>
-                  polizaDocumento && descargarArchivo(polizaDocumento)
+                  navigation.navigate('PolizaConsignacion', { id: detalle.id })
                 }
                 onLiquidacion={() =>
                   liquidacionDocumento &&
@@ -816,18 +687,6 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
 
       {detalle ? (
         <>
-          <AgreementModal
-            visible={agreementModal}
-            detalle={detalle}
-            leyoContrato={leyoContrato}
-            aceptaClausulas={aceptaClausulas}
-            loading={actionLoading}
-            onToggleLeyo={() => setLeyoContrato(v => !v)}
-            onToggleClausulas={() => setAceptaClausulas(v => !v)}
-            onAccept={aceptarAcuerdo}
-            onReject={rechazarAcuerdo}
-            onClose={() => setAgreementModal(false)}
-          />
           <ReturnModal
             visible={returnModal}
             modalidad={modalidadDevolucion}
@@ -986,11 +845,13 @@ function DocumentActions({
           label="Acuerdo"
           enabled={acuerdoDisponible}
           onPress={onAcuerdo}
+          opensDetail
         />
         <DocumentButton
           label="Poliza"
           enabled={polizaDisponible}
           onPress={onPoliza}
+          opensDetail
         />
         <DocumentButton
           label="Liquidacion"
@@ -1000,8 +861,7 @@ function DocumentActions({
       </View>
       {!polizaDisponible ? (
         <Typography style={styles.emptyDocs}>
-          La informacion de poliza puede estar visible aunque su PDF aun no haya
-          sido emitido.
+          La poliza aun no fue registrada para esta consignacion.
         </Typography>
       ) : null}
     </View>
@@ -1012,10 +872,12 @@ function DocumentButton({
   label,
   enabled,
   onPress,
+  opensDetail = false,
 }: {
   label: string;
   enabled: boolean;
   onPress: () => void;
+  opensDetail?: boolean;
 }) {
   return (
     <TouchableOpacity
@@ -1027,7 +889,7 @@ function DocumentButton({
       ]}
     >
       <Icon
-        name="check-doc"
+        name={opensDetail ? 'info' : 'check-doc'}
         size={20}
         color={enabled ? colors.textInverse : colors.textSubtle}
       />
@@ -1039,6 +901,13 @@ function DocumentButton({
       >
         {label}
       </Typography>
+      {enabled && opensDetail ? (
+        <Typography style={styles.documentActionHint}>Ver detalle</Typography>
+      ) : !enabled ? (
+        <Typography style={styles.documentActionUnavailable}>
+          No disponible
+        </Typography>
+      ) : null}
     </TouchableOpacity>
   );
 }
@@ -1085,108 +954,6 @@ function ArchivosSection({
         </View>
       ))}
     </InfoCard>
-  );
-}
-
-function AgreementModal({
-  visible,
-  detalle,
-  leyoContrato,
-  aceptaClausulas,
-  loading,
-  onToggleLeyo,
-  onToggleClausulas,
-  onAccept,
-  onReject,
-  onClose,
-}: {
-  visible: boolean;
-  detalle: ConsignacionDetalleUi;
-  leyoContrato: boolean;
-  aceptaClausulas: boolean;
-  loading: boolean;
-  onToggleLeyo: () => void;
-  onToggleClausulas: () => void;
-  onAccept: () => void;
-  onReject: () => void;
-  onClose: () => void;
-}) {
-  const canAccept = leyoContrato && aceptaClausulas;
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalBackdrop}>
-        <View style={styles.modalSheet}>
-          <Typography style={styles.modalEyebrow}>
-            ACUERDO DE CONSIGNACION
-          </Typography>
-          <Heading style={styles.modalTitle}>Revisar propuesta</Heading>
-          <Body style={styles.modalText}>
-            {detalle.acuerdoTexto ??
-              'QuickBid envio una propuesta de consignacion para este bien.'}
-          </Body>
-          <View style={styles.modalSummary}>
-            <InfoRow
-              label="Valor base"
-              value={
-                detalle.valorBase
-                  ? formatMoney(detalle.valorBase, detalle.moneda)
-                  : 'Sin dato'
-              }
-            />
-            <InfoRow
-              label="Comision comprador"
-              value={
-                detalle.comisionCompradorPct
-                  ? `${detalle.comisionCompradorPct}%`
-                  : 'Sin dato'
-              }
-            />
-            <InfoRow
-              label="Comision vendedor"
-              value={
-                detalle.comisionVendedorPct
-                  ? `${detalle.comisionVendedorPct}%`
-                  : 'Sin dato'
-              }
-            />
-            <InfoRow
-              label="Neto estimado"
-              value={
-                detalle.netoEstimado
-                  ? formatMoney(detalle.netoEstimado, detalle.moneda)
-                  : 'Sin dato'
-              }
-            />
-          </View>
-          <CheckRow
-            checked={leyoContrato}
-            label="Lei el contrato completo."
-            onPress={onToggleLeyo}
-          />
-          <CheckRow
-            checked={aceptaClausulas}
-            label="Acepto clausulas, comisiones y plazos informados."
-            onPress={onToggleClausulas}
-          />
-          <View style={styles.modalActions}>
-            <Button onPress={onAccept} disabled={!canAccept} loading={loading}>
-              Aceptar acuerdo
-            </Button>
-            <Button variant="danger" onPress={onReject} loading={loading}>
-              Rechazar acuerdo
-            </Button>
-            <Button variant="ghost" onPress={onClose} disabled={loading}>
-              Volver
-            </Button>
-          </View>
-        </View>
-      </View>
-    </Modal>
   );
 }
 
@@ -1253,40 +1020,18 @@ function ReturnModal({
                   </Typography>
                 </View>
               ) : (
-                direcciones.map(direccion => {
-                  const selected = direccion.id === direccionEnvioId;
-                  return (
-                    <TouchableOpacity
-                      key={direccion.id}
-                      onPress={() => onDireccion(direccion.id)}
-                      style={[
-                        styles.paymentOption,
-                        selected ? styles.paymentOptionSelected : null,
-                      ]}
-                    >
-                      <Icon name="bag" size={20} color={colors.textMuted} />
-                      <View style={styles.paymentInfo}>
-                        <Typography style={styles.paymentTitle}>
-                          {direccion.alias}
-                        </Typography>
-                        {direccion.principal ? (
-                          <Badge variant="soft">PRINCIPAL</Badge>
-                        ) : null}
-                        <Typography style={styles.paymentMeta}>
-                          {formatAddressLabel(direccion)}
-                        </Typography>
-                      </View>
-                      <View
-                        style={[
-                          styles.radio,
-                          selected ? styles.radioSelected : null,
-                        ]}
-                      >
-                        {selected ? <View style={styles.radioInner} /> : null}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })
+                <DropdownSelector
+                  testID="return-address-dropdown"
+                  options={direcciones.map(direccion => ({
+                    id: direccion.id,
+                    label: `${direccion.alias}${
+                      direccion.principal ? ' - Principal' : ''
+                    }`,
+                    description: formatAddressLabel(direccion),
+                  }))}
+                  selectedId={direccionEnvioId}
+                  onSelect={value => onDireccion(Number(value))}
+                />
               )}
               <Button variant="secondary" size="sm" onPress={onManage}>
                 Gestionar direcciones
@@ -1403,43 +1148,18 @@ function PaymentModal({
               </Typography>
             </View>
           ) : (
-            medios.map(medio => (
-              <TouchableOpacity
-                key={medio.id}
-                activeOpacity={0.75}
-                onPress={() => onSelect(medio.id)}
-                style={[
-                  styles.paymentOption,
-                  medio.id === medioPagoId
-                    ? styles.paymentOptionSelected
-                    : null,
-                ]}
-              >
-                <Icon
-                  name={medio.tipo === 'cuenta_bancaria' ? 'bank' : 'card'}
-                  size={20}
-                  color={colors.primary}
-                />
-                <View style={styles.paymentInfo}>
-                  <Typography style={styles.paymentTitle}>
-                    {formatPaymentMethodLabel(medio)}
-                  </Typography>
-                  <Typography style={styles.paymentMeta}>
-                    {paymentMethodTypeLabel(medio.tipo)} - {medio.moneda} - Verificado
-                  </Typography>
-                </View>
-                <View
-                  style={[
-                    styles.radio,
-                    medio.id === medioPagoId ? styles.radioSelected : null,
-                  ]}
-                >
-                  {medio.id === medioPagoId ? (
-                    <View style={styles.radioInner} />
-                  ) : null}
-                </View>
-              </TouchableOpacity>
-            ))
+            <DropdownSelector
+              testID="return-payment-dropdown"
+              options={medios.map(medio => ({
+                id: medio.id,
+                label: formatPaymentMethodLabel(medio),
+                description: `${paymentMethodTypeLabel(medio.tipo)} - ${
+                  medio.moneda
+                } - Verificado`,
+              }))}
+              selectedId={medioPagoId}
+              onSelect={value => onSelect(Number(value))}
+            />
           )}
           <View style={styles.modalActions}>
             <Button
@@ -1464,31 +1184,6 @@ function PaymentModal({
         </View>
       </View>
     </Modal>
-  );
-}
-
-function CheckRow({
-  checked,
-  label,
-  onPress,
-}: {
-  checked: boolean;
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.75}
-      onPress={onPress}
-      style={styles.checkRow}
-    >
-      <View style={[styles.checkBox, checked ? styles.checkBoxOn : null]}>
-        {checked ? (
-          <Icon name="check" size={14} color={colors.textInverse} />
-        ) : null}
-      </View>
-      <Typography style={styles.checkLabel}>{label}</Typography>
-    </TouchableOpacity>
   );
 }
 
@@ -1771,6 +1466,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   documentActionTextEnabled: { color: colors.textInverse },
+  documentActionHint: { color: colors.textInverse, fontSize: 10 },
+  documentActionUnavailable: { color: colors.textSubtle, fontSize: 10 },
   inlineActions: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
   modalBackdrop: {
     flex: 1,

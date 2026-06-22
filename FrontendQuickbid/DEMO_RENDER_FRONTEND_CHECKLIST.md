@@ -228,3 +228,11 @@ Para backend local seleccionar `API_MODE='localReverse'` y usar
   sin duplicar el articulo ya documentado.
 - [ ] Catalogo invitado oculta importes; detalle, inscripcion y live muestran
   bloqueos y disponibilidad informados por backend, sin timelines inventados.
+- [ ] Acuerdo y Poliza abren pantallas propias; sus PDFs solo se abren desde el
+  boton interno. Liquidacion mantiene su apertura directa.
+- [ ] Campos de poliza/acuerdo ausentes se ven como no informados, sin datos
+  criticos inventados ni botones muertos.
+- [ ] Direcciones y medios de pago se ven compactos y se despliegan al tocarlos en
+  entrega, devolucion, inscripcion, puja y pagos de compra/multa/extras.
+- [ ] Continuar como invitado abre primero Acceso limitado; solo Continuar como
+  observador activa el modo guest. Agregar medio deriva a login o registro.

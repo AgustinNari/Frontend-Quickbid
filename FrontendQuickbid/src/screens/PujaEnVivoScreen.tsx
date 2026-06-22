@@ -47,6 +47,7 @@ import { SEGMENTO_THEME } from '../components/SubastaCard';
 import { useAuth } from '../context/AuthContext';
 import { userFacingError } from '../api/client';
 import { createLiveRealtimeClient } from '../api/realtime';
+import { DropdownSelector } from '../components/DropdownSelector';
 import { createBidIdempotencyKey, pujasApi } from '../api/pujas';
 import { subastasApi } from '../api/subastas';
 import { mediosPagoApi } from '../api/mediosPago';
@@ -1054,45 +1055,21 @@ function PaymentSelector({
           </Button>
         </View>
       ) : (
-        medios.map(medio => {
-          const selected = medio.id === selectedId;
-          return (
-            <TouchableOpacity
-              key={medio.id}
-              onPress={() => onSelect(medio.id)}
-              activeOpacity={0.75}
-              style={[
-                styles.paymentOption,
-                selected ? styles.paymentOptionSelected : null,
-              ]}
-            >
-              <Icon
-                name={medio.tipo === 'cuenta_bancaria' ? 'bank' : 'card'}
-                size={20}
-                color={colors.textMuted}
-              />
-              <View style={styles.paymentInfo}>
-                <Typography style={styles.paymentName}>
-                  {formatPaymentMethodLabel(medio)}
-                </Typography>
-                <Typography style={styles.paymentMeta}>
-                  {paymentMethodTypeLabel(medio.tipo)} - {medio.moneda} - Verificado
-                </Typography>
-                <Typography style={styles.paymentMeta}>
-                  Disponible: {formatPrecio(
-                    getMedioPagoLimitUsage(medio)?.available ?? 0,
-                    medio.moneda,
-                  )}
-                </Typography>
-              </View>
-              <View
-                style={[styles.radio, selected ? styles.radioSelected : null]}
-              >
-                {selected ? <View style={styles.radioInner} /> : null}
-              </View>
-            </TouchableOpacity>
-          );
-        })
+        <DropdownSelector
+          testID="bid-payment-dropdown"
+          options={medios.map(medio => ({
+            id: medio.id,
+            label: formatPaymentMethodLabel(medio),
+            description: `${paymentMethodTypeLabel(medio.tipo)} - ${
+              medio.moneda
+            } - Disponible ${formatPrecio(
+              getMedioPagoLimitUsage(medio)?.available ?? 0,
+              medio.moneda,
+            )}`,
+          }))}
+          selectedId={selectedId}
+          onSelect={value => onSelect(Number(value))}
+        />
       )}
     </View>
   );

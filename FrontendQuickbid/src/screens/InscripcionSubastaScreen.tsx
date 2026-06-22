@@ -4,13 +4,13 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import BottomNavBar, { BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { DropdownSelector } from '../components/DropdownSelector';
 import { subastasApi } from '../api/subastas';
 import { userFacingError } from '../api/client';
 import { mapSubastaDetalle } from '../mappers/subastas';
@@ -179,15 +179,19 @@ export default function InscripcionSubastaScreen({ navigation, route }: Props) {
                 onAction={() => navigation.navigate('MetodosPago')}
               />
             ) : (
-              medios.map(item => (
-                <PaymentOption
-                  key={item.id}
-                  item={item}
-                  selected={selectedId === item.id}
-                  disabled={!verificacion.puedeInscribirse}
-                  onPress={() => setSelectedId(item.id)}
-                />
-              ))
+              <DropdownSelector
+                testID="registration-payment-dropdown"
+                options={medios.map(item => ({
+                  id: item.id,
+                  label: paymentLabel(item),
+                  description: `${subasta.moneda} - ${estadoMedio(item)}${
+                    item.principal ? ' - Principal' : ''
+                  }`,
+                }))}
+                selectedId={selectedId}
+                disabled={!verificacion.puedeInscribirse}
+                onSelect={value => setSelectedId(Number(value))}
+              />
             )}
 
             {error ? <StatusBanner tone="danger" text={error} /> : null}
@@ -208,57 +212,6 @@ export default function InscripcionSubastaScreen({ navigation, route }: Props) {
       </ScrollView>
       <BottomNavBar activeTab="subastas" navigation={navigation} />
     </SafeAreaView>
-  );
-}
-
-function PaymentOption({
-  item,
-  selected,
-  disabled,
-  onPress,
-}: {
-  item: MedioPagoInscripcionApi;
-  selected: boolean;
-  disabled: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity
-      disabled={disabled}
-      onPress={onPress}
-      style={[
-        styles.payment,
-        selected && styles.paymentSelected,
-        disabled && styles.disabled,
-      ]}
-    >
-      <Icon
-        name={
-          item.tipo === 'tarjeta'
-            ? 'card'
-            : item.tipo === 'cuenta_bancaria'
-            ? 'bank'
-            : 'check-doc'
-        }
-        size={22}
-        color={colors.primary}
-      />
-      <View style={styles.paymentInfo}>
-        <Typography style={styles.paymentName}>{paymentLabel(item)}</Typography>
-        <View style={styles.rowStart}>
-          <Badge
-            tone={item.requiereRevalidacion ? 'warning' : 'success'}
-            variant="soft"
-          >
-            {estadoMedio(item)}
-          </Badge>
-          {item.principal ? <Badge variant="soft">PRINCIPAL</Badge> : null}
-        </View>
-      </View>
-      <View style={[styles.radio, selected && styles.radioSelected]}>
-        {selected ? <View style={styles.radioInner} /> : null}
-      </View>
-    </TouchableOpacity>
   );
 }
 

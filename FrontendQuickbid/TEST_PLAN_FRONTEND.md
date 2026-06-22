@@ -562,3 +562,22 @@ reseteada o seed seguro preparado para consumirse.
   recibo de articulo+multa de la factura de extras.
 - [ ] Invitado ve catalogo sin importes y recibe una explicacion para iniciar
   sesion. Inscripcion y live respetan verificacion y estado real de subasta.
+
+### Fichas de acuerdo/poliza, dropdowns y acceso invitado
+
+- [ ] Desde una consignacion con acuerdo, **Acuerdo** abre su pantalla y no el
+  PDF. Estado pendiente permite aceptar/rechazar; aceptado queda solo informativo.
+- [ ] El boton interno abre/compartir aparece solo con PDF descargable autenticado.
+- [ ] Poliza con datos muestra numero, aseguradora, importe, tipo y ubicacion;
+  campos ausentes dicen `No informado` y no se inventan vigencia ni coberturas.
+- [ ] Poliza sin PDF conserva los datos y dice que el documento aun no esta disponible.
+- [ ] Liquidacion conserva la apertura directa cuando hay PDF; botones no
+  pertinentes no aparecen en etapas iniciales y los incompletos explican su estado.
+- [ ] En entrega, devolucion, inscripcion, puja y compra abrir/cerrar cada dropdown,
+  cambiar la seleccion y confirmar que queda colapsado con el nuevo valor.
+- [ ] Una sola opcion no despliega lista; cero opciones muestra el CTA existente.
+- [ ] Medios incompatibles, vencidos, sin limite o insuficientes no aparecen donde
+  la regla exige vigencia y cobertura. `ultimos4` no se duplica.
+- [ ] Desde Login, Continuar como invitado abre Acceso limitado sin activar aun el
+  modo guest. Agregar medio ofrece login/registro; Continuar como observador activa
+  guest y permite navegar el contenido publico.
