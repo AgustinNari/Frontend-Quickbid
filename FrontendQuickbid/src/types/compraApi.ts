@@ -37,6 +37,7 @@ export type CompraResumenDto = {
   moneda: 'ARS' | 'USD';
   estado: CompraEstadoBackend;
   createdAt: string;
+  multa?: CompraMultaDto | null;
 };
 
 export type CompraEntregaDto = {

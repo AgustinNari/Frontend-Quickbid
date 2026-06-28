@@ -58,6 +58,7 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
   const [compra, setCompra] = useState<CompraDetalleUi | null>(null);
   const [documentos, setDocumentos] = useState<DocumentoCompraUi[]>([]);
   const [docsError, setDocsError] = useState<string | null>(null);
+  const minuteTick = useMinuteTick();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -204,7 +205,7 @@ export default function CompraDetailScreen({ navigation, route }: Props) {
               </Card>
 
               <DesgloseEconomico compra={compra} />
-              <MultaSection compra={compra} />
+              <MultaSection compra={compra} now={minuteTick} />
               <EntregaSection compra={compra} />
               <DocumentosSection
                 compra={compra}
@@ -345,8 +346,15 @@ function DesgloseEconomico({ compra }: { compra: CompraDetalleUi }) {
   );
 }
 
-function MultaSection({ compra }: { compra: CompraDetalleUi }) {
+function MultaSection({
+  compra,
+  now,
+}: {
+  compra: CompraDetalleUi;
+  now: number;
+}) {
   if (!compra.multa) return null;
+  const pending = compra.multa.estado === 'pendiente';
   return (
     <View style={styles.infoCard}>
       <View style={styles.infoHeader}>
@@ -364,6 +372,19 @@ function MultaSection({ compra }: { compra: CompraDetalleUi }) {
         label="Vencimiento"
         value={formatShortDate(compra.multa.venceAt)}
       />
+      {pending && compra.multa.venceAt ? (
+        <>
+          <EconRow
+            label="Tiempo límite"
+            value={formatFineCountdown(compra.multa.venceAt, now)}
+            danger
+          />
+          <Typography style={styles.fineHelpText}>
+            Tiempo límite para pagar artículo y multa antes de que la cuenta
+            quede bloqueada.
+          </Typography>
+        </>
+      ) : null}
       {compra.multa.paidAt ? (
         <EconRow label="Pagada" value={formatShortDate(compra.multa.paidAt)} />
       ) : null}
@@ -567,6 +588,26 @@ function readableError(err: unknown) {
   );
 }
 
+function useMinuteTick() {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+  return now;
+}
+
+function formatFineCountdown(venceAt: string, now: number) {
+  const deadline = Date.parse(venceAt);
+  if (Number.isNaN(deadline)) return 'Activo';
+  const remaining = deadline - now;
+  if (remaining <= 0) return 'Vencido';
+  const totalMinutes = Math.ceil(remaining / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours} h ${minutes} min`;
+}
+
 function formatShortDate(iso: string | null) {
   if (!iso) return 'Sin fecha';
   const d = new Date(iso);
@@ -677,6 +718,11 @@ const styles = StyleSheet.create({
   helpText: {
     fontSize: fontSize.sm,
     color: colors.textMuted,
+    lineHeight: fontSize.sm * 1.45,
+  },
+  fineHelpText: {
+    fontSize: fontSize.sm,
+    color: colors.danger,
     lineHeight: fontSize.sm * 1.45,
   },
   entregaTitulo: {

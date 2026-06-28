@@ -53,6 +53,7 @@ export default function MisComprasScreen({ navigation }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [compras, setCompras] = useState<CompraResumenUi[]>([]);
+  const minuteTick = useMinuteTick();
   const { isGuest, estadoCuenta } = useAuth();
 
   const load = useCallback(
@@ -225,6 +226,7 @@ export default function MisComprasScreen({ navigation }: Props) {
               <CompraCard
                 key={compra.id}
                 compra={compra}
+                now={minuteTick}
                 onOpen={() => irADetalle(compra.id)}
                 onAction={() => irAPagar(compra)}
               />
@@ -244,10 +246,12 @@ export default function MisComprasScreen({ navigation }: Props) {
 
 function CompraCard({
   compra,
+  now,
   onOpen,
   onAction,
 }: {
   compra: CompraResumenUi;
+  now: number;
   onOpen: () => void;
   onAction: () => void;
 }) {
@@ -284,6 +288,11 @@ function CompraCard({
           <Typography style={styles.cardMonto}>
             {formatPrecio(compra.montoAdjudicacion, compra.moneda)}
           </Typography>
+          {compra.multa?.estado === 'pendiente' && compra.multa.venceAt ? (
+            <Typography style={styles.fineCountdown}>
+              {formatFineCountdown(compra.multa.venceAt, now)}
+            </Typography>
+          ) : null}
         </View>
       </View>
 
@@ -329,6 +338,26 @@ function readableError(err: unknown) {
     err,
     'QuickBid no está disponible. Probalo de nuevo en unos minutos.',
   );
+}
+
+function useMinuteTick() {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+  return now;
+}
+
+function formatFineCountdown(venceAt: string, now: number) {
+  const deadline = Date.parse(venceAt);
+  if (Number.isNaN(deadline)) return 'Tiempo límite de multa activo';
+  const remaining = deadline - now;
+  if (remaining <= 0) return 'Tiempo límite vencido';
+  const totalMinutes = Math.ceil(remaining / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `Vence en ${hours} h ${minutes} min`;
 }
 
 const styles = StyleSheet.create({
@@ -440,6 +469,12 @@ const styles = StyleSheet.create({
     fontWeight: fontWeight.bold,
     color: colors.primary,
     marginTop: spacing.xs,
+  },
+  fineCountdown: {
+    marginTop: spacing.xs,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.danger,
   },
   cardCta: {
     alignSelf: 'stretch',

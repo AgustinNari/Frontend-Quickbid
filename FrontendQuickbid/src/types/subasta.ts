@@ -26,6 +26,7 @@ export type ItemEstado =
   | 'en_vivo'
   | 'vendido'
   | 'no_vendido'
+  | 'comprado_por_empresa'
   | 'sin_estado';
 
 export type SubastaResumen = {
@@ -64,6 +65,12 @@ export type ItemCatalogo = {
   segmento: SubastaSegmento;
   fotoIds?: number[];
   fotoUrls?: string[];
+  ordenLote?: number;
+  activo?: boolean;
+  subastado?: boolean;
+  resultadoLote?: string;
+  compraId?: number | null;
+  compradorEmpresa?: boolean | null;
 };
 
 export type ItemDetalle = ItemCatalogo & {
@@ -117,7 +124,8 @@ export const MODALIDAD_LABEL: Record<SubastaModalidad, string> = {
 export const ITEM_ESTADO_LABEL: Record<ItemEstado, string> = {
   pendiente: 'PRÓXIMO',
   en_vivo: 'EN VIVO',
-  vendido: 'VENDIDO',
-  no_vendido: 'NO VENDIDO',
+  vendido: 'ADJUDICADO',
+  no_vendido: 'FINALIZADO',
+  comprado_por_empresa: 'FINALIZADO',
   sin_estado: 'LOTE',
 };

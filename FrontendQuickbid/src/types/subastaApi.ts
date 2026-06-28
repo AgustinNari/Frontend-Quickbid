@@ -72,6 +72,14 @@ export type ItemApi = {
   imagenPrincipalUrl?: string | null;
   precioBase?: number;
   comision?: number;
+  ordenLote?: number | null;
+  estadoLote?: string | null;
+  estado?: string | null;
+  activo?: boolean | null;
+  subastado?: boolean | null;
+  resultadoLote?: string | null;
+  compraId?: number | null;
+  compradorEmpresa?: boolean | null;
 };
 
 export type CatalogoApi = {

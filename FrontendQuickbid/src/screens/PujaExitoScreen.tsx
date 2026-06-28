@@ -143,9 +143,9 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
                 Felicidades. Ganaste la puja, pero tu pago no pudo procesarse.
               </Body>
               <Body muted style={styles.subcopy}>
-                El pago automatico con tu medio de pago predeterminado fallo
-                por causas externas. Se ha aplicado una multa del 10% segun los
-                terminos del servicio.
+                El pago automático con tu medio de pago predeterminado falló
+                por causas externas. Se aplicó una multa del 10% según los
+                términos del servicio.
               </Body>
             </View>
 

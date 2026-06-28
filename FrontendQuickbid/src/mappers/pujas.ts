@@ -1,5 +1,10 @@
 import { ItemDetalle, SubastaCategoria } from '../types/subasta';
-import { PujaActual, PujaActualApi, PujaEventoApi } from '../types/puja';
+import {
+  PujaActual,
+  PujaActualApi,
+  PujaEventoApi,
+  PujaHistorial,
+} from '../types/puja';
 import { MedioPagoDto } from '../types/mediosPago';
 import { SubastaDetalle } from '../types/subasta';
 
@@ -30,6 +35,12 @@ export function mapPujaActual(
     esperandoPrimeraPuja: snapshot.esperandoPrimeraPuja ?? false,
     timerActivo: snapshot.timerActivo ?? false,
     mensajeEstado: snapshot.mensajeEstado ?? undefined,
+    deadlineActual: snapshot.deadlineActual ?? snapshot.retencionHasta ?? undefined,
+    tipoTimer: snapshot.tipoTimer ?? undefined,
+    proximoLoteAt: snapshot.proximoLoteAt ?? undefined,
+    subastaFinalizaAt: snapshot.subastaFinalizaAt ?? undefined,
+    siguienteItemId: snapshot.siguienteItemId ?? undefined,
+    siguienteLoteOrden: snapshot.siguienteLoteOrden ?? undefined,
     historialReciente:
       snapshot.mejorOfertaActual != null
         ? [
@@ -90,9 +101,33 @@ export function applyPujaEvent(
     event.tipo === 'PUJA_SUPERADA'
   ) {
     const monto = event.monto ?? event.mejorOfertaActual ?? current.mejorOferta;
+    const existingKey = eventHistoryKey(event, nextVersion, monto);
+    const alreadyListed = current.historialReciente.some(
+      item => item.id === existingKey || sameBidHistory(item, event, monto),
+    );
     const postorAlias =
       event.postorAlias ??
       (event.numeroPostor != null ? `Postor #${event.numeroPostor}` : 'Postor');
+    const nextHistory =
+      monto == null || alreadyListed
+        ? current.historialReciente.map((item, index) => ({
+            ...item,
+            ganadora: index === 0,
+          }))
+        : [
+            {
+              id: existingKey,
+              postorAlias,
+              numeroPostor: event.numeroPostor ?? undefined,
+              monto,
+              versionEstado: nextVersion,
+              ganadora: true,
+            },
+            ...current.historialReciente.map(item => ({
+              ...item,
+              ganadora: false,
+            })),
+          ].slice(0, 6);
     return {
       ...current,
       mejorOferta: monto,
@@ -106,27 +141,12 @@ export function applyPujaEvent(
           ? false
           : current.esGanadorActual,
       retencionHasta: event.retencionHasta ?? current.retencionHasta,
+      deadlineActual: event.retencionHasta ?? current.deadlineActual,
+      tipoTimer: event.retencionHasta ? 'retencion_ganadora' : current.tipoTimer,
       esperandoPrimeraPuja: false,
       timerActivo: true,
       mensajeEstado: undefined,
-      historialReciente:
-        monto == null
-          ? current.historialReciente
-          : [
-              {
-                id: `${event.tipo}-${nextVersion}-${
-                  event.pujaId ?? Date.now()
-                }`,
-                postorAlias,
-                monto,
-                versionEstado: nextVersion,
-                ganadora: true,
-              },
-              ...current.historialReciente.map(item => ({
-                ...item,
-                ganadora: false,
-              })),
-            ].slice(0, 6),
+      historialReciente: nextHistory,
     };
   }
 
@@ -136,6 +156,13 @@ export function applyPujaEvent(
       mejorOferta: event.mejorOfertaActual ?? current.mejorOferta,
       versionEstado: nextVersion,
       retencionHasta: event.retencionHasta ?? current.retencionHasta,
+      deadlineActual:
+        event.retencionHasta ?? event.loteFinalizaEstimadoAt ?? current.deadlineActual,
+      tipoTimer: event.retencionHasta
+        ? 'retencion_ganadora'
+        : event.loteFinalizaEstimadoAt
+        ? 'sin_pujas_empresa'
+        : current.tipoTimer,
       timerActivo:
         event.retencionHasta != null ||
         event.loteFinalizaEstimadoAt != null ||
@@ -170,11 +197,46 @@ export function applyPujaEvent(
       segundosRestantes: 0,
       esperandoPrimeraPuja: false,
       timerActivo: false,
-      mensajeEstado: 'La subasta finalizo.',
+      mensajeEstado: 'La subasta finalizó.',
       proximoLoteAt: null,
+      subastaFinalizaAt: event.subastaFinalizaProgramadoAt ?? current.subastaFinalizaAt,
       versionEstado: nextVersion,
     };
   }
 
   return current;
+}
+
+function eventHistoryKey(
+  event: PujaEventoApi,
+  version: number,
+  monto: number | null,
+) {
+  if (event.pujaId != null) return `puja-${event.pujaId}`;
+  const amount = monto == null ? 'sin-monto' : String(monto);
+  return [
+    'puja',
+    event.itemCatalogoId ?? event.itemCatalogoActivoId ?? 'item',
+    version,
+    event.secuencia ?? 'seq',
+    amount,
+    event.numeroPostor ?? 'postor',
+  ].join('-');
+}
+
+function sameBidHistory(
+  item: PujaHistorial,
+  event: PujaEventoApi,
+  monto: number | null,
+) {
+  if (monto == null) return false;
+  if (item.monto !== monto) return false;
+  if (
+    event.versionEstado != null &&
+    item.versionEstado != null &&
+    item.versionEstado === event.versionEstado
+  ) {
+    return true;
+  }
+  return event.numeroPostor != null && item.numeroPostor === event.numeroPostor;
 }

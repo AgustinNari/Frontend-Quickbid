@@ -34,6 +34,10 @@ export function ItemCatalogoCard({
 }: Props) {
   const theme = SEGMENTO_THEME[item.segmento];
   const estadoTone = ESTADO_TONE[item.estado];
+  const pastLot =
+    item.estado === 'vendido' ||
+    item.estado === 'no_vendido' ||
+    item.estado === 'comprado_por_empresa';
   const [imageFailed, setImageFailed] = React.useState(false);
   const showImage = Boolean(item.imagen) && !imageFailed;
 
@@ -42,9 +46,15 @@ export function ItemCatalogoCard({
       onPress={onPress}
       variant="flat"
       padding="none"
-      style={[styles.card, style]}
+      style={[styles.card, pastLot ? styles.cardPast : null, style]}
     >
-      <View style={[styles.imageArea, { backgroundColor: theme.bg }]}>
+      <View
+        style={[
+          styles.imageArea,
+          { backgroundColor: theme.bg },
+          pastLot ? styles.imagePast : null,
+        ]}
+      >
         {showImage ? (
           <Image
             source={{ uri: item.imagen }}
@@ -101,6 +111,7 @@ const ESTADO_TONE: Record<ItemCatalogo['estado'], EstadoBadge> = {
   pendiente: { tone: 'neutral', variant: 'soft' },
   vendido: { tone: 'success', variant: 'soft' },
   no_vendido: { tone: 'neutral', variant: 'soft' },
+  comprado_por_empresa: { tone: 'neutral', variant: 'soft' },
   sin_estado: { tone: 'neutral', variant: 'soft' },
 };
 
@@ -110,6 +121,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     minHeight: 124,
   },
+  cardPast: {
+    opacity: 0.72,
+  },
   imageArea: {
     width: 104,
     alignItems: 'center',
@@ -118,6 +132,9 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  imagePast: {
+    opacity: 0.72,
   },
   body: {
     flex: 1,

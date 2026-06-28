@@ -450,6 +450,7 @@ const HERO_ESTADO_TONE: Record<ItemEstado, HeroBadgeTone> = {
   pendiente: { tone: 'info', variant: 'soft' },
   vendido: { tone: 'success', variant: 'soft' },
   no_vendido: { tone: 'neutral', variant: 'soft' },
+  comprado_por_empresa: { tone: 'neutral', variant: 'soft' },
   sin_estado: { tone: 'neutral', variant: 'soft' },
 };
 

@@ -13,6 +13,12 @@ export type PujaActualApi = {
   incrementoMinimo?: number | null;
   serverNow?: string | null;
   retencionHasta?: string | null;
+  deadlineActual?: string | null;
+  tipoTimer?: string | null;
+  proximoLoteAt?: string | null;
+  subastaFinalizaAt?: string | null;
+  siguienteItemId?: number | null;
+  siguienteLoteOrden?: number | null;
   segundosRestantes?: number | null;
   miPujaGanadora?: boolean;
   estadoLote?: string;
@@ -126,6 +132,11 @@ export type PujaActual = {
   timerActivo?: boolean;
   mensajeEstado?: string;
   proximoLoteAt?: string | null;
+  subastaFinalizaAt?: string | null;
+  deadlineActual?: string | null;
+  tipoTimer?: string | null;
+  siguienteItemId?: number | null;
+  siguienteLoteOrden?: number | null;
   historialReciente: PujaHistorial[];
   mediosParaPujar: MedioPagoDto[];
   segundosRestantes?: number;

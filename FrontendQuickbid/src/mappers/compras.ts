@@ -39,6 +39,7 @@ export type CompraResumenUi = {
   actionLabel: string;
   createdAt: string;
   fechaLabel: string;
+  multa: CompraMultaDto | null;
 };
 
 export type CompraDetalleUi = CompraResumenUi & {
@@ -89,6 +90,7 @@ export function mapCompraResumen(dto: CompraResumenDto): CompraResumenUi {
     actionLabel: estado.actionLabel,
     createdAt: dto.createdAt,
     fechaLabel: formatFecha(dto.createdAt),
+    multa: dto.multa ?? null,
   };
 }
 
