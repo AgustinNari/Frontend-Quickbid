@@ -8,10 +8,6 @@ import {
   Image,
   Modal,
 } from 'react-native';
-import type {
-  NativeSyntheticEvent,
-  TextLayoutEventData,
-} from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import {
@@ -319,36 +315,22 @@ function ItemTabButton({
 }
 
 const LONG_TEXT_PREVIEW_LINES = 3;
-const LONG_TEXT_THRESHOLD = 40;
 
 function ReadableInfoRow({
   icon,
   label,
   value,
+  openFullTextEnabled = false,
 }: {
   icon: IconName;
   label: string;
   value: string;
+  openFullTextEnabled?: boolean;
 }) {
   const [modalVisible, setModalVisible] = useState(false);
-  const [isVisuallyTruncated, setIsVisuallyTruncated] = useState(false);
-  const canOpenFullText =
-    value.trim().length > LONG_TEXT_THRESHOLD || isVisuallyTruncated;
-
-  useEffect(() => {
-    setIsVisuallyTruncated(false);
-  }, [value]);
-
-  const handleTextLayout = (
-    event: NativeSyntheticEvent<TextLayoutEventData>,
-  ) => {
-    if (event.nativeEvent.lines.length > LONG_TEXT_PREVIEW_LINES) {
-      setIsVisuallyTruncated(true);
-    }
-  };
 
   const openFullText = () => {
-    if (canOpenFullText) {
+    if (openFullTextEnabled) {
       setModalVisible(true);
     }
   };
@@ -362,12 +344,11 @@ function ReadableInfoRow({
         <Typography style={styles.readableLabel}>{label}</Typography>
         <Typography
           numberOfLines={LONG_TEXT_PREVIEW_LINES}
-          onTextLayout={handleTextLayout}
           style={styles.readableValue}
         >
           {value}
         </Typography>
-        {canOpenFullText ? (
+        {openFullTextEnabled ? (
           <View style={styles.readFullButton}>
             <Typography style={styles.readFullLabel}>Leer completo</Typography>
           </View>
@@ -378,7 +359,7 @@ function ReadableInfoRow({
 
   return (
     <>
-      {canOpenFullText ? (
+      {openFullTextEnabled ? (
         <TouchableOpacity
           onPress={openFullText}
           activeOpacity={0.75}
@@ -425,6 +406,7 @@ function TabDetalles({ item }: { item: ItemDetalle }) {
             icon="check-doc"
             label="Descripción"
             value={item.descripcion}
+            openFullTextEnabled
           />
           <Divider />
         </>
@@ -470,6 +452,7 @@ function TabHistoria({ item }: { item: ItemDetalle }) {
             icon="bank"
             label="Historia / procedencia"
             value={item.historia}
+            openFullTextEnabled
           />
         ) : null}
         {item.historia && item.historiaExtendida ? <Divider /> : null}
@@ -478,6 +461,7 @@ function TabHistoria({ item }: { item: ItemDetalle }) {
             icon="check-doc"
             label="Historia extendida"
             value={item.historiaExtendida}
+            openFullTextEnabled
           />
         ) : null}
       </View>
@@ -739,9 +723,10 @@ const styles = StyleSheet.create({
   },
   readFullButton: {
     alignSelf: 'flex-start',
-    paddingTop: spacing.xs,
+    marginTop: spacing.xs,
+    paddingTop: 2,
     paddingRight: spacing.sm,
-    paddingBottom: spacing.xs,
+    paddingBottom: 2,
   },
   readFullLabel: {
     fontSize: fontSize.sm,
