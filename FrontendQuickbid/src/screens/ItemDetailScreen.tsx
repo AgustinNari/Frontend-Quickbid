@@ -335,6 +335,8 @@ function TabDetalles({ item }: { item: ItemDetalle }) {
             icon="check-doc"
             label="Descripción"
             value={item.descripcion}
+            expandable
+            initialNumberOfLines={3}
           />
           <Divider />
         </>
@@ -374,31 +376,39 @@ function TabHistoria({ item }: { item: ItemDetalle }) {
   }
   return (
     <View style={styles.tabPanel}>
-      {item.descripcion ? (
-        <View style={styles.descripcionWrap}>
-          <Typography style={styles.descripcionLabel}>DESCRIPCIÓN</Typography>
-          <Body style={styles.descripcion}>{item.descripcion}</Body>
-        </View>
-      ) : null}
-      {item.historia || item.historiaExtendida ? (
-        <View style={styles.infoList}>
-          {item.historia ? (
-            <SubastaInfoRow
-              icon="bank"
-              label="Historia / procedencia"
-              value={item.historia}
-            />
-          ) : null}
-          {item.historia && item.historiaExtendida ? <Divider /> : null}
-          {item.historiaExtendida ? (
-            <SubastaInfoRow
-              icon="check-doc"
-              label="Historia extendida"
-              value={item.historiaExtendida}
-            />
-          ) : null}
-        </View>
-      ) : null}
+      <View style={styles.infoList}>
+        {item.descripcion ? (
+          <SubastaInfoRow
+            icon="check-doc"
+            label="Descripción"
+            value={item.descripcion}
+            expandable
+            initialNumberOfLines={3}
+          />
+        ) : null}
+        {item.descripcion && item.historia ? <Divider /> : null}
+        {item.historia ? (
+          <SubastaInfoRow
+            icon="bank"
+            label="Historia / procedencia"
+            value={item.historia}
+            expandable
+            initialNumberOfLines={3}
+          />
+        ) : null}
+        {(item.descripcion || item.historia) && item.historiaExtendida ? (
+          <Divider />
+        ) : null}
+        {item.historiaExtendida ? (
+          <SubastaInfoRow
+            icon="check-doc"
+            label="Historia extendida"
+            value={item.historiaExtendida}
+            expandable
+            initialNumberOfLines={3}
+          />
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -501,7 +511,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scroll: {
-    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
+    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.xl,
   },
   errorWrap: {
     flex: 1,
@@ -645,6 +655,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     paddingHorizontal: layout.screenPaddingHorizontal,
     paddingVertical: spacing.base,
+    marginBottom: BOTTOM_NAV_HEIGHT + spacing.sm,
     gap: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.borderMuted,

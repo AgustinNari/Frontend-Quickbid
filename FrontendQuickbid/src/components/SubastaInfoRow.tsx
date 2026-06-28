@@ -1,7 +1,15 @@
-import React from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+  TouchableOpacity,
+} from 'react-native';
 import { Icon, IconName, Typography } from '../ui';
 import { colors, spacing, fontSize, fontWeight } from '../theme';
+
+const EXPANDABLE_TEXT_THRESHOLD = 120;
 
 type Props = {
   icon: IconName;
@@ -9,6 +17,11 @@ type Props = {
   value: string;
   emphasized?: boolean;
   style?: StyleProp<ViewStyle>;
+  numberOfLines?: number;
+  expandable?: boolean;
+  initialNumberOfLines?: number;
+  expandedLabel?: string;
+  collapsedLabel?: string;
 };
 
 export function SubastaInfoRow({
@@ -17,7 +30,19 @@ export function SubastaInfoRow({
   value,
   emphasized = false,
   style,
+  numberOfLines = 2,
+  expandable = false,
+  initialNumberOfLines,
+  expandedLabel = 'Ver menos',
+  collapsedLabel = 'Ver más',
 }: Props) {
+  const [expanded, setExpanded] = useState(false);
+  const showToggle =
+    expandable && value.trim().length > EXPANDABLE_TEXT_THRESHOLD;
+  const visibleLines = expanded
+    ? undefined
+    : initialNumberOfLines ?? numberOfLines;
+
   return (
     <View style={[styles.row, style]}>
       <View style={styles.iconTile}>
@@ -27,11 +52,22 @@ export function SubastaInfoRow({
       <View style={styles.textWrap}>
         <Typography style={styles.label}>{label}</Typography>
         <Typography
-          numberOfLines={2}
+          numberOfLines={visibleLines}
           style={[styles.value, emphasized ? styles.valueEmphasized : null]}
         >
           {value}
         </Typography>
+        {showToggle ? (
+          <TouchableOpacity
+            onPress={() => setExpanded(current => !current)}
+            activeOpacity={0.7}
+            style={styles.expandButton}
+          >
+            <Typography style={styles.expandLabel}>
+              {expanded ? expandedLabel : collapsedLabel}
+            </Typography>
+          </TouchableOpacity>
+        ) : null}
       </View>
     </View>
   );
@@ -68,5 +104,16 @@ const styles = StyleSheet.create({
   valueEmphasized: {
     fontWeight: fontWeight.semibold,
     color: colors.text,
+  },
+  expandButton: {
+    alignSelf: 'flex-start',
+    paddingTop: spacing.xs,
+    paddingRight: spacing.sm,
+    paddingBottom: spacing.xs,
+  },
+  expandLabel: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.primary,
   },
 });
