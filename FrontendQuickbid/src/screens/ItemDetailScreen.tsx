@@ -8,6 +8,10 @@ import {
   Image,
   Modal,
 } from 'react-native';
+import type {
+  NativeSyntheticEvent,
+  TextLayoutEventData,
+} from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import {
@@ -233,13 +237,7 @@ function ItemFooter({
   onPujar: () => void;
 }) {
   if (estado === 'sin_estado') {
-    return (
-      <View style={[styles.footer, styles.footerCompact]}>
-        <Body muted style={styles.footerStatusText}>
-          El estado en vivo se consulta desde la sala de subasta.
-        </Body>
-      </View>
-    );
+    return null;
   }
   if (estado === 'vendido') {
     return (
@@ -320,7 +318,8 @@ function ItemTabButton({
   );
 }
 
-const LONG_TEXT_THRESHOLD = 120;
+const LONG_TEXT_PREVIEW_LINES = 3;
+const LONG_TEXT_THRESHOLD = 40;
 
 function ReadableInfoRow({
   icon,
@@ -332,32 +331,64 @@ function ReadableInfoRow({
   value: string;
 }) {
   const [modalVisible, setModalVisible] = useState(false);
-  const canOpenFullText = value.trim().length > LONG_TEXT_THRESHOLD;
+  const [isVisuallyTruncated, setIsVisuallyTruncated] = useState(false);
+  const canOpenFullText =
+    value.trim().length > LONG_TEXT_THRESHOLD || isVisuallyTruncated;
+
+  useEffect(() => {
+    setIsVisuallyTruncated(false);
+  }, [value]);
+
+  const handleTextLayout = (
+    event: NativeSyntheticEvent<TextLayoutEventData>,
+  ) => {
+    if (event.nativeEvent.lines.length > LONG_TEXT_PREVIEW_LINES) {
+      setIsVisuallyTruncated(true);
+    }
+  };
+
+  const openFullText = () => {
+    if (canOpenFullText) {
+      setModalVisible(true);
+    }
+  };
+
+  const rowContent = (
+    <>
+      <View style={styles.iconTile}>
+        <Icon name={icon} size={18} color={colors.textMuted} />
+      </View>
+      <View style={styles.readableTextWrap}>
+        <Typography style={styles.readableLabel}>{label}</Typography>
+        <Typography
+          numberOfLines={LONG_TEXT_PREVIEW_LINES}
+          onTextLayout={handleTextLayout}
+          style={styles.readableValue}
+        >
+          {value}
+        </Typography>
+        {canOpenFullText ? (
+          <View style={styles.readFullButton}>
+            <Typography style={styles.readFullLabel}>Leer completo</Typography>
+          </View>
+        ) : null}
+      </View>
+    </>
+  );
 
   return (
     <>
-      <View style={styles.readableRow}>
-        <View style={styles.iconTile}>
-          <Icon name={icon} size={18} color={colors.textMuted} />
-        </View>
-        <View style={styles.readableTextWrap}>
-          <Typography style={styles.readableLabel}>{label}</Typography>
-          <Typography numberOfLines={3} style={styles.readableValue}>
-            {value}
-          </Typography>
-          {canOpenFullText ? (
-            <TouchableOpacity
-              onPress={() => setModalVisible(true)}
-              activeOpacity={0.7}
-              style={styles.readFullButton}
-            >
-              <Typography style={styles.readFullLabel}>
-                Leer completo
-              </Typography>
-            </TouchableOpacity>
-          ) : null}
-        </View>
-      </View>
+      {canOpenFullText ? (
+        <TouchableOpacity
+          onPress={openFullText}
+          activeOpacity={0.75}
+          style={styles.readableRow}
+        >
+          {rowContent}
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.readableRow}>{rowContent}</View>
+      )}
 
       <Modal
         visible={modalVisible}
@@ -427,21 +458,13 @@ function TabDetalles({ item }: { item: ItemDetalle }) {
 }
 
 function TabHistoria({ item }: { item: ItemDetalle }) {
-  const hasContent = item.descripcion || item.historia || item.historiaExtendida;
+  const hasContent = item.historia || item.historiaExtendida;
   if (!hasContent) {
     return <TabEmpty mensaje="Este lote aún no tiene historia cargada." />;
   }
   return (
     <View style={styles.tabPanel}>
       <View style={styles.infoList}>
-        {item.descripcion ? (
-          <ReadableInfoRow
-            icon="check-doc"
-            label="Descripción"
-            value={item.descripcion}
-          />
-        ) : null}
-        {item.descripcion && item.historia ? <Divider /> : null}
         {item.historia ? (
           <ReadableInfoRow
             icon="bank"
@@ -449,9 +472,7 @@ function TabHistoria({ item }: { item: ItemDetalle }) {
             value={item.historia}
           />
         ) : null}
-        {(item.descripcion || item.historia) && item.historiaExtendida ? (
-          <Divider />
-        ) : null}
+        {item.historia && item.historiaExtendida ? <Divider /> : null}
         {item.historiaExtendida ? (
           <ReadableInfoRow
             icon="check-doc"
@@ -765,16 +786,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.borderMuted,
   },
-  footerCompact: {
-    paddingVertical: spacing.sm,
-    gap: spacing.none,
-  },
   footerBadgeWrap: {
     alignItems: 'center',
     paddingVertical: spacing.sm,
-  },
-  footerStatusText: {
-    textAlign: 'center',
-    fontSize: fontSize.sm,
   },
 });
