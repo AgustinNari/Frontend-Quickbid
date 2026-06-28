@@ -56,6 +56,8 @@ export type ConsignacionArchivoDto = {
   estado: string;
   downloadAvailable: boolean;
   downloadUrl: string | null;
+  tipo?: string | null;
+  documentType?: string | null;
 };
 
 export type ConsignacionPolizaDto = {

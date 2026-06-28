@@ -68,6 +68,7 @@ import { ImageUploadPreview } from '../components/ImageUploadPreview';
 import { DropdownSelector } from '../components/DropdownSelector';
 import { getAuthToken } from '../api/client';
 import { resolveApiMediaUrl } from '../utils/apiMedia';
+import { findGeneratedDocument } from '../utils/consignmentDocuments';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConsignacionDetail'>;
 
@@ -96,15 +97,17 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
   const [mediosPago, setMediosPago] = useState<MedioPagoDto[]>([]);
   const [medioPagoId, setMedioPagoId] = useState<number | null>(null);
 
-  const generatedDocument = useCallback(
-    (prefix: string) =>
-      detalle?.documentosGenerados.find(file =>
-        file.filename.toLowerCase().startsWith(prefix),
-      ) ?? null,
-    [detalle],
+  const acuerdoDocumento = findGeneratedDocument(
+    detalle,
+    'acuerdo_consignacion',
   );
-  const liquidacionDocumento = generatedDocument('liquidacion_venta');
-  const devolucionDocumento = generatedDocument(
+  const polizaDocumento = findGeneratedDocument(detalle, 'poliza_consignacion');
+  const liquidacionDocumento = findGeneratedDocument(
+    detalle,
+    'liquidacion_venta',
+  );
+  const devolucionDocumento = findGeneratedDocument(
+    detalle,
     'comprobante_envio_devolucion',
   );
 
@@ -224,7 +227,9 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
       );
       Alert.alert(
         downloaded.shared ? 'Documento listo' : 'Documento recibido',
-        `${downloaded.filename ?? file.filename} - ${downloaded.sizeBytes} bytes - ${downloaded.contentType}.${
+        `${downloaded.filename ?? file.filename} - ${
+          downloaded.sizeBytes
+        } bytes - ${downloaded.contentType}.${
           downloaded.shared
             ? ' Se abrió el menú del sistema para elegir cómo usarlo.'
             : ' El dispositivo confirmó la recepción del archivo.'
@@ -311,15 +316,15 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
     );
     const resumen =
       modalidadDevolucion === 'envio'
-          ? `Modalidad: envío a domicilio\nDirección: ${
+        ? `Modalidad: envío a domicilio\nDirección: ${
             selected
               ? direccionLabel(selected)
               : previewDevolucion.direccionResumen ?? 'dirección seleccionada'
-            }\nCosto de devolución: ${costo}\nTotal estimado: ${total}`
-          : `Modalidad: retiro en sucursal\nCosto de devolución: ${costo}\nTotal estimado: ${total}`;
+          }\nCosto de devolución: ${costo}\nTotal estimado: ${total}`
+        : `Modalidad: retiro en sucursal\nCosto de devolución: ${costo}\nTotal estimado: ${total}`;
     Alert.alert(
       'Confirmar devolución',
-        `${resumen}\n\nLuego no podrás cambiar la modalidad de devolución.`,
+      `${resumen}\n\nLuego no podrás cambiar la modalidad de devolución.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Confirmar', onPress: persistirDevolucion },
@@ -489,8 +494,8 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                   </Typography>
                 </View>
                 <Body style={styles.rechazoMotivo}>
-                  Adjuntá factura o comprobante como imagen para continuar
-                  con la revisión.
+                  Adjuntá factura o comprobante como imagen para continuar con
+                  la revisión.
                 </Body>
                 {documentacionOrigen ? (
                   <ImageUploadPreview
@@ -562,14 +567,18 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
               <DocumentActions
                 acuerdoDisponible={
                   Boolean(detalle.acuerdoTexto) ||
-                  ['acuerdo_pendiente', 'acuerdo_aceptado', 'acuerdo_rechazado'].includes(
-                    detalle.estado,
-                  )
+                  Boolean(acuerdoDocumento) ||
+                  [
+                    'acuerdo_pendiente',
+                    'acuerdo_aceptado',
+                    'acuerdo_rechazado',
+                  ].includes(detalle.estado)
                 }
-                polizaDisponible={Boolean(detalle.poliza)}
+                polizaDisponible={Boolean(detalle.poliza || polizaDocumento)}
                 liquidacionDisponible={Boolean(
                   liquidacionDocumento?.downloadAvailable,
                 )}
+                liquidacionRegistrada={Boolean(detalle.liquidacion)}
                 onAcuerdo={() =>
                   navigation.navigate('AcuerdoConsignacion', { id: detalle.id })
                 }
@@ -577,8 +586,7 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                   navigation.navigate('PolizaConsignacion', { id: detalle.id })
                 }
                 onLiquidacion={() =>
-                  liquidacionDocumento &&
-                  descargarArchivo(liquidacionDocumento)
+                  liquidacionDocumento && descargarArchivo(liquidacionDocumento)
                 }
               />
             ) : null}
@@ -735,7 +743,9 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
 
 function Hero({ detalle }: { detalle: ConsignacionDetalleUi }) {
   const [imageFailed, setImageFailed] = useState(false);
-  const photo = detalle.fotos.find(file => file.downloadAvailable && file.downloadUrl);
+  const photo = detalle.fotos.find(
+    file => file.downloadAvailable && file.downloadUrl,
+  );
   const imageUrl = resolveApiMediaUrl(photo?.downloadUrl);
   const token = getAuthToken();
   const showImage = Boolean(imageUrl) && !imageFailed;
@@ -846,6 +856,7 @@ function DocumentActions({
   acuerdoDisponible,
   polizaDisponible,
   liquidacionDisponible,
+  liquidacionRegistrada,
   onAcuerdo,
   onPoliza,
   onLiquidacion,
@@ -853,6 +864,7 @@ function DocumentActions({
   acuerdoDisponible: boolean;
   polizaDisponible: boolean;
   liquidacionDisponible: boolean;
+  liquidacionRegistrada: boolean;
   onAcuerdo: () => void;
   onPoliza: () => void;
   onLiquidacion: () => void;
@@ -882,6 +894,11 @@ function DocumentActions({
       {!polizaDisponible ? (
         <Typography style={styles.emptyDocs}>
           La póliza aún no fue registrada para esta consignación.
+        </Typography>
+      ) : null}
+      {liquidacionRegistrada && !liquidacionDisponible ? (
+        <Typography style={styles.emptyDocs}>
+          La liquidación está registrada. El PDF todavía no está disponible.
         </Typography>
       ) : null}
     </View>

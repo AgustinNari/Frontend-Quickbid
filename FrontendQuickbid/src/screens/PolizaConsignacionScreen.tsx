@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { consignacionesApi } from '../api/consignaciones';
@@ -11,10 +17,28 @@ import {
   mapConsignacionDetalle,
 } from '../mappers/consignaciones';
 import { useNetwork } from '../context/NetworkContext';
+import { findGeneratedDocument } from '../utils/consignmentDocuments';
 import { ScreenHeader } from '../components/ScreenHeader';
 import BottomNavBar, { BOTTOM_NAV_HEIGHT } from '../components/BottomNavBar';
-import { Badge, Body, Button, Card, EmptyState, Heading, Icon, Loader, Typography } from '../ui';
-import { colors, fontSize, fontWeight, layout, radius, spacing } from '../theme';
+import {
+  Badge,
+  Body,
+  Button,
+  Card,
+  EmptyState,
+  Heading,
+  Icon,
+  Loader,
+  Typography,
+} from '../ui';
+import {
+  colors,
+  fontSize,
+  fontWeight,
+  layout,
+  radius,
+  spacing,
+} from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PolizaConsignacion'>;
 
@@ -44,9 +68,11 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
     load();
   }, [load]);
 
-  const document = detalle?.documentosGenerados.find(file =>
-    file.filename.toLowerCase().startsWith('poliza'),
-  );
+  const document = findGeneratedDocument(detalle, 'poliza_consignacion');
+  const currentLocation =
+    detalle?.poliza?.ubicacionFisica?.trim() ||
+    detalle?.ubicacionFisica?.trim() ||
+    null;
 
   const openDocument = async (file: ConsignacionArchivoUi) => {
     if (!file.downloadUrl || !file.downloadAvailable) return;
@@ -56,7 +82,10 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
     } catch (downloadError) {
       Alert.alert(
         'Documento no disponible',
-        userFacingError(downloadError, 'No pudimos abrir o compartir la póliza.'),
+        userFacingError(
+          downloadError,
+          'No pudimos abrir o compartir la póliza.',
+        ),
       );
     }
   };
@@ -93,9 +122,13 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
               <Icon name="check-doc" size={34} color={colors.primary} />
             </View>
             <View style={styles.titleCopy}>
-              <Typography style={styles.eyebrow}>PROTECCION DEL BIEN</Typography>
+              <Typography style={styles.eyebrow}>
+                PROTECCIÓN DEL BIEN
+              </Typography>
               <Heading>Póliza de consignación</Heading>
-              <Badge tone="success" variant="soft">PÓLIZA REGISTRADA</Badge>
+              <Badge tone="success" variant="soft">
+                PÓLIZA REGISTRADA
+              </Badge>
             </View>
           </View>
 
@@ -106,27 +139,38 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
           </Card>
 
           <Card variant="flat" style={styles.dataCard}>
-            <DataRow label="Número de póliza" value={detalle.poliza.numero || 'No informado'} />
-            <DataRow label="Aseguradora" value={detalle.poliza.compania || 'No informada'} />
+            <DataRow
+              label="Número de póliza"
+              value={detalle.poliza.numero || 'No informado'}
+            />
+            <DataRow
+              label="Aseguradora"
+              value={detalle.poliza.compania || 'No informada'}
+            />
             <DataRow
               label="Importe asegurado"
               value={formatMoney(detalle.poliza.importe, detalle.moneda)}
               emphasized
             />
-            <DataRow
-              label="Ubicación actual"
-              value={detalle.poliza.ubicacionFisica ?? detalle.ubicacionFisica ?? 'Pendiente de registro'}
-            />
+            {currentLocation ? (
+              <DataRow label="Ubicación actual" value={currentLocation} />
+            ) : null}
             <DataRow
               label="Tipo"
-              value={detalle.poliza.combinada ? 'Póliza combinada' : 'Póliza individual'}
+              value={
+                detalle.poliza.combinada
+                  ? 'Póliza combinada'
+                  : 'Póliza individual'
+              }
             />
           </Card>
 
           {document?.downloadAvailable ? (
             <Button
               onPress={() => openDocument(document)}
-              leftIcon={<Icon name="check-doc" size={18} color={colors.textInverse} />}
+              leftIcon={
+                <Icon name="check-doc" size={18} color={colors.textInverse} />
+              }
             >
               Abrir / compartir póliza
             </Button>
@@ -134,7 +178,8 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
             <View style={styles.notice}>
               <Icon name="info" size={18} color={colors.info} />
               <Body style={styles.noticeText}>
-                Los datos de la póliza están registrados. El documento PDF aún no está disponible.
+                Los datos de la póliza están registrados. El documento PDF aún
+                no está disponible.
               </Body>
             </View>
           )}
@@ -157,7 +202,9 @@ function DataRow({
   return (
     <View style={styles.dataRow}>
       <Typography style={styles.dataLabel}>{label}</Typography>
-      <Typography style={[styles.dataValue, emphasized ? styles.dataValueEmphasis : null]}>
+      <Typography
+        style={[styles.dataValue, emphasized ? styles.dataValueEmphasis : null]}
+      >
         {value}
       </Typography>
     </View>
@@ -172,7 +219,11 @@ const styles = StyleSheet.create({
     paddingBottom: BOTTOM_NAV_HEIGHT + spacing.xl,
     gap: spacing.base,
   },
-  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.base },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.base,
+  },
   heroIcon: {
     width: 58,
     height: 58,
@@ -182,9 +233,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.infoSoft,
   },
   titleCopy: { flex: 1, gap: spacing.xs },
-  eyebrow: { color: colors.primary, fontSize: fontSize.xs, fontWeight: fontWeight.bold },
+  eyebrow: {
+    color: colors.primary,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.bold,
+  },
   assetCard: { gap: spacing.xs },
-  assetRef: { color: colors.primary, fontSize: fontSize.xs, fontWeight: fontWeight.bold },
+  assetRef: {
+    color: colors.primary,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.bold,
+  },
   assetTitle: { fontSize: fontSize.xl },
   dataCard: { gap: 0 },
   dataRow: {
