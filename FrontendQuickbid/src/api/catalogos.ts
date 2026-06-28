@@ -22,7 +22,7 @@ export const catalogosApi = {
     );
     return required(
       response.data,
-      'El servidor no devolvio el catalogo de paises',
+      'El servidor no devolvió el catálogo de países',
     );
   },
 
@@ -33,6 +33,6 @@ export const catalogosApi = {
         public: true,
       },
     );
-    return required(response.data, 'El servidor no devolvio el pais');
+    return required(response.data, 'El servidor no devolvió el país');
   },
 };

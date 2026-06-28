@@ -29,7 +29,7 @@ function query(params: Record<string, string | number | boolean | undefined>) {
 export const usuarioApi = {
   async perfil() {
     const response = await apiFetch<PerfilUsuario>('/api/usuario/perfil');
-    return requiredData(response.data, 'El servidor no devolvio el perfil');
+    return requiredData(response.data, 'El servidor no devolvió el perfil');
   },
 
   async estadisticas(periodo: PeriodoEstadisticas) {
@@ -38,7 +38,7 @@ export const usuarioApi = {
     );
     return requiredData(
       response.data,
-      'El servidor no devolvio las estadisticas',
+      'El servidor no devolvió las estadísticas',
     );
   },
 
@@ -46,7 +46,7 @@ export const usuarioApi = {
     const response = await apiFetch<Pagina<HistorialUsuarioItem>>(
       `/api/usuario/historial${query({ page, size })}`,
     );
-    return requiredData(response.data, 'El servidor no devolvio el historial');
+    return requiredData(response.data, 'El servidor no devolvió el historial');
   },
 
   async notificaciones(
@@ -63,7 +63,7 @@ export const usuarioApi = {
     );
     return requiredData(
       response.data,
-      'El servidor no devolvio las notificaciones',
+      'El servidor no devolvió las notificaciones',
     );
   },
 
@@ -74,7 +74,7 @@ export const usuarioApi = {
     );
     return requiredData(
       response.data,
-      'El servidor no devolvio la notificacion',
+      'El servidor no devolvió la notificación',
     );
   },
 
@@ -85,7 +85,7 @@ export const usuarioApi = {
     );
     return requiredData(
       response.data,
-      'El servidor no devolvio las notificaciones',
+      'El servidor no devolvió las notificaciones',
     );
   },
 };

@@ -498,7 +498,7 @@ export default function AltaConsignacionScreen({ navigation }: Props) {
       submitDocumentation: async (created, file) => {
         await consignacionesApi.subirDocumentacionOrigen(created.id, {
           facturaCompra: file,
-          observaciones: 'Documentacion opcional adjunta durante el alta mobile.',
+          observaciones: 'Documentación opcional adjunta durante el alta mobile.',
         });
       },
       readableError,
@@ -1212,12 +1212,12 @@ function HistoriaStep({
       <Checkbox
         checked={esObraDeArte}
         onPress={onToggleObra}
-        label="Es obra de arte o de disenador."
+        label="Es obra de arte o de diseñador."
       />
       {esObraDeArte ? (
         <>
           <TextField
-            label="AUTOR / ARTISTA / DISENADOR"
+            label="AUTOR / ARTISTA / DISEÑADOR"
             placeholder="Nombre del autor"
             value={autor}
             onChangeText={onAutor}
@@ -1227,7 +1227,7 @@ function HistoriaStep({
             <TextInput
               value={historiaExtendida}
               onChangeText={onHistoriaExtendida}
-              placeholder="Trayectoria, edicion, contexto o datos adicionales"
+              placeholder="Trayectoria, edición, contexto o datos adicionales"
               placeholderTextColor={colors.textSubtle}
               multiline
               textAlignVertical="top"

@@ -46,7 +46,7 @@ const TOPICS = [
     title: 'Cuenta y seguridad',
     subtitle: 'Acceso, contraseña y datos',
     content:
-      'Desde Perfil podés actualizar tus datos, direcciones y medios de pago. Nunca compartas tu contraseña ni codigos recibidos por correo.',
+      'Desde Perfil podés actualizar tus datos, direcciones y medios de pago. Nunca compartas tu contraseña ni códigos recibidos por correo.',
   },
   {
     title: 'Sistema de categorías',

@@ -262,7 +262,7 @@ export async function retryConsignmentDraft<T>(
   );
   if (readablePhotos.some(readable => !readable)) {
     const message =
-      'Algunas fotos ya no estan disponibles. Continua editando y volve a seleccionarlas.';
+      'Algunas fotos ya no están disponibles. Continuá editando y volvé a seleccionarlas.';
     await store.update(id, { status: 'fallido', ultimoError: message });
     throw new Error(message);
   }

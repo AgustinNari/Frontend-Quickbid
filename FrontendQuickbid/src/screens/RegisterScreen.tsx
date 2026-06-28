@@ -246,7 +246,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 <View style={styles.countryStatus}>
                   <ActivityIndicator color={colors.primary} />
                   <Text style={styles.countryStatusText}>
-                    Cargando paises...
+                    Cargando países...
                   </Text>
                 </View>
               ) : errorPaises ? (
@@ -262,7 +262,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 </View>
               ) : paises.length === 0 ? (
                 <Text style={styles.countryStatusText}>
-                  No encontramos paises para esa busqueda.
+                  No encontramos países para esa búsqueda.
                 </Text>
               ) : (
                 <ScrollView

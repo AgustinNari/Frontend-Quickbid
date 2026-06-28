@@ -22,7 +22,7 @@ export function DropdownSelector({
   options,
   selectedId,
   onSelect,
-  placeholder = 'Seleccionar una opcion',
+  placeholder = 'Seleccionar una opción',
   disabled = false,
   testID = 'dropdown-selector',
 }: Props) {

@@ -8,7 +8,7 @@ import {
 
 function required<T>(data: T | null): T {
   if (data === null)
-    throw new Error('El servidor no devolvio el medio de pago');
+    throw new Error('El servidor no devolvió el medio de pago');
   return data;
 }
 

@@ -36,14 +36,14 @@ export const comprasApi = {
 
     return required(
       (await apiFetch<PageDto<CompraResumenDto>>(`/api/compras?${query}`)).data,
-      'El servidor no devolvio compras',
+      'El servidor no devolvió compras',
     );
   },
 
   async detalle(id: number) {
     return required(
       (await apiFetch<CompraDetalleDto>(`/api/compras/${id}`)).data,
-      'El servidor no devolvio la compra',
+      'El servidor no devolvió la compra',
     );
   },
 
@@ -55,7 +55,7 @@ export const comprasApi = {
           body: JSON.stringify(payload),
         })
       ).data,
-      'El servidor no devolvio la entrega',
+      'El servidor no devolvió la entrega',
     );
   },
 
@@ -70,7 +70,7 @@ export const comprasApi = {
           },
         )
       ).data,
-      'El servidor no devolvio la cotizacion de entrega',
+      'El servidor no devolvió la cotización de entrega',
     );
   },
 
@@ -82,7 +82,7 @@ export const comprasApi = {
           body: JSON.stringify(payload),
         })
       ).data,
-      'El servidor no devolvio el pago',
+      'El servidor no devolvió el pago',
     );
   },
 
@@ -94,7 +94,7 @@ export const comprasApi = {
           body: JSON.stringify(payload),
         })
       ).data,
-      'El servidor no devolvio el pago',
+      'El servidor no devolvió el pago',
     );
   },
 
@@ -102,7 +102,7 @@ export const comprasApi = {
     return required(
       (await apiFetch<DocumentoCompraDto[]>(`/api/compras/${id}/documentos`))
         .data,
-      'El servidor no devolvio documentos',
+      'El servidor no devolvió documentos',
     );
   },
 

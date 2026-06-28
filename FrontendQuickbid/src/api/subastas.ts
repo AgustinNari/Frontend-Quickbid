@@ -35,7 +35,7 @@ export const subastasApi = {
     );
     return requiredData(
       response.data,
-      'El servidor no devolvio el listado de subastas',
+      'El servidor no devolvió el listado de subastas',
     );
   },
 
@@ -43,7 +43,7 @@ export const subastasApi = {
     const response = await apiFetch<SubastaApiDetalle>(`/api/subastas/${id}`);
     return requiredData(
       response.data,
-      'El servidor no devolvio el detalle de la subasta',
+      'El servidor no devolvió el detalle de la subasta',
     );
   },
 
@@ -51,14 +51,14 @@ export const subastasApi = {
     const response = await apiFetch<CatalogoApi>(
       `/api/subastas/${id}/catalogo`,
     );
-    return requiredData(response.data, 'El servidor no devolvio el catalogo');
+    return requiredData(response.data, 'El servidor no devolvió el catálogo');
   },
 
   async item(id: number) {
     const response = await apiFetch<ItemApi>(`/api/items/${id}`);
     return requiredData(
       response.data,
-      'El servidor no devolvio el detalle del lote',
+      'El servidor no devolvió el detalle del lote',
     );
   },
 
@@ -71,7 +71,7 @@ export const subastasApi = {
     );
     return requiredData(
       response.data,
-      'El servidor no devolvio la verificacion de acceso',
+      'El servidor no devolvió la verificación de acceso',
     );
   },
 
@@ -85,7 +85,7 @@ export const subastasApi = {
     );
     return requiredData(
       response.data,
-      'El servidor no devolvio la inscripcion',
+      'El servidor no devolvió la inscripción',
     );
   },
 };

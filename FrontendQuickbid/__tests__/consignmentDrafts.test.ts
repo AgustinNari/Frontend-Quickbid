@@ -278,7 +278,7 @@ describe('consignment drafts', () => {
         submit: async () => ({ id: 42 }),
         readableError: () => 'Error',
       }),
-    ).rejects.toThrow('volve a seleccionarlas');
+    ).rejects.toThrow('volvé a seleccionarlas');
     expect((await store.get('draft-1'))?.status).toBe('fallido');
   });
 

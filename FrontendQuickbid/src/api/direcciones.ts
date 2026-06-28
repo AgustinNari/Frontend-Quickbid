@@ -2,7 +2,7 @@ import { apiFetch } from './client';
 import { CrearDireccionRequest, DireccionEnvioDto } from '../types/direcciones';
 
 function required<T>(data: T | null): T {
-  if (data === null) throw new Error('El servidor no devolvio la direccion');
+  if (data === null) throw new Error('El servidor no devolvió la dirección');
   return data;
 }
 

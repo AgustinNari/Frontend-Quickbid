@@ -28,7 +28,7 @@ export const pujasApi = {
     );
     return requiredData(
       response.data,
-      'El servidor no devolvio la puja actual',
+      'El servidor no devolvió la puja actual',
     );
   },
 
@@ -42,7 +42,7 @@ export const pujasApi = {
     );
     return requiredData(
       response.data,
-      'El servidor no devolvio el resultado de la puja',
+      'El servidor no devolvió el resultado de la puja',
     );
   },
 };

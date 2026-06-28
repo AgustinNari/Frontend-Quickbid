@@ -37,7 +37,7 @@ export const consignacionesApi = {
           '/api/consignaciones/requisitos',
         )
       ).data,
-      'El servidor no devolvio requisitos de consignacion',
+      'El servidor no devolvió requisitos de consignación',
     );
   },
 
@@ -69,7 +69,7 @@ export const consignacionesApi = {
           body: form,
         })
       ).data,
-      'El servidor no devolvio la consignacion creada',
+      'El servidor no devolvió la consignación creada',
     );
   },
 
@@ -97,7 +97,7 @@ export const consignacionesApi = {
           },
         )
       ).data,
-      'El servidor no devolvio la consignacion actualizada',
+      'El servidor no devolvió la consignación actualizada',
     );
   },
 
@@ -118,7 +118,7 @@ export const consignacionesApi = {
           `/api/consignaciones?${query}`,
         )
       ).data,
-      'El servidor no devolvio consignaciones',
+      'El servidor no devolvió consignaciones',
     );
   },
 
@@ -126,7 +126,7 @@ export const consignacionesApi = {
     return required(
       (await apiFetch<ConsignacionDetalleDto>(`/api/consignaciones/${id}`))
         .data,
-      'El servidor no devolvio la consignacion',
+      'El servidor no devolvió la consignación',
     );
   },
 
@@ -145,7 +145,7 @@ export const consignacionesApi = {
           },
         )
       ).data,
-      'El servidor no devolvio la consignacion actualizada',
+      'El servidor no devolvió la consignación actualizada',
     );
   },
 
@@ -159,7 +159,7 @@ export const consignacionesApi = {
           },
         )
       ).data,
-      'El servidor no devolvio la consignacion actualizada',
+      'El servidor no devolvió la consignación actualizada',
     );
   },
 
@@ -177,7 +177,7 @@ export const consignacionesApi = {
           },
         )
       ).data,
-      'El servidor no devolvio la devolucion registrada',
+      'El servidor no devolvió la devolución registrada',
     );
   },
 
@@ -192,7 +192,7 @@ export const consignacionesApi = {
           },
         )
       ).data,
-      'El servidor no devolvio la cotizacion de devolucion',
+      'El servidor no devolvió la cotización de devolución',
     );
   },
 
@@ -207,7 +207,7 @@ export const consignacionesApi = {
           },
         )
       ).data,
-      'El servidor no devolvio el pago de devolucion',
+      'El servidor no devolvió el pago de devolución',
     );
   },
 };
