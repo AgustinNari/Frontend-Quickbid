@@ -209,3 +209,52 @@ El proyecto compila solo para `arm64-v8a` (dispositivos físicos) y `x86_64` (em
 | `npm run reverse` | Script legacy para modo local; reenvia `8081` y `8080` |
 | `npm run lint` | Corre el linter |
 | `npm test` | Corre los tests |
+
+---
+
+## Demo Render con dos usuarios
+
+Para presentar contra el backend publico, confirmar en `src/api/config.ts`:
+
+```ts
+export const API_MODE: ApiMode = 'public';
+export const PUBLIC_API_BASE_URL = 'https://quickbid-backend-demo.onrender.com';
+```
+
+Antes de abrir la app, despertar Render con:
+
+```powershell
+Invoke-RestMethod https://quickbid-backend-demo.onrender.com/actuator/health
+```
+
+Si tarda, esperar el cold start de Render Free y repetir hasta ver `UP`.
+
+Levantar Metro:
+
+```powershell
+npm start -- --reset-cache
+```
+
+En otra terminal, para Android publico:
+
+```powershell
+adb devices
+npm run reverse:metro
+npm run android:public
+```
+
+En modo `public`, usar reverse solo para Metro (`8081`). No aplicar reverse del
+backend `8080`, porque la app debe consumir Render por Internet.
+
+Para probar dos usuarios, usar dos emuladores o un emulador y un celular:
+
+- dispositivo A: `aprobado@quickbid.demo`;
+- dispositivo B: `comprador2@quickbid.demo`;
+- clave para ambos: `Demo123!`.
+
+El flujo completo esta documentado en:
+
+```text
+BE/-Backend-Desarrollo-de-Aplicaciones-I/quickbid/docs/DEMO_PRESENTACION_GUIADA.md
+BE/-Backend-Desarrollo-de-Aplicaciones-I/quickbid/docs/CHECKLIST_DEMO_RENDER.md
+```

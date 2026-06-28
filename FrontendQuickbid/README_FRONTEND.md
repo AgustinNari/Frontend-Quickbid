@@ -183,6 +183,15 @@ reiniciar o recargar la app; si Metro conserva una version anterior, usar
 - `API_MODE = 'public'` es el modo activo para la demo.
 - La app usa HTTPS y deriva automaticamente `wss://.../ws`.
 - No hace falta `adb reverse` para el puerto del backend.
+- Levantar Metro con `npm start -- --reset-cache`.
+- Ejecutar Android con `npm run android:public`.
+- Usar `npm run reverse:metro` si el dispositivo fisico no alcanza Metro.
+- Para dos usuarios, usar dos emuladores o un emulador y un celular: comprador
+  1 `aprobado@quickbid.demo` y comprador 2 `comprador2@quickbid.demo`, ambos
+  con `Demo123!`.
+- Si Render Free esta dormido, abrir primero
+  `https://quickbid-backend-demo.onrender.com/actuator/health`, esperar el cold
+  start y reintentar hasta `UP`.
 
 ## 8. Configuracion HTTP y WebSocket
 
