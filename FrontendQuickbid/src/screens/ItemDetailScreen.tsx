@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Modal,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -17,6 +18,7 @@ import {
   Card,
   Badge,
   Icon,
+  IconName,
   EmptyState,
   Loader,
 } from '../ui';
@@ -157,7 +159,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
                   onPress={() => setItemTab('historia')}
                 />
                 <ItemTabButton
-                  label="Datos de interés"
+                  label="Datos"
                   active={itemTab === 'datos'}
                   onPress={() => setItemTab('datos')}
                 />
@@ -176,9 +178,6 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
           <ItemFooter
             estado={item.estado}
             onPujar={handlePujar}
-            onOpenSubasta={() =>
-              navigation.navigate('SubastaDetail', { id: subastaId })
-            }
           />
         </>
       )}
@@ -229,21 +228,16 @@ function Hero({ item }: { item: ItemDetalle }) {
 function ItemFooter({
   estado,
   onPujar,
-  onOpenSubasta,
 }: {
   estado: ItemEstado;
   onPujar: () => void;
-  onOpenSubasta: () => void;
 }) {
   if (estado === 'sin_estado') {
     return (
-      <View style={styles.footer}>
+      <View style={[styles.footer, styles.footerCompact]}>
         <Body muted style={styles.footerStatusText}>
           El estado en vivo se consulta desde la sala de subasta.
         </Body>
-        <Button variant="secondary" onPress={onOpenSubasta}>
-          Ver subasta
-        </Button>
       </View>
     );
   }
@@ -326,17 +320,80 @@ function ItemTabButton({
   );
 }
 
+const LONG_TEXT_THRESHOLD = 120;
+
+function ReadableInfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: IconName;
+  label: string;
+  value: string;
+}) {
+  const [modalVisible, setModalVisible] = useState(false);
+  const canOpenFullText = value.trim().length > LONG_TEXT_THRESHOLD;
+
+  return (
+    <>
+      <View style={styles.readableRow}>
+        <View style={styles.iconTile}>
+          <Icon name={icon} size={18} color={colors.textMuted} />
+        </View>
+        <View style={styles.readableTextWrap}>
+          <Typography style={styles.readableLabel}>{label}</Typography>
+          <Typography numberOfLines={3} style={styles.readableValue}>
+            {value}
+          </Typography>
+          {canOpenFullText ? (
+            <TouchableOpacity
+              onPress={() => setModalVisible(true)}
+              activeOpacity={0.7}
+              style={styles.readFullButton}
+            >
+              <Typography style={styles.readFullLabel}>
+                Leer completo
+              </Typography>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </View>
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Typography style={styles.modalTitle}>{label}</Typography>
+            <ScrollView
+              style={styles.modalScroll}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator
+            >
+              <Body style={styles.modalBody}>{value}</Body>
+            </ScrollView>
+            <Button variant="secondary" onPress={() => setModalVisible(false)}>
+              Cerrar
+            </Button>
+          </View>
+        </View>
+      </Modal>
+    </>
+  );
+}
+
 function TabDetalles({ item }: { item: ItemDetalle }) {
   return (
     <View style={styles.infoList}>
       {item.descripcion ? (
         <>
-          <SubastaInfoRow
+          <ReadableInfoRow
             icon="check-doc"
             label="Descripción"
             value={item.descripcion}
-            expandable
-            initialNumberOfLines={3}
           />
           <Divider />
         </>
@@ -378,34 +435,28 @@ function TabHistoria({ item }: { item: ItemDetalle }) {
     <View style={styles.tabPanel}>
       <View style={styles.infoList}>
         {item.descripcion ? (
-          <SubastaInfoRow
+          <ReadableInfoRow
             icon="check-doc"
             label="Descripción"
             value={item.descripcion}
-            expandable
-            initialNumberOfLines={3}
           />
         ) : null}
         {item.descripcion && item.historia ? <Divider /> : null}
         {item.historia ? (
-          <SubastaInfoRow
+          <ReadableInfoRow
             icon="bank"
             label="Historia / procedencia"
             value={item.historia}
-            expandable
-            initialNumberOfLines={3}
           />
         ) : null}
         {(item.descripcion || item.historia) && item.historiaExtendida ? (
           <Divider />
         ) : null}
         {item.historiaExtendida ? (
-          <SubastaInfoRow
+          <ReadableInfoRow
             icon="check-doc"
             label="Historia extendida"
             value={item.historiaExtendida}
-            expandable
-            initialNumberOfLines={3}
           />
         ) : null}
       </View>
@@ -637,17 +688,71 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.borderMuted,
   },
-  descripcionWrap: {
-    marginTop: spacing.sm,
-    gap: spacing.xs,
+  readableRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
   },
-  descripcionLabel: {
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.bold,
+  iconTile: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  readableTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  readableLabel: {
+    fontSize: fontSize.sm,
     color: colors.textMuted,
-    letterSpacing: letterSpacing.wider,
   },
-  descripcion: {
+  readableValue: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.medium,
+    color: colors.text,
+    lineHeight: fontSize.base * 1.45,
+  },
+  readFullButton: {
+    alignSelf: 'flex-start',
+    paddingTop: spacing.xs,
+    paddingRight: spacing.sm,
+    paddingBottom: spacing.xs,
+  },
+  readFullLabel: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: colors.primary,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    justifyContent: 'center',
+    paddingHorizontal: layout.screenPaddingHorizontal,
+    paddingVertical: spacing['3xl'],
+  },
+  modalCard: {
+    maxHeight: '82%',
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    gap: spacing.base,
+  },
+  modalTitle: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    color: colors.text,
+  },
+  modalScroll: {
+    flexGrow: 0,
+  },
+  modalScrollContent: {
+    paddingBottom: spacing.sm,
+  },
+  modalBody: {
     color: colors.textLabel,
     lineHeight: fontSize.lg * 1.5,
   },
@@ -659,6 +764,10 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.borderMuted,
+  },
+  footerCompact: {
+    paddingVertical: spacing.sm,
+    gap: spacing.none,
   },
   footerBadgeWrap: {
     alignItems: 'center',
