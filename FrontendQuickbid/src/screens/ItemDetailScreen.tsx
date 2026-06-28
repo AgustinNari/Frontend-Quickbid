@@ -329,6 +329,16 @@ function ItemTabButton({
 function TabDetalles({ item }: { item: ItemDetalle }) {
   return (
     <View style={styles.infoList}>
+      {item.descripcion ? (
+        <>
+          <SubastaInfoRow
+            icon="check-doc"
+            label="Descripción"
+            value={item.descripcion}
+          />
+          <Divider />
+        </>
+      ) : null}
       <SubastaInfoRow
         icon="image"
         label="Segmento"
@@ -358,7 +368,7 @@ function TabDetalles({ item }: { item: ItemDetalle }) {
 }
 
 function TabHistoria({ item }: { item: ItemDetalle }) {
-  const hasContent = item.descripcion || item.autor || item.procedencia;
+  const hasContent = item.descripcion || item.historia || item.historiaExtendida;
   if (!hasContent) {
     return <TabEmpty mensaje="Este lote aún no tiene historia cargada." />;
   }
@@ -370,21 +380,21 @@ function TabHistoria({ item }: { item: ItemDetalle }) {
           <Body style={styles.descripcion}>{item.descripcion}</Body>
         </View>
       ) : null}
-      {item.autor || item.procedencia ? (
+      {item.historia || item.historiaExtendida ? (
         <View style={styles.infoList}>
-          {item.autor ? (
-            <SubastaInfoRow
-              icon="star"
-              label="Autor / Artista"
-              value={item.autor}
-            />
-          ) : null}
-          {item.autor && item.procedencia ? <Divider /> : null}
-          {item.procedencia ? (
+          {item.historia ? (
             <SubastaInfoRow
               icon="bank"
-              label="Procedencia"
-              value={item.procedencia}
+              label="Historia / procedencia"
+              value={item.historia}
+            />
+          ) : null}
+          {item.historia && item.historiaExtendida ? <Divider /> : null}
+          {item.historiaExtendida ? (
+            <SubastaInfoRow
+              icon="check-doc"
+              label="Historia extendida"
+              value={item.historiaExtendida}
             />
           ) : null}
         </View>
@@ -394,12 +404,46 @@ function TabHistoria({ item }: { item: ItemDetalle }) {
 }
 
 function TabDatos({ item }: { item: ItemDetalle }) {
-  const hasContent = item.dimensiones || item.condicion || item.fechaAproximada;
+  const dataRows = [
+    item.duenioActual
+      ? { icon: 'bank' as const, label: 'Dueño actual', value: item.duenioActual }
+      : null,
+    item.fechaObjeto
+      ? { icon: 'calendar' as const, label: 'Fecha / año aproximado', value: item.fechaObjeto }
+      : null,
+    item.artistaDisenador
+      ? { icon: 'star' as const, label: 'Artista / diseñador', value: item.artistaDisenador }
+      : null,
+    item.segmentoConsignacion
+      ? { icon: 'image' as const, label: 'Segmento', value: humanize(item.segmentoConsignacion) }
+      : null,
+    item.categoriaAsignada
+      ? { icon: 'check-circle' as const, label: 'Categoría asignada', value: humanize(item.categoriaAsignada) }
+      : null,
+  ].filter(Boolean) as Array<{
+    icon: 'bank' | 'calendar' | 'star' | 'image' | 'check-circle';
+    label: string;
+    value: string;
+  }>;
+  const hasContent = dataRows.length > 0 || item.dimensiones || item.condicion;
   if (!hasContent) {
     return <TabEmpty mensaje="Sin datos adicionales para este lote." />;
   }
   return (
     <View style={styles.infoList}>
+      {dataRows.map((row, index) => (
+        <React.Fragment key={row.label}>
+          {index > 0 ? <Divider /> : null}
+          <SubastaInfoRow
+            icon={row.icon}
+            label={row.label}
+            value={row.value}
+          />
+        </React.Fragment>
+      ))}
+      {dataRows.length > 0 && (item.dimensiones || item.condicion) ? (
+        <Divider />
+      ) : null}
       {item.dimensiones ? (
         <SubastaInfoRow
           icon="check-doc"
@@ -416,18 +460,15 @@ function TabDatos({ item }: { item: ItemDetalle }) {
           emphasized
         />
       ) : null}
-      {(item.dimensiones || item.condicion) && item.fechaAproximada ? (
-        <Divider />
-      ) : null}
-      {item.fechaAproximada ? (
-        <SubastaInfoRow
-          icon="calendar"
-          label="Fecha aproximada"
-          value={item.fechaAproximada}
-        />
-      ) : null}
     </View>
   );
+}
+
+function humanize(value: string) {
+  return value
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/^\w|\s\w/g, match => match.toUpperCase());
 }
 
 function TabEmpty({ mensaje }: { mensaje: string }) {

@@ -450,6 +450,12 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
                 label="Fecha objeto"
                 value={detalle.fechaObjeto ?? 'Sin fecha'}
               />
+              {detalle.ubicacionFisica ? (
+                <InfoRow
+                  label="Ubicación de custodia"
+                  value={detalle.ubicacionFisica}
+                />
+              ) : null}
               <InfoRow
                 label="Producto ID"
                 value={

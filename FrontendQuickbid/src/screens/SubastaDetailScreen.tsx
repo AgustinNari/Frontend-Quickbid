@@ -214,6 +214,26 @@ export default function SubastaDetailScreen({ navigation, route }: Props) {
                     />
                   </>
                 ) : null}
+                {detalle.rematadorMatricula ? (
+                  <>
+                    <Divider />
+                    <SubastaInfoRow
+                      icon="check-doc"
+                      label="Matrícula"
+                      value={detalle.rematadorMatricula}
+                    />
+                  </>
+                ) : null}
+                {detalle.rematadorRegion ? (
+                  <>
+                    <Divider />
+                    <SubastaInfoRow
+                      icon="search"
+                      label="Región"
+                      value={detalle.rematadorRegion}
+                    />
+                  </>
+                ) : null}
                 <Divider />
                 <SubastaInfoRow
                   icon="star"

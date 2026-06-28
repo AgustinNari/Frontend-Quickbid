@@ -40,6 +40,8 @@ export type SubastaResumen = {
   fechaInicio: string;
   ubicacion: string;
   rematador?: string;
+  rematadorMatricula?: string;
+  rematadorRegion?: string;
   cantidadItems?: number;
 };
 
@@ -71,6 +73,14 @@ export type ItemCatalogo = {
   resultadoLote?: string;
   compraId?: number | null;
   compradorEmpresa?: boolean | null;
+  duenioActual?: string;
+  fechaObjeto?: string;
+  historia?: string;
+  historiaExtendida?: string;
+  artistaDisenador?: string;
+  segmentoConsignacion?: string;
+  categoriaAsignada?: string;
+  consignacionId?: number;
 };
 
 export type ItemDetalle = ItemCatalogo & {

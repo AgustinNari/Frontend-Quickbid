@@ -11,9 +11,19 @@ export type SubastaApiResumen = {
   estadoOperativo: string;
 };
 
+export type SubastaRematadorApi = {
+  nombre?: string | null;
+  matricula?: string | null;
+  region?: string | null;
+};
+
 export type SubastaApiDetalle = SubastaApiResumen & {
   permiteInscripcionOnline?: boolean;
   autenticado?: boolean;
+  rematador?: SubastaRematadorApi | string | null;
+  rematadorNombre?: string | null;
+  rematadorMatricula?: string | null;
+  rematadorRegion?: string | null;
 };
 
 export type MedioPagoInscripcionApi = {
@@ -80,6 +90,14 @@ export type ItemApi = {
   resultadoLote?: string | null;
   compraId?: number | null;
   compradorEmpresa?: boolean | null;
+  duenioActual?: string | null;
+  fechaObjeto?: string | null;
+  historia?: string | null;
+  historiaExtendida?: string | null;
+  artistaDisenador?: string | null;
+  segmentoConsignacion?: string | null;
+  categoriaAsignada?: string | null;
+  consignacionId?: number | null;
 };
 
 export type CatalogoApi = {

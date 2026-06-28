@@ -153,7 +153,7 @@ export default function PolizaConsignacionScreen({ navigation, route }: Props) {
               emphasized
             />
             {currentLocation ? (
-              <DataRow label="Ubicación actual" value={currentLocation} />
+              <DataRow label="Ubicación de custodia" value={currentLocation} />
             ) : null}
             <DataRow
               label="Tipo"

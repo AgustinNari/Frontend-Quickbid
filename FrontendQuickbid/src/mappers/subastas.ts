@@ -81,10 +81,14 @@ export function mapSubastaResumen(dto: SubastaApiResumen): SubastaResumen {
 }
 
 export function mapSubastaDetalle(dto: SubastaApiDetalle): SubastaDetalle {
+  const auctioneer = rematador(dto);
   return {
     ...mapSubastaResumen(dto),
     descripcion: dto.descripcion ?? undefined,
     permiteInscripcionOnline: dto.permiteInscripcionOnline,
+    rematador: auctioneer.nombre,
+    rematadorMatricula: auctioneer.matricula,
+    rematadorRegion: auctioneer.region,
   };
 }
 
@@ -101,6 +105,7 @@ export function mapItemCatalogo(
     subastaId: subasta.id,
     lote: order != null ? `#${order}` : `#${dto.id}`,
     titulo: descripcion || `Lote #${dto.id}`,
+    autor: text(dto.artistaDisenador),
     estado: itemEstado(
       dto.estadoLote ?? dto.estado,
       dto.activo,
@@ -119,6 +124,14 @@ export function mapItemCatalogo(
     resultadoLote: dto.resultadoLote ?? undefined,
     compraId: dto.compraId ?? null,
     compradorEmpresa: dto.compradorEmpresa ?? null,
+    duenioActual: text(dto.duenioActual),
+    fechaObjeto: text(dto.fechaObjeto),
+    historia: text(dto.historia),
+    historiaExtendida: text(dto.historiaExtendida),
+    artistaDisenador: text(dto.artistaDisenador),
+    segmentoConsignacion: text(dto.segmentoConsignacion),
+    categoriaAsignada: text(dto.categoriaAsignada),
+    consignacionId: dto.consignacionId ?? undefined,
   };
 }
 
@@ -129,6 +142,8 @@ export function mapItemDetalle(
   return {
     ...mapItemCatalogo(dto, subasta),
     descripcion: dto.descripcion ?? undefined,
+    procedencia: text(dto.historia),
+    fechaAproximada: text(dto.fechaObjeto),
   };
 }
 
@@ -146,4 +161,20 @@ function itemEstado(
   if (resultado === 'adjudicado') return 'vendido';
   if (subastado) return 'no_vendido';
   return 'sin_estado';
+}
+
+function rematador(dto: SubastaApiDetalle) {
+  if (typeof dto.rematador === 'string') {
+    return { nombre: text(dto.rematador), matricula: undefined, region: undefined };
+  }
+  return {
+    nombre: text(dto.rematador?.nombre ?? dto.rematadorNombre),
+    matricula: text(dto.rematador?.matricula ?? dto.rematadorMatricula),
+    region: text(dto.rematador?.region ?? dto.rematadorRegion),
+  };
+}
+
+function text(value: string | null | undefined) {
+  const normalized = value?.trim();
+  return normalized ? normalized : undefined;
 }
