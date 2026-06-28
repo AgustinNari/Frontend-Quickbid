@@ -8,6 +8,7 @@ import React, {
 import {
   ActivityIndicator,
   BackHandler,
+  Image,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -734,10 +735,21 @@ function StatusBanner({
 
 function ItemEnVivoCard({ puja }: { puja: PujaActual }) {
   const theme = SEGMENTO_THEME[puja.item.segmento];
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(puja.item.imagen) && !imageFailed;
   return (
     <Card variant="flat" padding="none" style={styles.itemCard}>
       <View style={[styles.itemHero, { backgroundColor: theme.bg }]}>
-        <Icon name={theme.icon} size={72} color={theme.fg} />
+        {showImage ? (
+          <Image
+            source={{ uri: puja.item.imagen }}
+            style={styles.itemHeroImage}
+            resizeMode="cover"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <Icon name={theme.icon} size={72} color={theme.fg} />
+        )}
         <View style={styles.loteBadge}>
           <Typography style={styles.loteText}>LOTE {puja.item.lote}</Typography>
         </View>
@@ -1361,6 +1373,10 @@ const styles = StyleSheet.create({
     height: 160,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  itemHeroImage: {
+    width: '100%',
+    height: '100%',
   },
   loteBadge: {
     position: 'absolute',

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, SafeAreaView, ScrollView, StyleSheet } from 'react-native';
+import { View, SafeAreaView, ScrollView, StyleSheet, Image } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import {
@@ -150,14 +150,7 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
             </View>
 
             <Card variant="flat" padding="none" style={styles.itemCard}>
-              <View style={[styles.itemHero, { backgroundColor: theme.bg }]}>
-                <Icon name={theme.icon} size={64} color={theme.fg} />
-                <View style={styles.loteBadge}>
-                  <Typography style={styles.loteText}>
-                    LOTE {item.lote}
-                  </Typography>
-                </View>
-              </View>
+              <ItemHero item={item} theme={theme} />
               <View style={styles.itemInfo}>
                 <View style={styles.itemTituloRow}>
                   <Heading style={styles.itemTitulo}>{item.titulo}</Heading>
@@ -236,14 +229,7 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
           </View>
 
           <Card variant="flat" padding="none" style={styles.itemCard}>
-            <View style={[styles.itemHero, { backgroundColor: theme.bg }]}>
-              <Icon name={theme.icon} size={64} color={theme.fg} />
-              <View style={styles.loteBadge}>
-                <Typography style={styles.loteText}>
-                  LOTE {item.lote}
-                </Typography>
-              </View>
-            </View>
+            <ItemHero item={item} theme={theme} />
             <View style={styles.itemInfo}>
               <View style={styles.itemTituloRow}>
                 <Heading style={styles.itemTitulo}>{item.titulo}</Heading>
@@ -338,6 +324,34 @@ function SummaryLine({
   );
 }
 
+function ItemHero({
+  item,
+  theme,
+}: {
+  item: ItemDetalle;
+  theme: (typeof SEGMENTO_THEME)[ItemDetalle['segmento']];
+}) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(item.imagen) && !imageFailed;
+  return (
+    <View style={[styles.itemHero, { backgroundColor: theme.bg }]}>
+      {showImage ? (
+        <Image
+          source={{ uri: item.imagen }}
+          style={styles.itemHeroImage}
+          resizeMode="cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <Icon name={theme.icon} size={64} color={theme.fg} />
+      )}
+      <View style={styles.loteBadge}>
+        <Typography style={styles.loteText}>LOTE {item.lote}</Typography>
+      </View>
+    </View>
+  );
+}
+
 function tiempoRestante(iso: string) {
   const expires = Date.parse(iso);
   if (Number.isNaN(expires)) return '72 horas restantes';
@@ -409,6 +423,10 @@ const styles = StyleSheet.create({
     height: 150,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  itemHeroImage: {
+    width: '100%',
+    height: '100%',
   },
   loteBadge: {
     position: 'absolute',
