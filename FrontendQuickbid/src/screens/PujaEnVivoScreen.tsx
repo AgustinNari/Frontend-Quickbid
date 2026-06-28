@@ -293,6 +293,8 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
           itemId: String(event.itemCatalogoId ?? current?.item.id),
           montoFinal: event.montoAdjudicacion ?? current?.mejorOferta ?? 0,
           numeroPostor: current?.numeroPostorGanador ?? undefined,
+          compraId:
+            event.compraId != null ? String(event.compraId) : undefined,
         });
       } else if (event.tipo === 'SUBASTA_INICIADA') {
         setFeedback({

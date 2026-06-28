@@ -91,6 +91,7 @@ export type RootStackParamList = {
     itemId: string;
     montoFinal: number;
     numeroPostor?: number;
+    compraId?: string;
   };
   MenuLateral: undefined;
   Notificaciones: undefined;
