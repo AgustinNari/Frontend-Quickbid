@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import {
+  Image,
+  View,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import { Card, Typography, Badge, Button, Icon, IconName } from '../ui';
 import {
   colors,
@@ -25,11 +31,22 @@ type Props = {
 
 export function SubastaCard({ subasta, onPress, style }: Props) {
   const segmentoTheme = SEGMENTO_THEME[subasta.segmento];
+  const [imageFailed, setImageFailed] = React.useState(false);
+  const showImage = Boolean(subasta.imagen) && !imageFailed;
 
   return (
     <Card variant="elevated" padding="none" style={[styles.card, style]}>
       <View style={[styles.imageArea, { backgroundColor: segmentoTheme.bg }]}>
-        <Icon name={segmentoTheme.icon} size={72} color={segmentoTheme.fg} />
+        {showImage ? (
+          <Image
+            source={{ uri: subasta.imagen }}
+            style={styles.image}
+            resizeMode="cover"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <Icon name={segmentoTheme.icon} size={72} color={segmentoTheme.fg} />
+        )}
 
         <View style={styles.imageTopLeft}>
           <Badge tone={subasta.estado === 'activa' ? 'primary' : 'info'}>
@@ -88,6 +105,8 @@ export function SubastaCard({ subasta, onPress, style }: Props) {
 
 export function SubastaCardCompact({ subasta, onPress, style }: Props) {
   const segmentoTheme = SEGMENTO_THEME[subasta.segmento];
+  const [imageFailed, setImageFailed] = React.useState(false);
+  const showImage = Boolean(subasta.imagen) && !imageFailed;
 
   return (
     <Card
@@ -99,7 +118,16 @@ export function SubastaCardCompact({ subasta, onPress, style }: Props) {
       <View
         style={[styles.compactImage, { backgroundColor: segmentoTheme.bg }]}
       >
-        <Icon name={segmentoTheme.icon} size={36} color={segmentoTheme.fg} />
+        {showImage ? (
+          <Image
+            source={{ uri: subasta.imagen }}
+            style={styles.image}
+            resizeMode="cover"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <Icon name={segmentoTheme.icon} size={36} color={segmentoTheme.fg} />
+        )}
         <View style={styles.compactCurrencyWrap}>
           <View style={styles.currencyBadgeSmall}>
             <Typography style={styles.currencyTextSmall}>
@@ -203,6 +231,10 @@ const styles = StyleSheet.create({
     height: 180,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
   imageTopLeft: {
     position: 'absolute',

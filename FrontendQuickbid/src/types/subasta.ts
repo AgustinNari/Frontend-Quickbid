@@ -63,6 +63,7 @@ export type ItemCatalogo = {
   imagen?: string;
   segmento: SubastaSegmento;
   fotoIds?: number[];
+  fotoUrls?: string[];
 };
 
 export type ItemDetalle = ItemCatalogo & {

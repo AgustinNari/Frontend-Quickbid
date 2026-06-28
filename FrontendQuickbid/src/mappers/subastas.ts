@@ -12,6 +12,7 @@ import {
   SubastaApiDetalle,
   SubastaApiResumen,
 } from '../types/subastaApi';
+import { resolveApiMediaUrl } from '../utils/apiMedia';
 
 const CATEGORIAS: SubastaCategoria[] = [
   'comun',
@@ -83,6 +84,8 @@ export function mapItemCatalogo(
   subasta: SubastaDetalle,
 ): ItemCatalogo {
   const descripcion = dto.descripcion?.trim();
+  const fotoUrls = dto.fotoUrls ?? [];
+  const imagen = resolveApiMediaUrl(dto.imagenPrincipalUrl ?? fotoUrls[0]);
   return {
     id: String(dto.id),
     subastaId: subasta.id,
@@ -93,6 +96,8 @@ export function mapItemCatalogo(
     moneda: subasta.moneda,
     segmento: subasta.segmento,
     fotoIds: dto.fotoIds,
+    fotoUrls,
+    imagen,
   };
 }
 

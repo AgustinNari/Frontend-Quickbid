@@ -68,6 +68,8 @@ export type ItemApi = {
   productoId: number;
   descripcion: string | null;
   fotoIds: number[];
+  fotoUrls?: string[];
+  imagenPrincipalUrl?: string | null;
   precioBase?: number;
   comision?: number;
 };

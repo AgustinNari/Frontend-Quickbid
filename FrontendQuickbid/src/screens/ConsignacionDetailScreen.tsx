@@ -7,6 +7,7 @@ import {
   Alert,
   Modal,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -65,6 +66,8 @@ import { useNetwork } from '../context/NetworkContext';
 import { MobileImage, pickImages } from '../mobile/mediaPicker';
 import { ImageUploadPreview } from '../components/ImageUploadPreview';
 import { DropdownSelector } from '../components/DropdownSelector';
+import { getAuthToken } from '../api/client';
+import { resolveApiMediaUrl } from '../utils/apiMedia';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConsignacionDetail'>;
 
@@ -731,9 +734,26 @@ export default function ConsignacionDetailScreen({ navigation, route }: Props) {
 }
 
 function Hero({ detalle }: { detalle: ConsignacionDetalleUi }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const photo = detalle.fotos.find(file => file.downloadAvailable && file.downloadUrl);
+  const imageUrl = resolveApiMediaUrl(photo?.downloadUrl);
+  const token = getAuthToken();
+  const showImage = Boolean(imageUrl) && !imageFailed;
   return (
     <View style={styles.hero}>
-      <Icon name="image" size={80} color={colors.primary} />
+      {showImage ? (
+        <Image
+          source={{
+            uri: imageUrl,
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          }}
+          style={styles.heroImage}
+          resizeMode="cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <Icon name="image" size={80} color={colors.primary} />
+      )}
       <View style={styles.heroBadge}>
         <Badge tone={detalle.badgeTone} variant="solid">
           {detalle.estadoLabel.toUpperCase()}
@@ -1283,6 +1303,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.infoSoft,
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
   },
   heroBadge: { position: 'absolute', top: spacing.base, left: spacing.base },
   body: {

@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  Image,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -392,9 +393,20 @@ function InscribirmeButton({
 
 function Hero({ detalle }: { detalle: SubastaDetalle }) {
   const theme = SEGMENTO_THEME[detalle.segmento];
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(detalle.imagen) && !imageFailed;
   return (
     <View style={[styles.hero, { backgroundColor: theme.bg }]}>
-      <Icon name={theme.icon} size={88} color={theme.fg} />
+      {showImage ? (
+        <Image
+          source={{ uri: detalle.imagen }}
+          style={styles.heroImage}
+          resizeMode="cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <Icon name={theme.icon} size={88} color={theme.fg} />
+      )}
       <View style={styles.heroBadgeWrap}>
         <View style={styles.currencyBadge}>
           <Typography style={styles.currencyText}>{detalle.moneda}</Typography>
@@ -505,6 +517,10 @@ const styles = StyleSheet.create({
     height: 200,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
   },
   heroBadgeWrap: {
     position: 'absolute',

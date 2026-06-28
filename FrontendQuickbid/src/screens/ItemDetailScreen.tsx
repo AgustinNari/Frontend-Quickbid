@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -194,9 +195,20 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
 function Hero({ item }: { item: ItemDetalle }) {
   const theme = SEGMENTO_THEME[item.segmento];
   const estadoTone = HERO_ESTADO_TONE[item.estado];
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(item.imagen) && !imageFailed;
   return (
     <View style={[styles.hero, { backgroundColor: theme.bg }]}>
-      <Icon name={theme.icon} size={96} color={theme.fg} />
+      {showImage ? (
+        <Image
+          source={{ uri: item.imagen }}
+          style={styles.heroImage}
+          resizeMode="cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <Icon name={theme.icon} size={96} color={theme.fg} />
+      )}
 
       <View style={styles.heroTopLeft}>
         <Badge tone={estadoTone.tone} variant={estadoTone.variant}>
@@ -457,6 +469,10 @@ const styles = StyleSheet.create({
     height: 220,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
   },
   heroTopLeft: {
     position: 'absolute',

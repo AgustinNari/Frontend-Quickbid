@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import {
+  Image,
+  View,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import { Card, Typography, Badge, Icon } from '../ui';
 import {
   colors,
@@ -28,6 +34,8 @@ export function ItemCatalogoCard({
 }: Props) {
   const theme = SEGMENTO_THEME[item.segmento];
   const estadoTone = ESTADO_TONE[item.estado];
+  const [imageFailed, setImageFailed] = React.useState(false);
+  const showImage = Boolean(item.imagen) && !imageFailed;
 
   return (
     <Card
@@ -37,7 +45,16 @@ export function ItemCatalogoCard({
       style={[styles.card, style]}
     >
       <View style={[styles.imageArea, { backgroundColor: theme.bg }]}>
-        <Icon name={theme.icon} size={40} color={theme.fg} />
+        {showImage ? (
+          <Image
+            source={{ uri: item.imagen }}
+            style={styles.image}
+            resizeMode="cover"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <Icon name={theme.icon} size={40} color={theme.fg} />
+        )}
       </View>
 
       <View style={styles.body}>
@@ -97,6 +114,10 @@ const styles = StyleSheet.create({
     width: 104,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
   body: {
     flex: 1,
