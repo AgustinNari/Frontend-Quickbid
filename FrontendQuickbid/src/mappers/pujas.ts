@@ -26,6 +26,10 @@ export function mapPujaActual(
     esGanadorActual: snapshot.miPujaGanadora ?? false,
     loteCerrado: snapshot.adjudicado ?? snapshot.estadoLote === 'cerrado',
     loteGanado: false,
+    subastaFinalizada: snapshot.estadoLote === 'finalizada',
+    esperandoPrimeraPuja: snapshot.esperandoPrimeraPuja ?? false,
+    timerActivo: snapshot.timerActivo ?? false,
+    mensajeEstado: snapshot.mensajeEstado ?? undefined,
     historialReciente:
       snapshot.mejorOfertaActual != null
         ? [
@@ -102,6 +106,9 @@ export function applyPujaEvent(
           ? false
           : current.esGanadorActual,
       retencionHasta: event.retencionHasta ?? current.retencionHasta,
+      esperandoPrimeraPuja: false,
+      timerActivo: true,
+      mensajeEstado: undefined,
       historialReciente:
         monto == null
           ? current.historialReciente
@@ -129,6 +136,10 @@ export function applyPujaEvent(
       mejorOferta: event.mejorOfertaActual ?? current.mejorOferta,
       versionEstado: nextVersion,
       retencionHasta: event.retencionHasta ?? current.retencionHasta,
+      timerActivo:
+        event.retencionHasta != null ||
+        event.loteFinalizaEstimadoAt != null ||
+        current.timerActivo,
     };
   }
 
@@ -141,6 +152,8 @@ export function applyPujaEvent(
       esGanadorActual: false,
       retencionHasta: undefined,
       segundosRestantes: 0,
+      esperandoPrimeraPuja: false,
+      timerActivo: false,
       versionEstado: nextVersion,
       proximoLoteAt: event.proximoLoteProgramadoAt ?? null,
     };
@@ -155,6 +168,9 @@ export function applyPujaEvent(
       esGanadorActual: false,
       retencionHasta: undefined,
       segundosRestantes: 0,
+      esperandoPrimeraPuja: false,
+      timerActivo: false,
+      mensajeEstado: 'La subasta finalizo.',
       proximoLoteAt: null,
       versionEstado: nextVersion,
     };

@@ -18,6 +18,9 @@ export type PujaActualApi = {
   estadoLote?: string;
   adjudicado?: boolean;
   siguienteAccion?: string | null;
+  esperandoPrimeraPuja?: boolean;
+  timerActivo?: boolean;
+  mensajeEstado?: string | null;
 };
 
 export type PujarRequestApi = {
@@ -119,6 +122,9 @@ export type PujaActual = {
   loteCerrado: boolean;
   loteGanado: boolean;
   subastaFinalizada?: boolean;
+  esperandoPrimeraPuja?: boolean;
+  timerActivo?: boolean;
+  mensajeEstado?: string;
   proximoLoteAt?: string | null;
   historialReciente: PujaHistorial[];
   mediosParaPujar: MedioPagoDto[];

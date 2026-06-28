@@ -99,9 +99,11 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
   const [bidModalVisible, setBidModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [finishedModalVisible, setFinishedModalVisible] = useState(false);
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>('idle');
   const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
   const [networkConfirmed, setNetworkConfirmed] = useState(false);
+  const [emptyLiveEnded, setEmptyLiveEnded] = useState(false);
   const pujaRef = useRef<PujaActual | null>(null);
   const networkPromptHandled = useRef(false);
 
@@ -118,6 +120,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
 
     setLoading(true);
     setError(null);
+    setEmptyLiveEnded(false);
     try {
       const [snapshot, subastaDto, verification, mediosUsuario] =
         await Promise.all([
@@ -129,7 +132,14 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
 
       if (!snapshot.itemActivoId) {
         setPuja(null);
-        setError('Esta subasta no tiene un lote activo en este momento.');
+        const finalizada = snapshot.estadoLote === 'finalizada';
+        setEmptyLiveEnded(finalizada);
+        setError(
+          finalizada
+            ? snapshot.mensajeEstado ?? 'La subasta finalizo.'
+            : 'Esta subasta no tiene un lote activo en este momento.',
+        );
+        if (finalizada) setFinishedModalVisible(true);
         return;
       }
 
@@ -151,6 +161,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       );
     } catch (loadError) {
       setPuja(null);
+      setEmptyLiveEnded(false);
       setError(readableError(loadError, 'No pudimos cargar la sala de puja.'));
     } finally {
       setLoading(false);
@@ -290,6 +301,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
           message: 'La subasta acaba de comenzar.',
         });
       } else if (event.tipo === 'SUBASTA_FINALIZADA') {
+        setFinishedModalVisible(true);
         setFeedback({
           tone: 'info',
           title: 'Subasta finalizada',
@@ -479,8 +491,12 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
             description={
               error ?? 'Esta subasta no tiene un lote activo en este momento.'
             }
-            actionLabel="Reintentar"
-            onAction={refreshSnapshot}
+            actionLabel={emptyLiveEnded ? 'Volver a subastas' : 'Reintentar'}
+            onAction={
+              emptyLiveEnded
+                ? () => navigation.navigate('Subastas')
+                : refreshSnapshot
+            }
           />
         </View>
       ) : (
@@ -519,6 +535,25 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
                   tone="info"
                   icon="info"
                   text="Tenés la mejor oferta. Debés permanecer en la sala hasta que te superen o finalice la retención."
+                />
+              ) : null}
+              {puja.esperandoPrimeraPuja ? (
+                <StatusBanner
+                  tone="info"
+                  icon="info"
+                  text={
+                    puja.mensajeEstado ??
+                    'Esperando la primera puja. El timer arranca cuando se registre la primera oferta.'
+                  }
+                />
+              ) : null}
+              {puja.subastaFinalizada ? (
+                <StatusBanner
+                  tone="info"
+                  icon="info"
+                  text={puja.mensajeEstado ?? 'La subasta finalizo.'}
+                  actionLabel="Volver"
+                  onAction={() => navigation.navigate('Subastas')}
                 />
               ) : null}
               <ItemEnVivoCard puja={puja} />
@@ -583,6 +618,11 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       )}
 
       <FeedbackModal feedback={feedback} onClose={() => setFeedback(null)} />
+      <FinishedAuctionModal
+        visible={finishedModalVisible}
+        onClose={() => setFinishedModalVisible(false)}
+        onGoToAuctions={() => navigation.navigate('Subastas')}
+      />
       <BottomNavBar
         activeTab={activeTab}
         onTabPress={setActiveTab}
@@ -758,7 +798,14 @@ function MejorOfertaBlock({
       <Typography style={styles.versionText}>
         Última actualización reciente
       </Typography>
-      {secondsRemaining != null ? (
+      {puja.esperandoPrimeraPuja ? (
+        <View style={styles.countdownRow}>
+          <Icon name="clock" size={18} color={colors.primary} />
+          <Typography style={styles.waitingText}>
+            El timer inicia con la primera oferta.
+          </Typography>
+        </View>
+      ) : secondsRemaining != null ? (
         <View style={styles.countdownRow}>
           <Icon name="clock" size={18} color={colors.warning} />
           <Typography style={styles.countdownText}>
@@ -1155,6 +1202,42 @@ function FeedbackModal({
   );
 }
 
+function FinishedAuctionModal({
+  visible,
+  onClose,
+  onGoToAuctions,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onGoToAuctions: () => void;
+}) {
+  if (!visible) return null;
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.overlayBackdrop}>
+        <View style={styles.feedbackCard}>
+          <View
+            style={[
+              styles.feedbackIcon,
+              { backgroundColor: `${colors.primary}22` },
+            ]}
+          >
+            <Icon name="check-circle" size={34} color={colors.primary} />
+          </View>
+          <Heading style={styles.feedbackTitle}>Subasta finalizada</Heading>
+          <Body muted style={styles.feedbackText}>
+            La subasta termino. Ya podes volver al listado.
+          </Body>
+          <Button onPress={onGoToAuctions}>VOLVER A SUBASTAS</Button>
+          <Button variant="secondary" onPress={onClose}>
+            Cerrar
+          </Button>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 function parseAmount(value: string): number | null {
   const normalized = value.trim().replace(/\./g, '').replace(',', '.');
   if (!normalized) return null;
@@ -1364,6 +1447,11 @@ const styles = StyleSheet.create({
     color: colors.warning,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
+  },
+  waitingText: {
+    color: colors.primary,
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
   },
   historialWrap: {
     gap: spacing.sm,
