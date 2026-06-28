@@ -333,7 +333,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
           title: 'Lote cerrado',
           message: event.proximoLoteProgramadoAt
             ? 'Este lote ya cerró. El próximo lote comienza en instantes.'
-            : 'Este lote ya cerró. la subasta está por finalizar.',
+            : 'Este lote ya cerró. La subasta está por finalizar.',
         });
       } else if (event.tipo === 'LOTE_GANADO') {
         const current = pujaRef.current;
@@ -433,7 +433,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
       setFeedback({
         tone: 'danger',
         title: 'Cuenta bloqueada',
-        message: 'tu cuenta está bloqueada y no puede operar en subastas.',
+        message: 'Tu cuenta está bloqueada y no puede operar en subastas.',
       });
       return;
     }
@@ -601,7 +601,7 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
                   icon="info"
                   text={
                     puja.mensajeEstado ??
-                    'Esperando la primera puja. El timer arranca cuando se registre la primera oferta.'
+                    'Esperando la primera puja. El timer inicia con la primera oferta.'
                   }
                 />
               ) : null}

@@ -101,7 +101,12 @@ export function mapItemCatalogo(
     subastaId: subasta.id,
     lote: order != null ? `#${order}` : `#${dto.id}`,
     titulo: descripcion || `Lote #${dto.id}`,
-    estado: itemEstado(dto.estadoLote ?? dto.estado),
+    estado: itemEstado(
+      dto.estadoLote ?? dto.estado,
+      dto.activo,
+      dto.subastado,
+      dto.resultadoLote,
+    ),
     precioBase: dto.precioBase,
     moneda: subasta.moneda,
     segmento: subasta.segmento,
@@ -127,7 +132,18 @@ export function mapItemDetalle(
   };
 }
 
-function itemEstado(value: string | null | undefined): ItemEstado {
+function itemEstado(
+  value: string | null | undefined,
+  activo?: boolean | null,
+  subastado?: boolean | null,
+  resultado?: string | null,
+): ItemEstado {
   const normalized = (value ?? '').toLowerCase() as ItemEstado;
-  return ITEM_ESTADOS.includes(normalized) ? normalized : 'sin_estado';
+  if (ITEM_ESTADOS.includes(normalized)) return normalized;
+  if (activo) return 'en_vivo';
+  if (!subastado) return 'pendiente';
+  if (resultado === 'comprado_por_empresa') return 'comprado_por_empresa';
+  if (resultado === 'adjudicado') return 'vendido';
+  if (subastado) return 'no_vendido';
+  return 'sin_estado';
 }

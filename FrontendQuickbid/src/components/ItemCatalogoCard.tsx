@@ -23,6 +23,7 @@ type Props = {
   item: ItemCatalogo;
   onPress?: () => void;
   showPrice?: boolean;
+  totalLotes?: number;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -30,6 +31,7 @@ export function ItemCatalogoCard({
   item,
   onPress,
   showPrice = true,
+  totalLotes,
   style,
 }: Props) {
   const theme = SEGMENTO_THEME[item.segmento];
@@ -40,6 +42,10 @@ export function ItemCatalogoCard({
     item.estado === 'comprado_por_empresa';
   const [imageFailed, setImageFailed] = React.useState(false);
   const showImage = Boolean(item.imagen) && !imageFailed;
+  const loteLabel =
+    item.ordenLote != null && totalLotes != null
+      ? `Lote ${item.ordenLote} de ${totalLotes}`
+      : `Lote ${item.lote}`;
 
   return (
     <Card
@@ -69,7 +75,7 @@ export function ItemCatalogoCard({
 
       <View style={styles.body}>
         <View style={styles.headerRow}>
-          <Typography style={styles.lote}>LOTE {item.lote}</Typography>
+          <Typography style={styles.lote}>{loteLabel}</Typography>
           <Badge tone={estadoTone.tone} variant={estadoTone.variant}>
             {item.estado === 'en_vivo' ? '● ' : ''}
             {ITEM_ESTADO_LABEL[item.estado]}

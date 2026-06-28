@@ -102,18 +102,36 @@ export function applyPujaEvent(
   ) {
     const monto = event.monto ?? event.mejorOfertaActual ?? current.mejorOferta;
     const existingKey = eventHistoryKey(event, nextVersion, monto);
-    const alreadyListed = current.historialReciente.some(
+    const duplicateIndex = current.historialReciente.findIndex(
       item => item.id === existingKey || sameBidHistory(item, event, monto),
     );
+    const alreadyListed = duplicateIndex >= 0;
     const postorAlias =
       event.postorAlias ??
       (event.numeroPostor != null ? `Postor #${event.numeroPostor}` : 'Postor');
     const nextHistory =
-      monto == null || alreadyListed
+      monto == null
         ? current.historialReciente.map((item, index) => ({
             ...item,
             ganadora: index === 0,
           }))
+        : alreadyListed
+        ? current.historialReciente.map((item, index) =>
+            index === duplicateIndex
+              ? {
+                  ...item,
+                  id: existingKey,
+                  postorAlias,
+                  numeroPostor: event.numeroPostor ?? item.numeroPostor,
+                  monto,
+                  versionEstado: nextVersion,
+                  ganadora: index === 0,
+                }
+              : {
+                  ...item,
+                  ganadora: index === 0,
+                },
+          )
         : [
             {
               id: existingKey,

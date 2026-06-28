@@ -154,6 +154,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
                 <ItemCatalogoCard
                   item={item}
                   showPrice={isAuthenticated}
+                  totalLotes={items.length}
                   onPress={() => handleOpenItem(item)}
                 />
               )}

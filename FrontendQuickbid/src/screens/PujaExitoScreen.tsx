@@ -89,7 +89,7 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
         <ScreenHeader onBack={volverAlLive} />
         <Loader
           fullScreen
-          label="Preparando el resumen de tu adjudicacion..."
+          label="Preparando el resumen de tu adjudicación..."
         />
       </SafeAreaView>
     );
@@ -158,7 +158,7 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
                 </View>
                 <View style={styles.failedRows}>
                   <SummaryLine
-                    label="Tiempo limite"
+                    label="Tiempo límite"
                     value={venceLabel}
                     tone="danger"
                   />
@@ -179,9 +179,9 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
               <Icon name="alert" size={18} color={colors.danger} />
               <Body style={styles.infoText}>
                 Tu cuenta queda restringida temporalmente para nuevas pujas
-                hasta pagar la obligacion y la multa. Si no pagas dentro del
-                plazo, tu cuenta se bloqueara de manera permanente y
-                el caso se derivara a la justicia.
+                hasta pagar la obligación y la multa. Si no pagás dentro del
+                plazo, tu cuenta se bloqueará de manera permanente y
+                el caso se derivará a la justicia.
               </Body>
             </View>
           </View>
