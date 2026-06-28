@@ -180,8 +180,8 @@ export default function PujaExitoScreen({ navigation, route }: Props) {
               <Body style={styles.infoText}>
                 Tu cuenta queda restringida temporalmente para nuevas pujas
                 hasta pagar la obligacion y la multa. Si no pagas dentro del
-                plazo, la restriccion puede volverse mas grave segun las reglas
-                de negocio.
+                plazo, tu cuenta se bloqueara de manera permanente y
+                el caso se derivara a la justicia.
               </Body>
             </View>
           </View>
