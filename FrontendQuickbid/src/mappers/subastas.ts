@@ -71,6 +71,7 @@ export function mapSubastaResumen(dto: SubastaApiResumen): SubastaResumen {
   return {
     id: String(dto.id),
     titulo: dto.titulo,
+    imagen: resolveApiMediaUrl(dto.imagenPrincipalUrl),
     estado: estado(dto.estadoOperativo),
     categoria: categoria(dto.categoria),
     segmento: segmento(dto.segmento),
@@ -97,8 +98,12 @@ export function mapItemCatalogo(
   subasta: SubastaDetalle,
 ): ItemCatalogo {
   const descripcion = dto.descripcion?.trim();
-  const fotoUrls = dto.fotoUrls ?? [];
-  const imagen = resolveApiMediaUrl(dto.imagenPrincipalUrl ?? fotoUrls[0]);
+  const rawFotoUrls = dto.fotoUrls ?? [];
+  const fotoUrls = uniqueMediaUrls(rawFotoUrls);
+  const imagen =
+    resolveApiMediaUrl(dto.imagenPrincipalUrl) ??
+    fotoUrls[0] ??
+    resolveApiMediaUrl(rawFotoUrls[0]);
   const order = dto.ordenLote ?? undefined;
   return {
     id: String(dto.id),
@@ -177,4 +182,16 @@ function rematador(dto: SubastaApiDetalle) {
 function text(value: string | null | undefined) {
   const normalized = value?.trim();
   return normalized ? normalized : undefined;
+}
+
+function uniqueMediaUrls(values: Array<string | null | undefined>) {
+  const seen = new Set<string>();
+  return values.reduce<string[]>((acc, value) => {
+    const resolved = resolveApiMediaUrl(value);
+    if (resolved && !seen.has(resolved)) {
+      seen.add(resolved);
+      acc.push(resolved);
+    }
+    return acc;
+  }, []);
 }

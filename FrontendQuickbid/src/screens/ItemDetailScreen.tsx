@@ -7,6 +7,10 @@ import {
   TouchableOpacity,
   Image,
   Modal,
+  FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  useWindowDimensions,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -121,7 +125,7 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
             contentContainerStyle={styles.scroll}
             showsVerticalScrollIndicator={false}
           >
-            <Hero item={item} />
+            <Hero item={item} showStatus={isAuthenticated} />
 
             <View style={styles.body}>
               <Typography style={styles.overline}>LOTE {item.lote}</Typography>
@@ -175,10 +179,12 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
             </View>
           </ScrollView>
 
-          <ItemFooter
-            estado={item.estado}
-            onPujar={handlePujar}
-          />
+          {isAuthenticated ? (
+            <ItemFooter
+              estado={item.estado}
+              onPujar={handlePujar}
+            />
+          ) : null}
         </>
       )}
 
@@ -191,36 +197,115 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
   );
 }
 
-function Hero({ item }: { item: ItemDetalle }) {
+function Hero({
+  item,
+  showStatus,
+}: {
+  item: ItemDetalle;
+  showStatus: boolean;
+}) {
   const theme = SEGMENTO_THEME[item.segmento];
   const estadoTone = HERO_ESTADO_TONE[item.estado];
-  const [imageFailed, setImageFailed] = useState(false);
-  const showImage = Boolean(item.imagen) && !imageFailed;
+  const { width } = useWindowDimensions();
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [modalVisible, setModalVisible] = useState(false);
+  const imageUrls = React.useMemo(
+    () => uniqueStrings([item.imagen, ...(item.fotoUrls ?? [])]),
+    [item.fotoUrls, item.imagen],
+  );
+  const visibleImages = imageUrls.filter(url => !failedImages.has(url));
+  const activeImage = visibleImages[activeIndex] ?? visibleImages[0];
+  const showImage = visibleImages.length > 0;
+
+  const handleImageError = (url: string) => {
+    setFailedImages(current => new Set(current).add(url));
+    setActiveIndex(index => Math.max(0, Math.min(index, visibleImages.length - 2)));
+  };
+
+  const handleMomentumEnd = (
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+  ) => {
+    const index = Math.round(event.nativeEvent.contentOffset.x / width);
+    setActiveIndex(Math.max(0, Math.min(index, visibleImages.length - 1)));
+  };
+
   return (
     <View style={[styles.hero, { backgroundColor: theme.bg }]}>
       {showImage ? (
-        <Image
-          source={{ uri: item.imagen }}
-          style={styles.heroImage}
-          resizeMode="cover"
-          onError={() => setImageFailed(true)}
+        <FlatList
+          data={visibleImages}
+          keyExtractor={url => url}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={handleMomentumEnd}
+          renderItem={({ item: imageUrl }) => (
+            <TouchableOpacity
+              activeOpacity={0.92}
+              onPress={() => setModalVisible(true)}
+              style={[styles.carouselPage, { width }]}
+            >
+              <Image
+                source={{ uri: imageUrl }}
+                style={styles.heroImage}
+                resizeMode="cover"
+                onError={() => handleImageError(imageUrl)}
+              />
+            </TouchableOpacity>
+          )}
         />
       ) : (
         <Icon name={theme.icon} size={96} color={theme.fg} />
       )}
 
-      <View style={styles.heroTopLeft}>
-        <Badge tone={estadoTone.tone} variant={estadoTone.variant}>
-          {item.estado === 'en_vivo' ? '● ' : ''}
-          {ITEM_ESTADO_LABEL[item.estado]}
-        </Badge>
-      </View>
+      {showStatus ? (
+        <View style={styles.heroTopLeft}>
+          <Badge tone={estadoTone.tone} variant={estadoTone.variant}>
+            {item.estado === 'en_vivo' ? '● ' : ''}
+            {ITEM_ESTADO_LABEL[item.estado]}
+          </Badge>
+        </View>
+      ) : null}
+
+      {visibleImages.length > 1 ? (
+        <View style={styles.heroCounter}>
+          <Typography style={styles.heroCounterText}>
+            {activeIndex + 1} / {visibleImages.length}
+          </Typography>
+        </View>
+      ) : null}
 
       <View style={styles.heroBottomRight}>
         <View style={styles.currencyBadge}>
           <Typography style={styles.currencyText}>{item.moneda}</Typography>
         </View>
       </View>
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.imageModalBackdrop}>
+          {activeImage ? (
+            <Image
+              source={{ uri: activeImage }}
+              style={styles.imageModalImage}
+              resizeMode="contain"
+            />
+          ) : null}
+          {visibleImages.length > 1 ? (
+            <Typography style={styles.imageModalCounter}>
+              {activeIndex + 1} / {visibleImages.length}
+            </Typography>
+          ) : null}
+          <Button variant="secondary" onPress={() => setModalVisible(false)}>
+            Cerrar
+          </Button>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -537,6 +622,17 @@ function humanize(value: string) {
     .replace(/^\w|\s\w/g, match => match.toUpperCase());
 }
 
+function uniqueStrings(values: Array<string | undefined>) {
+  const seen = new Set<string>();
+  return values.reduce<string[]>((acc, value) => {
+    if (value && !seen.has(value)) {
+      seen.add(value);
+      acc.push(value);
+    }
+    return acc;
+  }, []);
+}
+
 function TabEmpty({ mensaje }: { mensaje: string }) {
   return (
     <View style={styles.tabEmpty}>
@@ -582,10 +678,27 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  carouselPage: {
+    height: '100%',
+  },
   heroTopLeft: {
     position: 'absolute',
     top: spacing.base,
     left: spacing.base,
+  },
+  heroCounter: {
+    position: 'absolute',
+    bottom: spacing.base,
+    alignSelf: 'center',
+    backgroundColor: colors.overlay,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+  },
+  heroCounterText: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.bold,
+    color: colors.textInverse,
   },
   heroBottomRight: {
     position: 'absolute',
@@ -761,6 +874,24 @@ const styles = StyleSheet.create({
   modalBody: {
     color: colors.textLabel,
     lineHeight: fontSize.lg * 1.5,
+  },
+  imageModalBackdrop: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: layout.screenPaddingHorizontal,
+    paddingVertical: spacing['3xl'],
+    gap: spacing.base,
+  },
+  imageModalImage: {
+    width: '100%',
+    flex: 1,
+  },
+  imageModalCounter: {
+    color: colors.textInverse,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
   },
   footer: {
     backgroundColor: colors.surface,

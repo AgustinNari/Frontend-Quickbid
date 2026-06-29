@@ -100,19 +100,21 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
         <>
           <View style={styles.tabs}>
             <CatalogoTab label="Catálogo completo" active />
-            <CatalogoTab
-              label={
-                subastaEstado === 'activa'
-                  ? 'Ver en puja actual'
-                  : 'Live no iniciado'
-              }
-              comingSoon={subastaEstado !== 'activa'}
-              onPress={
-                subastaEstado === 'activa'
-                  ? () => navigation.navigate('PujaEnVivo', { subastaId })
-                  : undefined
-              }
-            />
+            {isAuthenticated ? (
+              <CatalogoTab
+                label={
+                  subastaEstado === 'activa'
+                    ? 'Ver en puja actual'
+                    : 'Live no iniciado'
+                }
+                comingSoon={subastaEstado !== 'activa'}
+                onPress={
+                  subastaEstado === 'activa'
+                    ? () => navigation.navigate('PujaEnVivo', { subastaId })
+                    : undefined
+                }
+              />
+            ) : null}
           </View>
 
           <View style={styles.titleBlock}>
@@ -146,6 +148,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
             </View>
           ) : (
             <FlatList
+              style={styles.listScroller}
               data={items}
               keyExtractor={it => it.id}
               contentContainerStyle={styles.list}
@@ -154,6 +157,7 @@ export default function CatalogoSubastaScreen({ navigation, route }: Props) {
                 <ItemCatalogoCard
                   item={item}
                   showPrice={isAuthenticated}
+                  showStatus={isAuthenticated}
                   totalLotes={items.length}
                   onPress={() => handleOpenItem(item)}
                 />
@@ -282,7 +286,10 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: layout.screenPaddingHorizontal,
-    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
+    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.xl,
+  },
+  listScroller: {
+    flex: 1,
   },
   emptyWrap: {
     flex: 1,

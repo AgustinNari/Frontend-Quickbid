@@ -23,6 +23,7 @@ type Props = {
   item: ItemCatalogo;
   onPress?: () => void;
   showPrice?: boolean;
+  showStatus?: boolean;
   totalLotes?: number;
   style?: StyleProp<ViewStyle>;
 };
@@ -31,15 +32,17 @@ export function ItemCatalogoCard({
   item,
   onPress,
   showPrice = true,
+  showStatus = true,
   totalLotes,
   style,
 }: Props) {
   const theme = SEGMENTO_THEME[item.segmento];
   const estadoTone = ESTADO_TONE[item.estado];
   const pastLot =
-    item.estado === 'vendido' ||
-    item.estado === 'no_vendido' ||
-    item.estado === 'comprado_por_empresa';
+    showStatus &&
+    (item.estado === 'vendido' ||
+      item.estado === 'no_vendido' ||
+      item.estado === 'comprado_por_empresa');
   const [imageFailed, setImageFailed] = React.useState(false);
   const showImage = Boolean(item.imagen) && !imageFailed;
   const loteLabel =
@@ -76,10 +79,12 @@ export function ItemCatalogoCard({
       <View style={styles.body}>
         <View style={styles.headerRow}>
           <Typography style={styles.lote}>{loteLabel}</Typography>
-          <Badge tone={estadoTone.tone} variant={estadoTone.variant}>
-            {item.estado === 'en_vivo' ? '● ' : ''}
-            {ITEM_ESTADO_LABEL[item.estado]}
-          </Badge>
+          {showStatus ? (
+            <Badge tone={estadoTone.tone} variant={estadoTone.variant}>
+              {item.estado === 'en_vivo' ? '● ' : ''}
+              {ITEM_ESTADO_LABEL[item.estado]}
+            </Badge>
+          ) : null}
         </View>
 
         <Typography variant="h3" numberOfLines={2} style={styles.titulo}>
@@ -125,13 +130,14 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     overflow: 'hidden',
-    minHeight: 124,
+    height: 164,
   },
   cardPast: {
     opacity: 0.72,
   },
   imageArea: {
-    width: 104,
+    width: 116,
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },

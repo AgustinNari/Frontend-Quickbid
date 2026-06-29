@@ -2,6 +2,7 @@ export type SubastaApiResumen = {
   id: number;
   titulo: string;
   descripcion: string | null;
+  imagenPrincipalUrl?: string | null;
   fecha: string;
   hora: string;
   ubicacion: string;
