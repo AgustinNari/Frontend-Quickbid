@@ -158,7 +158,12 @@ export function SubastaCardCompact({ subasta, onPress, style }: Props) {
 
         <View style={styles.metaRow}>
           <Icon name="calendar" size={14} color={colors.textMuted} />
-          <Typography variant="caption" muted style={styles.metaText}>
+          <Typography
+            variant="caption"
+            muted
+            numberOfLines={1}
+            style={styles.metaText}
+          >
             {formatFecha(subasta.fechaInicio)}
           </Typography>
         </View>
@@ -175,7 +180,7 @@ export function SubastaCardCompact({ subasta, onPress, style }: Props) {
           </Typography>
         </View>
 
-        <Typography variant="caption" muted>
+        <Typography variant="caption" muted numberOfLines={1}>
           Categoría: {CATEGORIA_LABEL[subasta.categoria]}
         </Typography>
       </View>
@@ -289,10 +294,11 @@ const styles = StyleSheet.create({
   cardCompact: {
     flexDirection: 'row',
     overflow: 'hidden',
-    minHeight: 140,
+    height: 180,
   },
   compactImage: {
-    width: 110,
+    width: 124,
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -319,6 +325,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: spacing.md,
     gap: 4,
+    justifyContent: 'center',
   },
   compactHeaderRow: {
     flexDirection: 'row',
@@ -331,5 +338,6 @@ const styles = StyleSheet.create({
   },
   compactTitulo: {
     marginBottom: spacing.xs,
+    flexShrink: 1,
   },
 });

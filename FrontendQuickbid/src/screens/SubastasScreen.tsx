@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   },
   scroll: {
     paddingTop: spacing.xl,
-    paddingBottom: BOTTOM_NAV_HEIGHT + spacing.lg,
+    paddingBottom: BOTTOM_NAV_HEIGHT + spacing['3xl'],
   },
   activasHeader: {
     flexDirection: 'row',
