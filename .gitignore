@@ -1,1 +1,6 @@
 BackendQuickbid/
+
+# Local environment variables / secrets
+.env
+.env.*
+*.env
