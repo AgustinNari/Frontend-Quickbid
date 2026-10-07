@@ -1,61 +1,160 @@
-# QuickBid — App móvil
+# QuickBid — Mobile App
 
-Aplicación de subastas desarrollada en equipo con React Native y TypeScript. Incluye registro y autenticación, consulta de subastas y catálogos, pujas en tiempo real, compras, medios de pago, consignaciones, perfil y notificaciones. Integra la API de [Backend-Quickbid](https://github.com/AgustinNari/Backend-Quickbid).
+Mobile auction application developed as a team project using React Native and TypeScript.
 
-La aplicación detecta cambios de conectividad y permite guardar borradores de consignación en el dispositivo para enviarlos posteriormente. Las pujas y las operaciones que requieren confirmación del servidor necesitan conexión.
+QuickBid includes registration and authentication, auction browsing, real-time bidding, purchases, payment methods, consignments, user profiles, and notifications.
 
-## Stack y requisitos
+The backend is available in [Backend-Quickbid](https://github.com/AgustinNari/Backend-Quickbid).
 
-React Native 0.85.3, React 19.2.3, TypeScript, React Navigation, Context para autenticación/conectividad, AsyncStorage y STOMP sobre WebSocket. El proyecto está en `FrontendQuickbid/`.
+## Features
 
-- Node.js 22.11 o superior y npm.
-- Android: JDK 17, Android Studio/SDK 36, NDK 27.1.12297006 y un emulador o dispositivo con depuración USB. Android mínimo: API 24.
-- iOS: macOS, Xcode, Ruby/Bundler y CocoaPods.
+- User registration and authentication
+- Auction and catalog browsing
+- Real-time bidding through WebSocket/STOMP
+- Purchases and payment-method management
+- Product consignments
+- User profile management
+- Notifications
+- Connectivity detection
+- Offline consignment drafts stored locally
+- Authentication deep links
 
-## Instalación
+Operations that require server confirmation, including live bidding, require an active connection.
 
-```sh
+## Tech Stack
+
+- React Native 0.85
+- React 19
+- TypeScript
+- React Navigation
+- AsyncStorage
+- WebSocket / STOMP
+- Android
+- iOS
+
+## Requirements
+
+### General
+
+- Node.js 22.11 or newer
+- npm
+
+### Android
+
+- JDK 17
+- Android Studio
+- Android SDK 36
+- NDK 27.1.12297006
+- Android API 24 or newer
+
+### iOS
+
+- macOS
+- Xcode
+- Ruby / Bundler
+- CocoaPods
+
+## Installation
+
+```bash
 cd FrontendQuickbid
 npm ci
 ```
 
-Para iOS, desde esa carpeta ejecutar además `bundle install` y `cd ios && bundle exec pod install`, y regresar a `FrontendQuickbid/`.
+For iOS:
 
-## Configuración del backend
+```bash
+bundle install
+cd ios
+bundle exec pod install
+```
 
-La configuración se encuentra en `FrontendQuickbid/src/api/config.ts`. No hay un cargador de `.env` configurado para la app.
+Then return to `FrontendQuickbid/`.
 
-| `API_MODE` | Conexión |
+## Backend Configuration
+
+API configuration is located in:
+
+```text
+FrontendQuickbid/src/api/config.ts
+```
+
+The application currently supports three connection modes:
+
+| Mode | Backend |
 | --- | --- |
-| `public` | URL de demo definida por `PUBLIC_API_BASE_URL`; es el modo actual. |
-| `localReverse` | `http://localhost:8080`, con `adb reverse` para Android. |
-| `emulator` | `http://10.0.2.2:8080`, para el emulador Android. |
+| `public` | Configured public demo backend |
+| `localReverse` | `http://localhost:8080` using ADB reverse |
+| `emulator` | `http://10.0.2.2:8080` for the Android emulator |
 
-Para utilizar otro backend público, ajustar `PUBLIC_API_BASE_URL`. La URL WebSocket se deriva de la URL HTTP/HTTPS. Elegir el modo apropiado antes de iniciar la app; los scripts `android:local` y `android:public` configuran la conexión ADB, pero no cambian `API_MODE`.
+The WebSocket URL is derived from the HTTP/HTTPS backend URL.
 
-El backend debe configurarse para enviar enlaces de autenticación a `quickbid://auth`. La app procesa enlaces de registro y recuperación de contraseña.
+The backend should use:
 
-## Ejecución
+```text
+quickbid://auth
+```
 
-Desde `FrontendQuickbid/`, iniciar Metro en una terminal:
+as the frontend base URL for registration and password-recovery links.
 
-```sh
+## Running the App
+
+Start Metro:
+
+```bash
 npm start
 ```
 
-En otra terminal, ejecutar `npm run android` o, en macOS, `npm run ios`. Para Android por USB con backend local, seleccionar `localReverse` y ejecutar `npm run android:local`; para el backend público, seleccionar `public` y ejecutar `npm run android:public`. Ambos scripts presuponen Metro ya iniciado y un dispositivo disponible por ADB.
+Then, in another terminal:
 
-## Validación
+```bash
+npm run android
+```
 
-Desde `FrontendQuickbid/`:
+or on macOS:
 
-```sh
+```bash
+npm run ios
+```
+
+For Android with a local backend:
+
+```bash
+npm run android:local
+```
+
+For the public backend:
+
+```bash
+npm run android:public
+```
+
+## Validation
+
+Run Jest tests:
+
+```bash
 npm test -- --runInBand
+```
+
+Run lint:
+
+```bash
 npm run lint
 ```
 
-Los tests Jest cubren componentes, conectividad, mappers, medios de pago, documentos y borradores de consignación. El proyecto también incluye configuración TypeScript: con las dependencias instaladas, ejecutar `npx --no-install tsc --noEmit`. No hay un script independiente de typecheck.
+Run TypeScript validation:
 
-## Alcance de demostración
+```bash
+npx --no-install tsc --noEmit
+```
 
-La URL pública configurada corresponde a un backend de demo y su disponibilidad depende de ese servicio. Los pagos y los datos de demostración siguen el comportamiento del backend. Android conserva la firma de depuración incluso para el build `release`; no representa una configuración de distribución comercial. Los proyectos nativos, wrappers y configuración de build forman parte del repositorio.
+Tests cover components, connectivity behavior, data mapping, payment methods, documents, and consignment drafts.
+
+## Demo Scope
+
+The configured public URL points to a demonstration backend and its availability depends on that service.
+
+Payments and demo data follow the behavior implemented by the backend.
+
+Android currently uses a debug signing configuration for release builds, so the repository should not be considered a production distribution configuration.
