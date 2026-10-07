@@ -4,7 +4,7 @@ Mobile auction application developed as a team project using React Native and Ty
 
 QuickBid includes registration and authentication, auction browsing, real-time bidding, purchases, payment methods, consignments, user profiles, and notifications.
 
-The backend is available in [Backend-Quickbid](https://github.com/AgustinNari/Backend-Quickbid).
+The backend is available in [quickbid-backend](https://github.com/AgustinNari/quickbid-backend).
 
 ## Features
 
