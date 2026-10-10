@@ -20,6 +20,26 @@ const subastaDto: SubastaApiDetalle = {
 };
 
 describe('subastas mapper', () => {
+  test('muestra el texto completo consignado sin reemplazar el título del lote', () => {
+    const item = mapItemDetalle(
+      {
+        id: 9011,
+        descripcion: 'Sillón de roble',
+        ordenLote: 1,
+        estadoLote: 'en_vivo',
+        historiaExtendida:
+          'Roble macizo, lana marfil y medidas de 76 × 74 × 82 cm.',
+      } as ItemApi,
+      mapSubastaDetalle(subastaDto),
+    );
+    expect(item.titulo).toBe('Sillón de roble');
+    expect(item.lote).toBe('#1');
+    expect(item.estado).toBe('en_vivo');
+    expect(item.descripcion).toBe(
+      'Roble macizo, lana marfil y medidas de 76 × 74 × 82 cm.',
+    );
+  });
+
   test('mapea rematador completo desde el detalle de subasta', () => {
     expect(mapSubastaDetalle(subastaDto)).toMatchObject({
       rematador: 'Martillero QuickBid',
@@ -45,7 +65,9 @@ describe('subastas mapper', () => {
       consignacionId: 16111,
     };
 
-    expect(mapItemDetalle(itemDto, mapSubastaDetalle(subastaDto))).toMatchObject({
+    expect(
+      mapItemDetalle(itemDto, mapSubastaDetalle(subastaDto)),
+    ).toMatchObject({
       autor: 'Disenador escandinavo',
       duenioActual: 'Propietario registrado',
       fechaObjeto: '1968',

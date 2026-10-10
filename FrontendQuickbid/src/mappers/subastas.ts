@@ -146,7 +146,7 @@ export function mapItemDetalle(
 ): ItemDetalle {
   return {
     ...mapItemCatalogo(dto, subasta),
-    descripcion: dto.descripcion ?? undefined,
+    descripcion: text(dto.historiaExtendida) ?? dto.descripcion ?? undefined,
     procedencia: text(dto.historia),
     fechaAproximada: text(dto.fechaObjeto),
   };

@@ -47,6 +47,28 @@ function liveSnapshot(overrides: Partial<PujaActualApi> = {}): PujaActual {
 }
 
 describe('pujas mapper history', () => {
+  test('restores persisted bid history after reopening the room', () => {
+    const current = liveSnapshot({
+      mejorOfertaActual: 50500,
+      versionEstado: 4,
+      puedePujar: false,
+      historialReciente: [
+        { pujaId: 12505, monto: 50500, versionEstado: 4, numeroPostor: 2, postorAlias: 'Postor #2', estado: 'aceptada' },
+        { pujaId: 12504, monto: 50000, versionEstado: 3, numeroPostor: 1, postorAlias: 'Postor #1', estado: 'superada' },
+      ],
+    });
+    expect(current.historialReciente.map(bid => bid.id)).toEqual(['puja-12505', 'puja-12504']);
+    expect(current.historialReciente.map(bid => bid.ganadora)).toEqual([true, false]);
+    expect(current.numeroPostorGanador).toBe(2);
+    expect(current.postorGanadorAlias).toBe('Postor #2');
+    const updated = applyPujaEvent(current, {
+      tipo: 'MEJOR_OFERTA_ACTUALIZADA', pujaId: 12505, monto: 50500,
+      versionEstado: 4, numeroPostor: 2,
+    });
+    expect(updated.historialReciente).toHaveLength(2);
+    expect(updated.puedePujar).toBe(false);
+  });
+
   test('deduplicates snapshot plus websocket event for the same bid', () => {
     const current = liveSnapshot({
       mejorOfertaActual: 50500,

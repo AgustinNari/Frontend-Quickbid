@@ -162,7 +162,9 @@ export default function PujaEnVivoScreen({ navigation, route }: Props) {
         return;
       }
 
-      const itemDto = await subastasApi.item(snapshot.itemActivoId);
+      const catalogoDto = await subastasApi.catalogo(liveId);
+      const itemDto = catalogoDto.items.find(dto => dto.id === snapshot.itemActivoId);
+      if (!itemDto) throw new Error('El lote activo no pertenece a esta subasta.');
       const subasta = mapSubastaDetalle(subastaDto);
       const item = mapItemDetalle(itemDto, subasta);
       const idsHabilitados = new Set(

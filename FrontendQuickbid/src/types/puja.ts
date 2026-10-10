@@ -27,6 +27,14 @@ export type PujaActualApi = {
   esperandoPrimeraPuja?: boolean;
   timerActivo?: boolean;
   mensajeEstado?: string | null;
+  historialReciente?: {
+    pujaId: number;
+    monto: number;
+    versionEstado: number;
+    numeroPostor: number | null;
+    postorAlias: string;
+    estado: string;
+  }[];
 };
 
 export type PujarRequestApi = {

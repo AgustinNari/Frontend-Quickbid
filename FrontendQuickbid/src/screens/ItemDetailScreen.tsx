@@ -76,10 +76,12 @@ export default function ItemDetailScreen({ navigation, route }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const [itemDto, subastaDto] = await Promise.all([
-        subastasApi.item(Number(itemId)),
+      const [catalogoDto, subastaDto] = await Promise.all([
+        subastasApi.catalogo(Number(subastaId)),
         subastasApi.detalle(Number(subastaId)),
       ]);
+      const itemDto = catalogoDto.items.find(dto => dto.id === Number(itemId));
+      if (!itemDto) throw new Error('El lote no pertenece a esta subasta.');
       setItem(mapItemDetalle(itemDto, mapSubastaDetalle(subastaDto)));
     } catch (loadError) {
       setItem(null);

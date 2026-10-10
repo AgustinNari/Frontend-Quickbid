@@ -14,6 +14,9 @@ export function mapPujaActual(
   item: ItemDetalle,
   mediosParaPujar: MedioPagoDto[],
 ): PujaActual {
+  const winningBid = snapshot.historialReciente?.find(
+    bid => bid.estado === 'aceptada' || bid.estado === 'ganadora',
+  );
   const serverNowMs = snapshot.serverNow
     ? Date.parse(snapshot.serverNow)
     : Date.now();
@@ -29,6 +32,8 @@ export function mapPujaActual(
     puedePujar: snapshot.puedePujar,
     motivoNoPuedePujar: snapshot.motivo ?? undefined,
     esGanadorActual: snapshot.miPujaGanadora ?? false,
+    numeroPostorGanador: winningBid?.numeroPostor,
+    postorGanadorAlias: winningBid?.postorAlias,
     loteCerrado: snapshot.adjudicado ?? snapshot.estadoLote === 'cerrado',
     loteGanado: false,
     subastaFinalizada: snapshot.estadoLote === 'finalizada',
@@ -42,7 +47,16 @@ export function mapPujaActual(
     siguienteItemId: snapshot.siguienteItemId ?? undefined,
     siguienteLoteOrden: snapshot.siguienteLoteOrden ?? undefined,
     historialReciente:
-      snapshot.mejorOfertaActual != null
+      snapshot.historialReciente != null
+        ? snapshot.historialReciente.map(bid => ({
+            id: `puja-${bid.pujaId}`,
+            postorAlias: bid.postorAlias,
+            numeroPostor: bid.numeroPostor ?? undefined,
+            monto: bid.monto,
+            versionEstado: bid.versionEstado,
+            ganadora: bid.estado === 'aceptada' || bid.estado === 'ganadora',
+          }))
+        : snapshot.mejorOfertaActual != null
         ? [
             {
               id: `snapshot-${snapshot.versionEstado}`,

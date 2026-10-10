@@ -759,10 +759,12 @@ function Hero({ detalle }: { detalle: ConsignacionDetalleUi }) {
     <View style={styles.hero}>
       {showImage ? (
         <Image
-          source={{
-            uri: imageUrl,
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          }}
+          source={[
+            {
+              uri: imageUrl,
+              headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+            },
+          ]}
           style={styles.heroImage}
           resizeMode="cover"
           onError={() => setImageFailed(true)}
