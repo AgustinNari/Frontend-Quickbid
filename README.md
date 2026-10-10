@@ -34,7 +34,7 @@ Operations that require server confirmation, including live bidding, require an 
   </tr>
 </table>
 
-QuickBid is an academic team project. Users and commercial data in these screenshots are synthetic, item images are AI-generated, and payments are simulated. The offers shown in the local scenario were submitted through the application's real bidding logic.
+Users and commercial data in these screenshots are synthetic, item images are AI-generated, and payments are simulated. The offers shown in the local scenario were submitted through the application's real bidding logic.
 
 ## Tech Stack
 
