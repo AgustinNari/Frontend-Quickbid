@@ -34,7 +34,7 @@ Operations that require server confirmation, including live bidding, require an 
   </tr>
 </table>
 
-Users and commercial data in these screenshots are synthetic, item images are AI-generated, and payments are simulated. The offers shown in the local scenario were submitted through the application's real bidding logic.
+The screenshots use synthetic users, demonstration data, illustrative item imagery, and simulated payments. The bids shown in the local scenario were submitted through the application's actual bidding workflow.
 
 ## Tech Stack
 
